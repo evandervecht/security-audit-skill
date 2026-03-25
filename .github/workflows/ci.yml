@@ -1,0 +1,18 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  ci:
+    uses: evandervecht/skill-repo-skill/.github/workflows/ci-python.yml@main
+    permissions:
+      contents: read
+    with:
+      python-versions: '["3.12", "3.13"]'
+      test-command: 'uv run --python "$PYTHON_VERSION" scripts/test_risky_patterns.py'
