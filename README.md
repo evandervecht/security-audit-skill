@@ -310,15 +310,8 @@ security-audit-skill/
 
 ## License
 
-This project uses split licensing:
-
-- **Code** (scripts, workflows, configs): [MIT](LICENSE-MIT)
-- **Content** (skill definitions, documentation, references): [CC-BY-SA-4.0](LICENSE-CC-BY-SA-4.0)
-
-See the individual license files for full terms.
+[MIT](LICENSE-MIT)
 
 ## Credits
 
 Developed and maintained by [E van der Vecht](https://github.com/evandervecht).
-
-Based on the [security-audit-skill](https://github.com/netresearch/security-audit-skill) by Netresearch DTT GmbH (MIT / CC-BY-SA-4.0).

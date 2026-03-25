@@ -1,7 +1,7 @@
 ---
 name: security-audit
 description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel projects for XSS/SQLi/XXE/CSRF, checking for leaked secrets, scanning dependencies for CVEs, reviewing code for any security concern, auditing Infrastructure-as-Code (Dockerfile/K8s/Terraform), API security (OWASP API Top 10), frontend/client-side security (DOM XSS/CORS/SRI), or auditing AI agent skills and configurations against the OWASP LLM Top 10 (2025)."
-license: "(MIT AND CC-BY-SA-4.0). See LICENSE-MIT and LICENSE-CC-BY-SA-4.0"
+license: "MIT. See LICENSE-MIT"
 compatibility: "Requires grep, jq, gh CLI."
 metadata:
   author: Evan de Recht
