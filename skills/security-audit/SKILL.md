@@ -1,18 +1,18 @@
 ---
 name: security-audit
-description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel projects for XSS/SQLi/XXE/CSRF, checking for leaked secrets, scanning dependencies for CVEs, or reviewing code for any security concern."
-license: "(MIT AND CC-BY-SA-4.0). See LICENSE-MIT and LICENSE-CC-BY-SA-4.0"
+description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel projects for XSS/SQLi/XXE/CSRF, checking for leaked secrets, scanning dependencies for CVEs, reviewing code for any security concern, auditing Infrastructure-as-Code (Dockerfile/K8s/Terraform), API security (OWASP API Top 10), frontend/client-side security (DOM XSS/CORS/SRI), or auditing AI agent skills and configurations against the OWASP LLM Top 10 (2025)."
+license: "MIT. See LICENSE-MIT"
 compatibility: "Requires grep, jq, gh CLI."
 metadata:
   author: Evan de Recht
-  version: "2.3.0"
+  version: "3.0.0"
   repository: https://github.com/evandervecht/security-audit-skill
 allowed-tools: Bash(grep:*) Bash(jq:*) Bash(gh:*) Read Glob Grep
 ---
 
 # Security Audit Skill
 
-Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated PHP/TYPO3 code scanning with 80+ checkpoints and 19 reference guides.
+Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated PHP/TYPO3 code scanning, Infrastructure-as-Code scanning, API security, frontend security, and AI/LLM agent security with 119+ checkpoints and 23 reference guides.
 
 ## Expertise Areas
 
@@ -20,6 +20,10 @@ Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub pr
 - **Risk Scoring**: CVSS v3.1 and v4.0 methodology
 - **Secure Coding**: Input validation, output encoding, cryptography, session management, authentication
 - **Standards**: OWASP Top 10, CWE Top 25, OWASP ASVS, Proactive Controls
+- **Infrastructure**: Dockerfile, Docker Compose, Kubernetes, Terraform security scanning
+- **API Security**: OWASP API Top 10 (2023), GraphQL security, REST API hardening
+- **Frontend**: DOM XSS, Subresource Integrity, CORS, postMessage, client-side storage security
+- **AI/LLM Security**: OWASP LLM Top 10 (2025), agent permission auditing, MCP security, prompt injection defense
 
 ## Reference Files
 
@@ -30,6 +34,10 @@ Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub pr
 - **Modern Threats**: `modern-attacks.md`, `cve-patterns.md`, `php-security-features.md`
 - **DevSecOps**: `ci-security-pipeline.md`, `supply-chain-security.md`, `automated-scanning.md`
 - **Incident Response**: `supply-chain-incident-response.md` (detection, triage, remediation playbooks for GitHub Actions supply chain compromises)
+- **Infrastructure**: `iac-security.md` (Dockerfile, Docker Compose, Kubernetes, Terraform)
+- **API Security**: `api-security.md` (OWASP API Top 10, GraphQL, REST)
+- **Frontend**: `frontend-security.md` (DOM XSS, SRI, CORS, postMessage, client-side storage)
+- **AI/LLM Security**: `llm-security.md` (OWASP LLM Top 10 2025, agent/skill auditing)
 
 All files located in `references/`.
 
@@ -79,6 +87,18 @@ For automated scanning tools (semgrep, trivy, gitleaks), see `references/automat
 - [ ] File uploads validated, renamed, stored outside web root
 - [ ] Security headers: HSTS, CSP, X-Content-Type-Options
 - [ ] Dependencies scanned (composer audit), Dependabot enabled
+- [ ] Dockerfiles use non-root USER, no secrets in layers or ARGs
+- [ ] Kubernetes pods have securityContext, NetworkPolicy, RBAC least-privilege
+- [ ] Terraform resources not publicly accessible, storage encrypted
+- [ ] API endpoints enforce object-level and function-level authorization
+- [ ] GraphQL introspection disabled in production, depth/complexity limits set
+- [ ] Frontend scripts use SRI, no sensitive data in localStorage
+- [ ] CORS configured with specific origins, not wildcards
+- [ ] postMessage handlers validate origin
+- [ ] AI agent skills follow least-privilege for tool permissions
+- [ ] MCP server versions pinned, no secrets in system prompts
+- [ ] LLM output validated before shell execution or code generation
+- [ ] Agent safety hooks cover high-impact operations
 
 ## Verification
 
