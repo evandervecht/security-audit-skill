@@ -598,6 +598,225 @@ mechanical:
     severity: warning
     desc: "MCP server versions should be pinned, not 'latest' (supply chain risk)"
 
+  # === JAVASCRIPT/TYPESCRIPT SECURITY ===
+  - id: SA-JS-01
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "eval\\("
+    severity: error
+    desc: "eval() usage detected - potential code injection"
+
+  - id: SA-JS-02
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "\\.innerHTML\\s*="
+    severity: error
+    desc: "innerHTML assignment detected - potential DOM XSS"
+
+  - id: SA-JS-03
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "document\\.write\\("
+    severity: error
+    desc: "document.write() usage detected - potential DOM XSS"
+
+  - id: SA-JS-04
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "addEventListener\\(.message"
+    severity: warning
+    desc: "postMessage handler detected - verify origin validation"
+
+  - id: SA-JS-05
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "Math\\.random\\(\\)"
+    severity: warning
+    desc: "Math.random() is not cryptographically secure - use crypto.getRandomValues()"
+
+  - id: SA-JS-06
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "__proto__"
+    severity: error
+    desc: "__proto__ access detected - potential prototype pollution"
+
+  - id: SA-JS-07
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "new\\s+Function\\("
+    severity: error
+    desc: "Function constructor detected - equivalent to eval()"
+
+  - id: SA-JS-08
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "setTimeout\\(\\s*['\"`]"
+    severity: error
+    desc: "setTimeout with string argument - implicit eval()"
+
+  - id: SA-JS-09
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "\\.outerHTML\\s*="
+    severity: error
+    desc: "outerHTML assignment detected - potential DOM XSS"
+
+  - id: SA-JS-10
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "\\bdebugger\\b"
+    severity: warning
+    desc: "debugger statement detected - must not ship to production"
+
+  - id: SA-JS-11
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "require\\(.serialize-javascript"
+    severity: warning
+    desc: "serialize-javascript outputs executable JS - ensure output is never eval'd"
+
+  - id: SA-JS-12
+    type: regex
+    target: "**/*.{ts,tsx}"
+    pattern: ":\\s*any\\b"
+    severity: warning
+    desc: "TypeScript 'any' type disables type checking - use 'unknown' for untrusted input"
+
+  - id: SA-JS-13
+    type: regex
+    target: "**/*.{ts,tsx}"
+    pattern: "as\\s+unknown\\s+as"
+    severity: error
+    desc: "Double type assertion bypasses TypeScript safety - use runtime validation"
+
+  - id: SA-JS-14
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "import\\([^)]*\\$\\{"
+    severity: error
+    desc: "Dynamic import with template variable - potential module injection"
+
+  - id: SA-JS-15
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "setInterval\\(\\s*['\"`]"
+    severity: error
+    desc: "setInterval with string argument - implicit eval()"
+
+  - id: SA-JS-17
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
+    pattern: "postMessage\\([^,]+,\\s*['\"]\\*['\"]"
+    severity: error
+    desc: "postMessage with wildcard origin - data exposed to any frame"
+
+  # === NODE.JS SERVER-SIDE SECURITY (Phase 3) ===
+  - id: SA-NODE-01
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "child_process.*exec\\("
+    severity: error
+    desc: "child_process.exec() with potential command injection — use execFile or spawn instead"
+
+  - id: SA-NODE-02
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "fs\\.(readFile|writeFile|readdir|unlink).*req\\.(query|params|body)"
+    severity: error
+    desc: "fs operation with user input — validate and restrict paths with path.resolve + startsWith"
+
+  - id: SA-NODE-03
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "require\\s*\\(\\s*['\"]vm2?['\"]\\s*\\)"
+    severity: error
+    desc: "vm/vm2 module is not a security boundary — use OS-level isolation for untrusted code"
+
+  - id: SA-NODE-04
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "Buffer\\.(allocUnsafe|allocUnsafeSlow)\\s*\\("
+    severity: warning
+    desc: "Buffer.allocUnsafe returns uninitialized memory — use Buffer.alloc unless fully overwritten"
+
+  - id: SA-NODE-05
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "require\\s*\\(\\s*[^'\"\\s].*[+`]"
+    severity: error
+    desc: "Dynamic require() with variable path — use an allowlist of permitted modules"
+
+  - id: SA-NODE-06
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "(hashSync|compareSync|pbkdf2Sync|scryptSync)\\s*\\("
+    severity: warning
+    desc: "Synchronous crypto in request handler blocks event loop — use async variant"
+
+  - id: SA-NODE-07
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "res\\.(setHeader|writeHead)\\s*\\([^)]*req\\.(query|params|body|headers)"
+    severity: error
+    desc: "User input in HTTP response header — risk of CRLF injection"
+
+  - id: SA-NODE-08
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "Math\\.random\\s*\\("
+    severity: warning
+    desc: "Math.random() is not cryptographically secure — use crypto.randomUUID() or crypto.randomBytes()"
+
+  - id: SA-NODE-09
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "http\\.createServer\\s*\\("
+    severity: warning
+    desc: "http.createServer — verify headersTimeout, requestTimeout, and body size limits are set"
+
+  - id: SA-NODE-10
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "Object\\.assign\\s*\\([^,]+,\\s*req\\.(body|query|params)"
+    severity: error
+    desc: "Object.assign with user input — risk of prototype pollution"
+
+  - id: SA-NODE-11
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "\\beval\\s*\\("
+    severity: error
+    desc: "eval() executes arbitrary code — use safe alternatives"
+
+  - id: SA-NODE-12
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "createHash\\s*\\(\\s*['\"]md5['\"]"
+    severity: warning
+    desc: "MD5 is cryptographically broken — use SHA-256 or stronger"
+
+  - id: SA-NODE-13
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "createHash\\s*\\(\\s*['\"]sha1['\"]"
+    severity: warning
+    desc: "SHA-1 is cryptographically weak — use SHA-256 or stronger"
+
+  - id: SA-NODE-14
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "new\\s+Function\\s*\\("
+    severity: error
+    desc: "new Function() is equivalent to eval — use safe alternatives"
+
+  - id: SA-NODE-15
+    type: regex
+    target: "**/*.{js,ts,mjs,cjs}"
+    pattern: "fetch\\s*\\(\\s*req\\.(query|params|body)"
+    severity: error
+    desc: "fetch with user-supplied URL — risk of SSRF, validate and restrict URLs"
+
 llm_reviews:
   # === HARDCODED CREDENTIALS REVIEW ===
   - id: SA-16
