@@ -112,7 +112,8 @@ def main() -> int:
     expected_refs = [
         "owasp-top10.md", "cwe-top25.md", "xxe-prevention.md", "cvss-scoring.md",
         "api-key-encryption.md", "authentication-patterns.md", "security-headers.md",
-        "security-logging.md", "cryptography-guide.md", "framework-security.md",
+        "security-logging.md", "cryptography-guide.md",
+        "typo3-security.md", "symfony-security.md", "laravel-security.md",
         "modern-attacks.md", "cve-patterns.md", "php-security-features.md",
         "ci-security-pipeline.md", "supply-chain-security.md", "automated-scanning.md",
         "input-validation.md", "path-traversal-prevention.md",
