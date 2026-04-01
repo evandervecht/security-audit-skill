@@ -1,7 +1,8 @@
 # Stage 1: Build toolchain + govulncheck in dev container
 FROM dhi.io/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3d5c1147b19880afe40e052 AS builder
 
-RUN apk add --no-cache strace
+RUN apt-get update && apt-get install -y --no-install-recommends strace \
+    && rm -rf /var/lib/apt/lists/*
 RUN go install golang.org/x/vuln/cmd/govulncheck@latest
 
 # Stage 2: Hardened non-root runtime
@@ -10,10 +11,10 @@ FROM dhi.io/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3
 COPY --from=builder /usr/bin/strace /usr/bin/strace
 COPY --from=builder /root/go/bin/govulncheck /usr/local/bin/govulncheck
 
-RUN rm -rf /var/cache/apk/* /tmp/*
+RUN rm -rf /var/cache/apt /var/lib/apt/lists /tmp/* 2>/dev/null || true
 
 # Create non-root user with restricted home
-RUN addgroup -S sandbox && adduser -S -G sandbox -h /sandbox -s /sbin/nologin sandbox
+RUN groupadd -r sandbox && useradd -r -g sandbox -d /sandbox -s /usr/sbin/nologin sandbox
 
 ENV GOPATH=/sandbox/go
 RUN mkdir -p /sandbox/go && chown sandbox:sandbox /sandbox/go

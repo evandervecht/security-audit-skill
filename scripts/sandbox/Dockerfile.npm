@@ -1,18 +1,18 @@
 # Stage 1: Build/install tools in dev container
-FROM dhi.io/node:20-alpine@sha256:f598378b5240225e6beab68fa9f356db1fb8efe55173e6d4d8153113bb8f333c AS builder
+FROM dhi.io/node:25-debian13-dev@sha256:aa7e54aa027bc9404173a09c85b8380b53c37c908ca8ff36e18e6ecc2b264d1d AS builder
 
-RUN apk add --no-cache strace
+RUN apt-get update && apt-get install -y --no-install-recommends strace \
+    && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: Hardened non-root runtime
-FROM dhi.io/node:20-alpine@sha256:f598378b5240225e6beab68fa9f356db1fb8efe55173e6d4d8153113bb8f333c
+FROM dhi.io/node:25-debian13@sha256:36b558fa9be97d6416770a7be2d35f37797d814f13a3d9e23dfff8a1a4615090
 
 COPY --from=builder /usr/bin/strace /usr/bin/strace
 
-RUN apk add --no-cache libstdc++ \
-    && rm -rf /var/cache/apk/* /tmp/*
+RUN rm -rf /var/cache/apt /var/lib/apt/lists /tmp/* 2>/dev/null || true
 
 # Create non-root user with restricted home
-RUN addgroup -S sandbox && adduser -S -G sandbox -h /sandbox -s /sbin/nologin sandbox
+RUN groupadd -r sandbox && useradd -r -g sandbox -d /sandbox -s /usr/sbin/nologin sandbox && mkdir -p /sandbox && chown sandbox:sandbox /sandbox
 
 # Entrypoint script: install + npm audit
 COPY entrypoint-npm.sh /usr/local/bin/entrypoint.sh
