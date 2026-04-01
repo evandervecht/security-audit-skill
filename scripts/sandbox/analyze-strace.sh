@@ -23,7 +23,7 @@ echo "=== Network Connections ==="
 NETWORK_CALLS=$(grep -E "connect\(" "$STRACE_LOG" 2>/dev/null | grep -v "127\.0\.0\.1\|::1\|ENOENT\|EINPROGRESS" || true)
 
 # Known safe registries
-SAFE_HOSTS="registry\.npmjs\.org|pypi\.org|files\.pythonhosted\.org|github\.com|objects\.githubusercontent\.com"
+SAFE_HOSTS="registry\.npmjs\.org|pypi\.org|files\.pythonhosted\.org|github\.com|objects\.githubusercontent\.com|proxy\.golang\.org|sum\.golang\.org|storage\.googleapis\.com|static\.crates\.io|crates\.io|index\.crates\.io|api\.nuget\.org|nuget\.org|static\.rust-lang\.org"
 
 SUSPICIOUS_NETWORK=$(echo "$NETWORK_CALLS" | grep -vE "$SAFE_HOSTS" | grep -E "sa_family=AF_INET" || true)
 if [[ -n "$SUSPICIOUS_NETWORK" ]]; then
@@ -67,7 +67,7 @@ echo ""
 echo "=== Process Spawning ==="
 # Look for execve of unexpected binaries
 EXEC_CALLS=$(grep -E "execve\(" "$STRACE_LOG" 2>/dev/null || true)
-SAFE_BINARIES="node\|npm\|python\|pip\|sh\|env\|strace\|git\|gcc\|g++\|make\|cc"
+SAFE_BINARIES="node\|npm\|python\|pip\|sh\|env\|strace\|git\|gcc\|g++\|make\|cc\|go\|cargo\|rustc\|dotnet\|nuget\|ld\|ar\|as\|rustup"
 SUSPICIOUS_EXEC=$(echo "$EXEC_CALLS" | grep -vE "$SAFE_BINARIES" || true)
 if [[ -n "$SUSPICIOUS_EXEC" ]]; then
     echo "WARNING: Unexpected process execution:"

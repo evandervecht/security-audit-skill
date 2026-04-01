@@ -149,8 +149,8 @@ server.tool(
   "dependency_sandbox",
   "Install a package in an isolated Docker container and monitor for suspicious behavior (network calls to non-registry hosts, unexpected file writes, process spawning). Requires Docker.",
   {
-    ecosystem: z.enum(["npm", "pip"]).describe("Package ecosystem"),
-    package: z.string().describe("Package name with optional version (e.g., lodash@4.17.21 or requests==2.31.0)"),
+    ecosystem: z.enum(["npm", "pip", "go", "rust", "dotnet"]).describe("Package ecosystem"),
+    package: z.string().describe("Package name with optional version (e.g., lodash@4.17.21, requests==2.31.0, github.com/gin-gonic/gin, serde, Newtonsoft.Json)"),
   },
   async ({ ecosystem, package: pkg }) => {
     const { execSync } = await import("node:child_process");
