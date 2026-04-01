@@ -9,8 +9,6 @@ FROM dhi.io/node:25-debian13@sha256:36b558fa9be97d6416770a7be2d35f37797d814f13a3
 
 COPY --from=builder /usr/bin/strace /usr/bin/strace
 
-RUN rm -rf /var/cache/apt /var/lib/apt/lists /tmp/* 2>/dev/null || true
-
 # Create non-root user with restricted home
 RUN groupadd -r sandbox && useradd -r -g sandbox -d /sandbox -s /usr/sbin/nologin sandbox && mkdir -p /sandbox && chown sandbox:sandbox /sandbox
 

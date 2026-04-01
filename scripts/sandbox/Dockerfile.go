@@ -11,8 +11,6 @@ FROM dhi.io/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3
 COPY --from=builder /usr/bin/strace /usr/bin/strace
 COPY --from=builder /root/go/bin/govulncheck /usr/local/bin/govulncheck
 
-RUN rm -rf /var/cache/apt /var/lib/apt/lists /tmp/* 2>/dev/null || true
-
 # Create non-root user with restricted home
 RUN groupadd -r sandbox && useradd -r -g sandbox -d /sandbox -s /usr/sbin/nologin sandbox
 
