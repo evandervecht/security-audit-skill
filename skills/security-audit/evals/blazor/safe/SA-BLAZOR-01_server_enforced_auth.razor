@@ -1,0 +1,30 @@
+@* SA-BLAZOR-01: Server-enforced auth with AuthorizeView and error handling *@
+@page "/reports/overview"
+@attribute [Authorize(Roles = "Manager")]
+@inject HttpClient Http
+
+<AuthorizeView Roles="Manager">
+    <Authorized>
+        <h1>Reports Overview</h1>
+        <p>@reportData</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>Access denied.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string reportData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            reportData = await Http.GetStringAsync("/api/reports/overview");
+        }
+        catch (HttpRequestException ex)
+        {
+            reportData = "Unable to load reports.";
+        }
+    }
+}

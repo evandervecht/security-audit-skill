@@ -1661,6 +1661,485 @@ mechanical:
     severity: info
     desc: "Nuxt plugin without enforce/dependsOn — verify execution order for security plugins"
 
+  # === SPRING SECURITY CHECKS ===
+  - id: SA-SPRING-01
+    type: regex
+    target: "**/*.java"
+    pattern: "requestMatchers\\s*\\(\\s*\"\\/(api|admin)\\/\\*\\*\"\\s*\\)\\s*\\.\\s*permitAll\\s*\\(\\s*\\)"
+    severity: error
+    desc: "Spring Security permitAll overreach — verify scope is intentionally broad"
+
+  - id: SA-SPRING-02
+    type: regex
+    target: "**/*.java"
+    pattern: "parseExpression\\s*\\(\\s*[a-zA-Z_]\\w*\\s*\\)"
+    severity: error
+    desc: "SpEL expression parsed from untrusted input — injection risk"
+
+  - id: SA-SPRING-03
+    type: regex
+    target: "**/*.java"
+    pattern: "include\\s*:\\s*[\"']?\\*[\"']?|exposure\\.include\\s*=\\s*\\*"
+    severity: error
+    desc: "Spring Boot actuator wildcard exposure — secrets and heap dumps accessible"
+
+  - id: SA-SPRING-04
+    type: regex
+    target: "**/*.java"
+    pattern: "csrf\\s*\\(\\s*(?:csrf|c)\\s*->\\s*(?:csrf|c)\\.disable\\s*\\(\\s*\\)\\s*\\)|\\.csrf\\(\\)\\.disable\\(\\)"
+    severity: warning
+    desc: "CSRF protection disabled — verify endpoint is stateless (JWT/Bearer)"
+
+  - id: SA-SPRING-05
+    type: regex
+    target: "**/*.java"
+    pattern: "@PreAuthorize\\s*\\("
+    severity: warning
+    desc: "@PreAuthorize found — verify @EnableMethodSecurity is declared on a @Configuration class"
+
+  - id: SA-SPRING-06
+    type: regex
+    target: "**/*.java"
+    pattern: "return\\s+(?:request|param|input|query|\\w+)\\s*;"
+    severity: warning
+    desc: "Controller return value may be user-controlled — Thymeleaf SSTI risk"
+
+  - id: SA-SPRING-07
+    type: regex
+    target: "**/*.java"
+    pattern: "@ModelAttribute\\s+(?!.*Dto|.*Request|.*Form|.*Command)\\w+\\s+\\w+"
+    severity: warning
+    desc: "@ModelAttribute binds to entity directly — mass assignment risk"
+
+  - id: SA-SPRING-08
+    type: regex
+    target: "**/*.java"
+    pattern: "enableDefaultTyping\\s*\\(|activateDefaultTyping\\s*\\("
+    severity: error
+    desc: "Jackson default typing enabled — deserialization gadget chain risk"
+
+  # === .NET SECURITY CHECKS ===
+  - id: SA-DOTNET-01
+    type: regex
+    target: "**/*.cs"
+    pattern: "UseAuthentication\\s*\\(\\s*\\)[\\s\\S]{0,200}UseRouting\\s*\\(\\s*\\)|MapControllers\\s*\\(\\s*\\)[\\s\\S]{0,200}UseAuthentication\\s*\\(\\s*\\)|UseAuthorization\\s*\\(\\s*\\)[\\s\\S]{0,200}UseAuthentication\\s*\\(\\s*\\)"
+    severity: error
+    desc: "ASP.NET Core middleware ordering wrong — auth must come before routing/endpoints"
+
+  - id: SA-DOTNET-02
+    type: regex
+    target: "**/*.cs"
+    pattern: "FromSqlRaw\\s*\\(\\s*\\$\"|FromSqlRaw\\s*\\(\\s*\"[^\"]*\"\\s*\\+|ExecuteSqlRaw\\s*\\(\\s*\\$\"|ExecuteSqlRaw\\s*\\(\\s*\"[^\"]*\"\\s*\\+"
+    severity: error
+    desc: "Entity Framework raw SQL with string interpolation/concatenation — SQL injection"
+
+  - id: SA-DOTNET-03
+    type: regex
+    target: "**/*.cs"
+    pattern: "\\[AllowAnonymous\\]\\s*(?:\\r?\\n\\s*)*(?:public\\s+class|\\[(?:ApiController|Route)\\])"
+    severity: error
+    desc: "[AllowAnonymous] on controller class — all actions are publicly accessible"
+
+  - id: SA-DOTNET-04
+    type: regex
+    target: "**/*.cs"
+    pattern: "Html\\.Raw\\s*\\((?!.*Sanitiz)|@\\(\\s*\\(MarkupString\\)\\s*\\w+"
+    severity: error
+    desc: "Razor Html.Raw or MarkupString with unsanitized input — XSS risk"
+
+  - id: SA-DOTNET-05
+    type: regex
+    target: "**/*.cs"
+    pattern: "AllowAnyOrigin\\s*\\(\\s*\\)|SetIsOriginAllowed\\s*\\(\\s*_?\\s*=>\\s*true\\s*\\)"
+    severity: error
+    desc: "CORS policy allows any origin — credential theft via cross-origin requests"
+
+  - id: SA-DOTNET-06
+    type: regex
+    target: "**/*.cs"
+    pattern: "IgnoreAntiforgeryTokenAttribute\\s*\\(\\s*\\)|IgnoreAntiforgeryToken\\]"
+    severity: warning
+    desc: "Anti-forgery token validation disabled — CSRF risk"
+
+  - id: SA-DOTNET-07
+    type: regex
+    target: "**/*.cs"
+    pattern: "DisableAutomaticKeyGeneration\\s*\\(\\s*\\)"
+    severity: warning
+    desc: "Data Protection automatic key generation disabled — keys will expire without rotation"
+
+  - id: SA-DOTNET-08
+    type: regex
+    target: "**/*.cs"
+    pattern: "class\\s+\\w+Hub\\s*:\\s*Hub\\b"
+    severity: warning
+    desc: "SignalR hub found — verify [Authorize] attribute is applied"
+
+  # === BLAZOR SECURITY CHECKS ===
+  - id: SA-BLAZOR-01
+    type: regex
+    target: "**/*.{razor,cs}"
+    pattern: "Http\\.\\w+Async\\s*\\(\\s*\"[^\"]*(?:admin|secret|internal|private|manage)"
+    severity: error
+    desc: "Blazor WASM calling sensitive API — verify server-side [Authorize] enforcement"
+
+  - id: SA-BLAZOR-02
+    type: regex
+    target: "**/*.{razor,cs}"
+    pattern: "(?:private|protected|public)\\s+string\\s+(?:creditCard|cvv|ssn|password|secret|token|apiKey)\\s*="
+    severity: warning
+    desc: "Sensitive data stored in Blazor component state — exposure via circuit or prerender"
+
+  - id: SA-BLAZOR-03
+    type: regex
+    target: "**/*.{razor,cs}"
+    pattern: "InvokeVoidAsync\\s*\\(\\s*\"eval\"|InvokeAsync\\s*\\(\\s*\"eval\""
+    severity: error
+    desc: "JS interop calling eval — injection risk from untrusted input"
+
+  - id: SA-BLAZOR-04
+    type: regex
+    target: "**/*.{razor,cs}"
+    pattern: "\\[Authorize\\][\\s\\S]{0,200}prerender\\s*:\\s*true"
+    severity: warning
+    desc: "[Authorize] with prerender enabled — auth state may not be available during prerender"
+
+  - id: SA-BLAZOR-05
+    type: regex
+    target: "**/*.{razor,cs}"
+    pattern: "OnInitializedAsync[\\s\\S]{0,300}(?:Sensitive|Secret|Private|Confidential|GetCredentials|GetTokens)"
+    severity: warning
+    desc: "Sensitive data loaded in OnInitializedAsync — may leak via prerendering"
+
+  # === DJANGO SECURITY ===
+  - id: SA-DJANGO-01
+    type: regex
+    target: "**/*.py"
+    pattern: "\\.raw\\s*\\(\\s*f[\"']|\\.raw\\s*\\(\\s*[\"'].*%s.*[\"']\\s*%|\\.extra\\s*\\(|cursor\\.execute\\s*\\(\\s*f[\"']|cursor\\.execute\\s*\\(\\s*[\"'].*%s.*[\"']\\s*%"
+    severity: error
+    desc: "Django ORM injection via raw(), extra(), or cursor.execute() with string interpolation"
+
+  - id: SA-DJANGO-02
+    type: regex
+    target: "**/*.py"
+    pattern: "@csrf_exempt|csrf_exempt\\s*\\(|decorators\\.csrf\\s+import\\s+csrf_exempt"
+    severity: error
+    desc: "CSRF protection disabled via @csrf_exempt decorator"
+
+  - id: SA-DJANGO-03
+    type: regex
+    target: "**/*.py"
+    pattern: "DEBUG\\s*=\\s*True"
+    severity: error
+    desc: "Django DEBUG=True — exposes tracebacks, SQL queries, and settings in production"
+
+  - id: SA-DJANGO-04
+    type: regex
+    target: "**/*.py"
+    pattern: "mark_safe\\s*\\(|\\.safestring\\s+import|safestring\\.mark_safe"
+    severity: error
+    desc: "XSS risk via mark_safe() — bypasses Django auto-escaping"
+
+  - id: SA-DJANGO-05
+    type: regex
+    target: "**/*.py"
+    pattern: "SECRET_KEY\\s*=\\s*[\"'][^\"']{8,}[\"']"
+    severity: error
+    desc: "Django SECRET_KEY hardcoded in source — enables session/token forgery if leaked"
+
+  - id: SA-DJANGO-06
+    type: regex
+    target: "**/*.py"
+    pattern: "PickleSerializer|SESSION_SERIALIZER.*[Pp]ickle"
+    severity: error
+    desc: "Pickle session serializer — enables RCE if SECRET_KEY is compromised"
+
+  - id: SA-DJANGO-07
+    type: regex
+    target: "**/*.py"
+    pattern: "path\\s*\\(\\s*[\"']admin/[\"']|url\\s*\\(\\s*r?\\s*[\"'].*admin/"
+    severity: warning
+    desc: "Django admin on default /admin/ URL — consider obscuring path and adding IP restrictions"
+
+  - id: SA-DJANGO-08
+    type: regex
+    target: "**/*.py"
+    pattern: "FileField\\s*\\(\\s*upload_to\\s*=\\s*[\"'][^\"']*[\"'](?:\\s*\\)|\\s*,\\s*\\))|request\\.FILES\\["
+    severity: warning
+    desc: "File upload without visible validation — verify size, type, and filename sanitization"
+
+  # === FLASK SECURITY ===
+  - id: SA-FLASK-01
+    type: regex
+    target: "**/*.py"
+    pattern: "render_template_string\\s*\\("
+    severity: error
+    desc: "Flask render_template_string() — potential SSTI if user input reaches template"
+
+  - id: SA-FLASK-02
+    type: regex
+    target: "**/*.py"
+    pattern: "request\\.args\\s*\\[|request\\.args\\.get\\s*\\(|request\\.form\\s*\\[|request\\.form\\.get\\s*\\(|request\\.values"
+    severity: warning
+    desc: "Flask request parameter access — verify input is validated before use"
+
+  - id: SA-FLASK-03
+    type: regex
+    target: "**/*.py"
+    pattern: "send_file\\s*\\(\\s*f[\"']|send_file\\s*\\(\\s*.*request\\.|send_file\\s*\\(\\s*os\\.path\\.join"
+    severity: error
+    desc: "Flask send_file() with dynamic path — potential path traversal"
+
+  - id: SA-FLASK-04
+    type: regex
+    target: "**/*.py"
+    pattern: "app\\.run\\s*\\(.*debug\\s*=\\s*True|\\.config\\s*\\[\\s*[\"']DEBUG[\"']\\s*\\]\\s*=\\s*True|FLASK_DEBUG\\s*=\\s*1"
+    severity: error
+    desc: "Flask debug=True — Werkzeug debugger enables arbitrary code execution"
+
+  - id: SA-FLASK-05
+    type: regex
+    target: "**/*.py"
+    pattern: "secret_key\\s*=\\s*[\"'][^\"']{1,30}[\"']|app\\.config\\s*\\[\\s*[\"']SECRET_KEY[\"']\\s*\\]\\s*=\\s*[\"']"
+    severity: error
+    desc: "Flask SECRET_KEY hardcoded or weak — enables session cookie forgery"
+
+  - id: SA-FLASK-06
+    type: regex
+    target: "**/*.py"
+    pattern: "db\\.session\\.execute\\s*\\(\\s*f[\"']|db\\.session\\.execute\\s*\\(\\s*[\"'].*%s.*[\"']\\s*%|db\\.engine\\.execute\\s*\\(\\s*f[\"']|\\.execute\\s*\\(\\s*f[\"']SELECT|\\.execute\\s*\\(\\s*f[\"']INSERT|\\.execute\\s*\\(\\s*f[\"']UPDATE|\\.execute\\s*\\(\\s*f[\"']DELETE"
+    severity: error
+    desc: "SQLAlchemy raw query with string interpolation — SQL injection risk"
+
+  # === FASTAPI SECURITY ===
+  - id: SA-FASTAPI-01
+    type: regex
+    target: "**/*.py"
+    pattern: "@app\\.(get|post|put|patch|delete)\\("
+    severity: warning
+    desc: "FastAPI endpoint without Depends() — verify authentication is not missing"
+
+  - id: SA-FASTAPI-02
+    type: regex
+    target: "**/*.py"
+    pattern: "def\\s+\\w+\\s*\\([^)]*:\\s*dict\\s*[,\\)]|:\\s*Any\\s*[,\\)=]|extra\\s*=\\s*[\"']allow[\"']"
+    severity: warning
+    desc: "Pydantic validation bypass via dict/Any type or extra='allow'"
+
+  - id: SA-FASTAPI-03
+    type: regex
+    target: "**/*.py"
+    pattern: "allow_origins\\s*=\\s*\\[\\s*[\"']\\*[\"']\\s*\\]|CORSMiddleware.*allow_origins.*\\*"
+    severity: error
+    desc: "FastAPI CORS wildcard origin — allows any domain to make cross-origin requests"
+
+  - id: SA-FASTAPI-04
+    type: regex
+    target: "**/*.py"
+    pattern: "response\\.headers\\s*\\[.*\\]\\s*=\\s*f[\"']|response\\.headers\\s*\\[.*\\]\\s*=.*request\\.|.headers\\s*\\[\\s*[\"']Set-Cookie[\"']\\s*\\]\\s*="
+    severity: warning
+    desc: "Response header set from user input — potential header injection"
+
+  - id: SA-FASTAPI-05
+    type: regex
+    target: "**/*.py"
+    pattern: "UploadFile.*filename|file\\.filename|shutil\\.copyfileobj\\s*\\(\\s*file"
+    severity: warning
+    desc: "FastAPI file upload — verify size limit, type validation, and filename sanitization"
+
+  - id: SA-FASTAPI-06
+    type: regex
+    target: "**/*.py"
+    pattern: "algorithms\\s*=\\s*\\[.*none.*\\]|jwt\\.decode\\s*\\(\\s*token\\s*,\\s*[^,]+\\s*\\)\\s*$|ACCESS_TOKEN_EXPIRE.*(?:525600|86400|43200)"
+    severity: error
+    desc: "OAuth2/JWT implementation issue — algorithm confusion, missing validation, or excessive expiry"
+
+  # === GIN (GO) SECURITY CHECKS ===
+  - id: SA-GIN-01
+    type: regex
+    target: "**/*.go"
+    pattern: "\\.Use\\(auth[A-Za-z]*\\("
+    severity: error
+    desc: "Auth middleware may be registered after routes — verify ordering"
+
+  - id: SA-GIN-02
+    type: regex
+    target: "**/*.go"
+    pattern: "c\\.(Bind|ShouldBind|ShouldBindJSON|BindJSON|ShouldBindQuery)\\s*\\("
+    severity: warning
+    desc: "Gin binding function — verify struct does not contain sensitive fields (mass assignment)"
+
+  - id: SA-GIN-03
+    type: regex
+    target: "**/*.go"
+    pattern: "template\\.HTML\\s*\\(|c\\.Data\\s*\\([^)]*\"text/html|c\\.Writer\\.WriteString\\s*\\("
+    severity: error
+    desc: "Raw HTML output bypassing template auto-escaping — potential XSS"
+
+  - id: SA-GIN-04
+    type: regex
+    target: "**/*.go"
+    pattern: "AllowAllOrigins\\s*:\\s*true|AllowOrigins\\s*:\\s*\\[\\s*\"\\*\"\\s*\\]|AllowOriginFunc\\s*:.*return\\s+true"
+    severity: error
+    desc: "CORS misconfiguration — wildcard or permissive origin policy"
+
+  - id: SA-GIN-05
+    type: regex
+    target: "**/*.go"
+    pattern: "c\\.(File|FileAttachment)\\s*\\([^)]*c\\.(Param|Query|PostForm)\\s*\\("
+    severity: error
+    desc: "User-controlled path in c.File/c.FileAttachment — path traversal risk"
+
+  - id: SA-GIN-06
+    type: regex
+    target: "**/*.go"
+    pattern: "gin\\.New\\s*\\(\\s*\\)"
+    severity: warning
+    desc: "gin.New() without default middleware — verify Recovery() is registered first"
+
+  # === RAILS SECURITY CHECKS ===
+  - id: SA-RAILS-01
+    type: regex
+    target: "**/*.rb"
+    pattern: "\\.permit!|params\\[:[a-z_]+\\]\\.permit\\([^)]*(?:role|admin|superuser|permission)"
+    severity: error
+    desc: "Mass assignment — permit! or permitting sensitive fields"
+
+  - id: SA-RAILS-02
+    type: regex
+    target: "**/*.rb"
+    pattern: "\\.html_safe|raw\\s*\\(|<%=="
+    severity: error
+    desc: "html_safe/raw/<%== bypasses Rails auto-escaping — XSS risk"
+
+  - id: SA-RAILS-03
+    type: regex
+    target: "**/*.rb"
+    pattern: "find_by_sql\\s*\\(.*#\\{|\\.where\\s*\\(.*#\\{|\\.order\\s*\\(\\s*params"
+    severity: error
+    desc: "String interpolation in SQL query — SQL injection risk"
+
+  - id: SA-RAILS-04
+    type: regex
+    target: "**/*.rb"
+    pattern: "skip_before_action\\s*:verify_authenticity_token|protect_from_forgery\\s+with:\\s*:null_session"
+    severity: error
+    desc: "CSRF protection disabled or misconfigured"
+
+  - id: SA-RAILS-05
+    type: regex
+    target: "**/*.rb"
+    pattern: "send_file\\s*.*params\\[|send_data\\s*.*filename:\\s*params\\["
+    severity: error
+    desc: "User-controlled path in send_file/send_data — path traversal risk"
+
+  - id: SA-RAILS-06
+    type: regex
+    target: "**/*.rb"
+    pattern: "render\\s+inline:\\s*.*params\\[|render\\s+inline:\\s*.*#\\{"
+    severity: error
+    desc: "User input in render inline: — server-side template injection"
+
+  - id: SA-RAILS-07
+    type: regex
+    target: "**/*.rb"
+    pattern: "has_one_attached\\s+:\\w+"
+    severity: warning
+    desc: "Active Storage attachment — verify content_type and size validation"
+
+  - id: SA-RAILS-08
+    type: regex
+    target: "**/*.rb"
+    pattern: "class\\s+\\w+Channel\\s*<\\s*ApplicationCable::Channel"
+    severity: warning
+    desc: "Action Cable channel — verify authentication in Connection and authorization in subscribed"
+
+  # === EXPRESS SECURITY CHECKS ===
+  - id: SA-EXPRESS-01
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "app\\.(get|post|put|delete|use)\\s*\\([^)]*\\)[\\s\\S]*?app\\.use\\s*\\(\\s*helmet\\s*\\("
+    severity: error
+    desc: "Routes defined before helmet middleware — missing security headers"
+
+  - id: SA-EXPRESS-02
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "execSync\\s*\\(.*req\\.(params|query|body)|exec\\s*\\(.*req\\.(params|query|body)"
+    severity: error
+    desc: "User input in shell command — command injection risk"
+
+  - id: SA-EXPRESS-03
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "res\\.sendFile\\s*\\(\\s*(?:req\\.(params|query|body)|path\\.join\\s*\\([^)]*req\\.(params|query|body))"
+    severity: error
+    desc: "User-controlled path in res.sendFile — path traversal risk"
+
+  - id: SA-EXPRESS-04
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "session\\s*\\(\\s*\\{[^}]*secret\\s*:\\s*['\"][^'\"]{0,20}['\"]|cookie\\s*:\\s*\\{[^}]*httpOnly\\s*:\\s*false|cookie\\s*:\\s*\\{[^}]*secure\\s*:\\s*false"
+    severity: error
+    desc: "Insecure session configuration — weak secret, missing httpOnly, or missing secure flag"
+
+  - id: SA-EXPRESS-05
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "app\\.(post|put)\\s*\\(\\s*['\"\\/][^'\"]*(?:login|auth|token|password|register)[^'\"]*['\"]"
+    severity: warning
+    desc: "Auth endpoint — verify rate limiting is applied"
+
+  - id: SA-EXPRESS-06
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "findByIdAndUpdate\\s*\\([^,]+,\\s*req\\.body\\s*\\)|\\.create\\s*\\(\\s*req\\.body\\s*\\)"
+    severity: warning
+    desc: "Passing req.body directly to database operation — mass assignment risk"
+
+  # === NESTJS SECURITY CHECKS ===
+  - id: SA-NEST-01
+    type: regex
+    target: "**/*.ts"
+    pattern: "@UseGuards\\s*\\(\\s*RolesGuard\\s*,\\s*AuthGuard\\s*\\)"
+    severity: error
+    desc: "RolesGuard before AuthGuard — authorization checked before authentication"
+
+  - id: SA-NEST-02
+    type: regex
+    target: "**/*.ts"
+    pattern: "new\\s+ValidationPipe\\s*\\(\\s*\\{[^}]*whitelist\\s*:\\s*false"
+    severity: error
+    desc: "ValidationPipe with whitelist:false — extra properties not stripped (mass assignment)"
+
+  - id: SA-NEST-03
+    type: regex
+    target: "**/*.ts"
+    pattern: "@Column\\s*\\(\\s*\\)\\s*\\n\\s*password\\s*:|@Column\\s*\\(\\s*\\)\\s*\\n\\s*(?:secret|token|hash|internal)"
+    severity: warning
+    desc: "Sensitive entity column without @Exclude — may be exposed in API responses"
+
+  - id: SA-NEST-04
+    type: regex
+    target: "**/*.ts"
+    pattern: "@Param\\s*\\(\\s*['\"][^'\"]+['\"]\\s*\\)\\s+\\w+\\s*:\\s*string"
+    severity: warning
+    desc: "Route parameter without ParseIntPipe/ParseUUIDPipe — type confusion risk"
+
+  - id: SA-NEST-05
+    type: regex
+    target: "**/*.ts"
+    pattern: "@Public\\s*\\(\\s*\\)\\s*\\n\\s*@(Delete|Put|Patch)\\s*\\(|@Public\\s*\\(\\s*\\)\\s*\\n\\s*@Controller"
+    severity: error
+    desc: "@Public on state-changing endpoint or entire controller — auth bypass"
+
+  - id: SA-NEST-06
+    type: regex
+    target: "**/*.ts"
+    pattern: "@WebSocketGateway\\s*\\("
+    severity: warning
+    desc: "WebSocket gateway — verify handleConnection authentication and message-level guards"
+
 llm_reviews:
   # === HARDCODED CREDENTIALS REVIEW ===
   - id: SA-16

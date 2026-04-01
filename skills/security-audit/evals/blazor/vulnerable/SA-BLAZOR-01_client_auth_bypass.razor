@@ -1,0 +1,16 @@
+@* SA-BLAZOR-01: Client-side auth bypass — calling sensitive API without server enforcement *@
+@page "/admin/dashboard"
+@attribute [Authorize(Roles = "Admin")]
+@inject HttpClient Http
+
+<h1>Admin Dashboard</h1>
+<p>@adminData</p>
+
+@code {
+    private string adminData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        adminData = await Http.GetStringAsync("/api/admin/data");
+    }
+}
