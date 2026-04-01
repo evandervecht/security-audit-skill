@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+
+# Node.js / TypeScript packages
+node_modules/
+packages/*/dist/
+packages/*/node_modules/
+*.tsbuildinfo
