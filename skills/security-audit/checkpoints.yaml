@@ -2140,6 +2140,518 @@ mechanical:
     severity: warning
     desc: "WebSocket gateway — verify handleConnection authentication and message-level guards"
 
+  # === AWS SECURITY CHECKS ===
+  - id: SA-AWS-01
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "\"Action\"\\s*:\\s*\"\\*\"|\"Action\"\\s*:\\s*\\[\\s*\"\\*\"\\s*\\]"
+    severity: error
+    desc: "IAM policy with wildcard Action — grants unrestricted permissions"
+
+  - id: SA-AWS-02
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "\"Effect\"\\s*:\\s*\"Allow\"[^}]*\"Action\"\\s*:\\s*\"sts:AssumeRole\"(?![^}]*\"Condition\")"
+    severity: warning
+    desc: "AssumeRole without conditions — missing MFA, IP, or external ID restriction"
+
+  - id: SA-AWS-03
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "\"Principal\"\\s*:\\s*\\{\\s*\"AWS\"\\s*:\\s*\"\\*\"\\s*\\}|\"Principal\"\\s*:\\s*\"\\*\""
+    severity: error
+    desc: "Overly permissive trust policy — any principal can assume role"
+
+  - id: SA-AWS-04
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "\"Action\"\\s*:\\s*\"iam:PassRole\"[^}]*\"Resource\"\\s*:\\s*\"\\*\""
+    severity: error
+    desc: "iam:PassRole with wildcard resource — privilege escalation risk"
+
+  - id: SA-AWS-05
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "acl\\s*=\\s*\"public-read\"|acl\\s*=\\s*\"public-read-write\""
+    severity: error
+    desc: "S3 bucket with public ACL — data exposure risk"
+
+  - id: SA-AWS-06
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "block_public_acls\\s*=\\s*false|block_public_policy\\s*=\\s*false|restrict_public_buckets\\s*=\\s*false"
+    severity: error
+    desc: "S3 public access block disabled — bucket may become publicly accessible"
+
+  - id: SA-AWS-07
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "environment\\s*\\{[^}]*variables\\s*=\\s*\\{[^}]*(PASSWORD|SECRET|API_KEY|TOKEN|PRIVATE_KEY)\\s*=\\s*\"[^\"]+\""
+    severity: error
+    desc: "Lambda environment variable contains hardcoded secret"
+
+  - id: SA-AWS-08
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "policy_arn\\s*=\\s*\"arn:aws:iam::aws:policy/AdministratorAccess\"|policy_arn\\s*=\\s*\"arn:aws:iam::aws:policy/PowerUserAccess\""
+    severity: error
+    desc: "Lambda or role with AdministratorAccess/PowerUserAccess — overly permissive"
+
+  - id: SA-AWS-09
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "cidr_blocks\\s*=\\s*\\[\\s*\"0\\.0\\.0\\.0/0\"\\s*\\]|CidrIp:\\s*[\"']?0\\.0\\.0\\.0/0"
+    severity: error
+    desc: "Security group ingress open to 0.0.0.0/0 — unrestricted internet access"
+
+  - id: SA-AWS-10
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "enable_key_rotation\\s*=\\s*false"
+    severity: warning
+    desc: "KMS key rotation disabled — keys should be rotated automatically"
+
+  - id: SA-AWS-11
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "is_multi_region_trail\\s*=\\s*false|enable_log_file_validation\\s*=\\s*false"
+    severity: error
+    desc: "CloudTrail not multi-region or missing log validation"
+
+  - id: SA-AWS-12
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "password\\s*=\\s*\"[^\"]+\"|master_password\\s*=\\s*\"[^\"]+\""
+    severity: error
+    desc: "Hardcoded password in Terraform/CloudFormation — use Secrets Manager"
+
+  # === GCP SECURITY CHECKS ===
+  - id: SA-GCP-01
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "role\\s*=\\s*\"roles/(owner|editor)\"|\"roles/(owner|editor)\""
+    severity: error
+    desc: "GCP primitive role (Owner/Editor) — use granular predefined roles"
+
+  - id: SA-GCP-02
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "resource\\s+\"google_service_account_key\"|google_service_account_key\\s*\\{"
+    severity: error
+    desc: "Service account key file — use Workload Identity Federation instead"
+
+  - id: SA-GCP-03
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "\"allUsers\"|\"allAuthenticatedUsers\"|member\\s*=\\s*\"allUsers\"|member\\s*=\\s*\"allAuthenticatedUsers\""
+    severity: error
+    desc: "allUsers/allAuthenticatedUsers binding — public access to GCP resource"
+
+  - id: SA-GCP-04
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "google_storage_bucket_iam[^}]*(allUsers|allAuthenticatedUsers)|predefinedAcl:\\s*public"
+    severity: error
+    desc: "Public Cloud Storage bucket — data exposure risk"
+
+  - id: SA-GCP-05
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "uniform_bucket_level_access\\s*=\\s*false"
+    severity: warning
+    desc: "Uniform bucket-level access disabled — inconsistent ACLs possible"
+
+  - id: SA-GCP-06
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "environment_variables\\s*=\\s*\\{[^}]*(PASSWORD|SECRET|API_KEY|TOKEN|PRIVATE_KEY)\\s*=\\s*\"[^\"]+\""
+    severity: error
+    desc: "Cloud Functions environment variable contains hardcoded secret"
+
+  - id: SA-GCP-07
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "cloudfunctions\\.invoker[^}]*allUsers|allUsers[^}]*cloudfunctions\\.invoker"
+    severity: error
+    desc: "Cloud Function invocable by allUsers — unauthenticated access"
+
+  - id: SA-GCP-08
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "source_ranges\\s*=\\s*\\[\\s*\"0\\.0\\.0\\.0/0\"\\s*\\]|sourceRanges:[^}]*0\\.0\\.0\\.0/0"
+    severity: error
+    desc: "VPC firewall rule open to 0.0.0.0/0 — unrestricted internet ingress"
+
+  - id: SA-GCP-09
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "google_kms_crypto_key_iam[^}]*(allUsers|allAuthenticatedUsers)"
+    severity: error
+    desc: "KMS key accessible by allUsers — encryption key exposure"
+
+  - id: SA-GCP-10
+    type: regex
+    target: "**/*.{tf,json,yaml,yml}"
+    pattern: "exempted_members\\s*=\\s*\\["
+    severity: warning
+    desc: "Audit log exemptions configured — all access should be logged"
+
+  # === AZURE SECURITY CHECKS ===
+  - id: SA-AZURE-01
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "role_definition_name\\s*=\\s*\"(Owner|Contributor)\"|8e3af657-a8ff-443c-a75c-2fe8c4bcb635|b24988ac-6180-42a0-ab88-20f7382dd24c"
+    severity: error
+    desc: "Owner/Contributor role assignment — use least-privilege roles"
+
+  - id: SA-AZURE-02
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "role_definition_name\\s*=\\s*\"Storage Blob Data Owner\"(?![^}]*condition\\s*=)"
+    severity: warning
+    desc: "Storage Blob Data Owner without conditions — add ABAC conditions"
+
+  - id: SA-AZURE-03
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "allow_nested_items_to_be_public\\s*=\\s*true|allow_blob_public_access\\s*=\\s*true|allowBlobPublicAccess['\"]?\\s*[:=]\\s*['\"]?true|container_access_type\\s*=\\s*\"(blob|container)\""
+    severity: error
+    desc: "Public blob access enabled — anonymous access to storage data"
+
+  - id: SA-AZURE-04
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "authLevel[\"\\s]*[:=]\\s*[\"']?anonymous|\"authLevel\"\\s*:\\s*\"anonymous\""
+    severity: error
+    desc: "Azure Function with anonymous auth level — no authentication required"
+
+  - id: SA-AZURE-05
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "app_settings\\s*=\\s*\\{[^}]*(PASSWORD|SECRET|KEY|TOKEN|CONNECTION)\\s*=\\s*\"(?!@Microsoft\\.KeyVault)[^\"]+\""
+    severity: error
+    desc: "Hardcoded secret in Azure Function app settings — use Key Vault references"
+
+  - id: SA-AZURE-06
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "source_address_prefix\\s*=\\s*\"\\*\"|sourceAddressPrefix['\"]?\\s*[:=]\\s*['\"]\\*['\"]|\"sourceAddressPrefix\"\\s*:\\s*\"\\*\""
+    severity: error
+    desc: "NSG inbound rule open to * — unrestricted internet access"
+
+  - id: SA-AZURE-07
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "purge_protection_enabled\\s*=\\s*false|enablePurgeProtection:\\s*false|\"enablePurgeProtection\"\\s*:\\s*false"
+    severity: error
+    desc: "Key Vault missing purge protection — keys can be permanently deleted"
+
+  - id: SA-AZURE-08
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "enable_rbac_authorization\\s*=\\s*false|access_policy\\s*\\{"
+    severity: warning
+    desc: "Key Vault using access policies instead of RBAC — harder to audit"
+
+  - id: SA-AZURE-09
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "azurerm_monitor_diagnostic_setting"
+    severity: warning
+    desc: "Diagnostic setting present — verify all critical log categories are enabled"
+
+  - id: SA-AZURE-10
+    type: regex
+    target: "**/*.{tf,json,bicep,yaml,yml}"
+    pattern: "public_network_access_enabled\\s*=\\s*true|start_ip_address\\s*=\\s*\"0\\.0\\.0\\.0\""
+    severity: error
+    desc: "Azure SQL public network access or permissive firewall rule"
+
+  # === WORDPRESS SECURITY ===
+  - id: SA-WP-01
+    type: regex
+    target: "**/*.php"
+    pattern: "\\$wpdb\\s*->\\s*(query|get_results|get_row|get_var|get_col)\\s*\\(\\s*[\"']"
+    severity: error
+    desc: "$wpdb query without $wpdb->prepare() — SQL injection risk"
+
+  - id: SA-WP-02
+    type: regex
+    target: "**/*.php"
+    pattern: "unserialize\\s*\\(\\s*\\$_(GET|POST|REQUEST|COOKIE|SERVER)|unserialize\\s*\\(\\s*\\$"
+    severity: error
+    desc: "unserialize() with user-controlled input — object injection risk"
+
+  - id: SA-WP-03
+    type: regex
+    target: "**/*.php"
+    pattern: "echo\\s+\\$(?!.*esc_html|.*esc_attr|.*esc_url|.*wp_kses|.*absint|.*intval)"
+    severity: error
+    desc: "Unescaped output — use esc_html(), esc_attr(), esc_url(), or wp_kses()"
+
+  - id: SA-WP-04
+    type: regex
+    target: "**/*.php"
+    pattern: "register_rest_route\\s*\\([^)]*(?!permission_callback)[^)]*\\)|permission_callback.*__return_true"
+    severity: error
+    desc: "REST API route without permission_callback or with __return_true — unauthenticated access"
+
+  - id: SA-WP-05
+    type: regex
+    target: "**/*.php"
+    pattern: "update_option\\s*\\(|update_post_meta\\s*\\(|delete_option\\s*\\(|delete_post_meta\\s*\\("
+    severity: warning
+    desc: "Option/meta modification — verify current_user_can() and nonce checks are present"
+
+  - id: SA-WP-06
+    type: regex
+    target: "**/*.php"
+    pattern: "\\$_POST\\[.*\\]\\s*(?!.*wp_verify_nonce|.*check_ajax_referer|.*wp_nonce)"
+    severity: error
+    desc: "POST data processed without nonce verification — CSRF risk"
+
+  - id: SA-WP-07
+    type: regex
+    target: "**/*.php"
+    pattern: "move_uploaded_file\\s*\\(|\\$_FILES\\s*\\[.*\\]\\s*\\[.tmp_name.\\]"
+    severity: error
+    desc: "Direct file upload handling — use wp_handle_upload() with MIME validation"
+
+  - id: SA-WP-08
+    type: regex
+    target: "**/*.php"
+    pattern: "WP_DEBUG.*true|WP_DEBUG_DISPLAY.*true|DISALLOW_FILE_EDIT.*false"
+    severity: error
+    desc: "wp-config.php misconfiguration — debug enabled or file editing allowed in production"
+
+  - id: SA-WP-09
+    type: regex
+    target: "**/*.php"
+    pattern: "^<\\?php\\s*\\n(?!.*defined\\s*\\(\\s*['\"]ABSPATH['\"])"
+    severity: warning
+    desc: "PHP file missing defined('ABSPATH') check — direct file access possible"
+
+  - id: SA-WP-10
+    type: regex
+    target: "**/*.php"
+    pattern: "\\$table_prefix\\s*=\\s*['\"]wp_['\"]"
+    severity: warning
+    desc: "Default WordPress table prefix wp_ — makes targeted SQL injection easier"
+
+  # === DRUPAL SECURITY ===
+  - id: SA-DRUPAL-01
+    type: regex
+    target: "**/*.{php,module,install}"
+    pattern: "db_query\\s*\\(\\s*[\"'].*\\$|->query\\s*\\(\\s*[\"'].*\\$|sprintf\\s*\\(\\s*[\"']SELECT"
+    severity: error
+    desc: "Drupal database query with string interpolation — SQL injection risk"
+
+  - id: SA-DRUPAL-02
+    type: regex
+    target: "**/*.{php,module,install}"
+    pattern: "#markup.*\\$|#markup.*\\.\\s*\\$|#markup.*getRequest|#markup.*->get\\s*\\("
+    severity: error
+    desc: "Render array #markup with user input — XSS risk, use #plain_text or Html::escape()"
+
+  - id: SA-DRUPAL-03
+    type: regex
+    target: "**/*.{php,module,install}"
+    pattern: "['\"]#markup['\"]\\s*=>\\s*.*\\$(?!.*Html::escape|.*Xss::filter|.*check_plain|.*t\\()"
+    severity: error
+    desc: "Unescaped variable in #markup — XSS risk"
+
+  - id: SA-DRUPAL-04
+    type: regex
+    target: "**/*.{php,module,install}"
+    pattern: "->delete\\s*\\(\\s*\\)|->save\\s*\\(\\s*\\)"
+    severity: warning
+    desc: "Entity state change — verify Form API CSRF protection or _csrf_token route requirement"
+
+  - id: SA-DRUPAL-05
+    type: regex
+    target: "**/*.{php,module,install}"
+    pattern: "entityQuery\\s*\\([^)]*\\)(?!.*accessCheck)|->load\\s*\\(\\s*\\$"
+    severity: error
+    desc: "Entity query or load without access check — bypasses node/field access control"
+
+  - id: SA-DRUPAL-06
+    type: regex
+    target: "**/*.{php,module,install}"
+    pattern: "hash_salt.*=\\s*['\"]['\"]|error_level.*verbose|update_free_access.*TRUE"
+    severity: error
+    desc: "Drupal settings.php misconfiguration — empty hash_salt, verbose errors, or update access"
+
+  # === JOOMLA SECURITY ===
+  - id: SA-JOOMLA-01
+    type: regex
+    target: "**/*.php"
+    pattern: "->where\\s*\\(.*[\"'].*\\.\\s*\\$|setQuery\\s*\\(\\s*[\"'].*\\$|->where\\s*\\(\\s*[\"'].*\\$"
+    severity: error
+    desc: "Joomla database query with string concatenation — SQL injection risk"
+
+  - id: SA-JOOMLA-02
+    type: regex
+    target: "**/*.php"
+    pattern: "->get\\s*\\([^,)]+\\s*,\\s*[^,)]*\\s*,\\s*['\"]RAW['\"]|\\$_GET\\s*\\[|\\$_POST\\s*\\[|\\$_REQUEST\\s*\\["
+    severity: error
+    desc: "JInput RAW filter or direct superglobal access — unvalidated input"
+
+  - id: SA-JOOMLA-03
+    type: regex
+    target: "**/*.php"
+    pattern: "extends\\s+BaseController[^{]*\\{[^}]*function\\s+(delete|save|publish)"
+    severity: warning
+    desc: "Controller state-changing method — verify authorise() and checkToken() are present"
+
+  - id: SA-JOOMLA-04
+    type: regex
+    target: "**/*.php"
+    pattern: "\\$error_reporting\\s*=\\s*['\"]maximum['\"]|\\$debug\\s*=\\s*1|\\$secret\\s*=\\s*['\"]joomla['\"]"
+    severity: error
+    desc: "Joomla configuration.php misconfiguration — debug enabled or weak secret"
+
+  # === ANDROID SDK SECURITY ===
+  - id: SA-ANDROID-01
+    type: regex
+    target: "**/AndroidManifest.xml"
+    pattern: "android:exported\\s*=\\s*\"true\""
+    severity: warning
+    desc: "Exported component — verify intent-filter restrictions and permission guards"
+
+  - id: SA-ANDROID-02
+    type: regex
+    target: "**/*.{kt,java}"
+    pattern: "rawQuery\\s*\\(\\s*\"[^\"]*\\+\\s*\\w+|rawQuery\\s*\\(\\s*\"[^\"]*\\$\\{?"
+    severity: error
+    desc: "SQL injection in ContentProvider — use parameterized selectionArgs instead of concatenation"
+
+  - id: SA-ANDROID-03
+    type: regex
+    target: "**/*.{kt,java}"
+    pattern: "addJavascriptInterface\\s*\\("
+    severity: error
+    desc: "WebView JavaScript interface — verify API level >= 17 and restrict to trusted origins"
+
+  - id: SA-ANDROID-04
+    type: regex
+    target: "**/*.{kt,java}"
+    pattern: "getSharedPreferences\\s*\\([^)]*\\)[\\s\\S]{0,80}(password|token|secret|key|credential)|MODE_WORLD_READABLE"
+    severity: error
+    desc: "Sensitive data in SharedPreferences — use EncryptedSharedPreferences"
+
+  - id: SA-ANDROID-05
+    type: regex
+    target: "**/AndroidManifest.xml"
+    pattern: "usesCleartextTraffic\\s*=\\s*\"true\"|cleartextTrafficPermitted\\s*=\\s*\"true\""
+    severity: error
+    desc: "Cleartext traffic allowed — enforce HTTPS via NetworkSecurityConfig"
+
+  - id: SA-ANDROID-06
+    type: regex
+    target: "**/AndroidManifest.xml"
+    pattern: "android:debuggable\\s*=\\s*\"true\""
+    severity: error
+    desc: "Debug mode enabled in manifest — must be false for release builds"
+
+  - id: SA-ANDROID-07
+    type: regex
+    target: "**/*.{kt,java}"
+    pattern: "registerReceiver\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*\\)\\s*$"
+    severity: warning
+    desc: "Broadcast receiver registered without permission — add permission parameter"
+
+  - id: SA-ANDROID-08
+    type: regex
+    target: "**/*.{kt,java}"
+    pattern: "new\\s+Random\\s*\\(|java\\.util\\.Random|kotlin\\.random\\.Random"
+    severity: warning
+    desc: "Insecure random number generator — use java.security.SecureRandom for tokens"
+
+  - id: SA-ANDROID-09
+    type: regex
+    target: "**/*.{kt,java}"
+    pattern: "SecretKeySpec\\s*\\(\\s*\"[^\"]+\"\\.toByteArray|private\\s+(static\\s+)?final\\s+byte\\[\\]\\s+\\w*(KEY|key|SECRET|secret)"
+    severity: error
+    desc: "Hardcoded encryption key — use Android Keystore for key management"
+
+  - id: SA-ANDROID-10
+    type: regex
+    target: "**/*.{kt,java}"
+    pattern: "Log\\.(d|v|i)\\s*\\(\\s*\"[^\"]*\"\\s*,\\s*[^)]*?(password|token|secret|key|credential|session)"
+    severity: warning
+    desc: "Sensitive data in log output — strip debug logs in release builds"
+
+  # === IOS SDK SECURITY ===
+  - id: SA-IOS-01
+    type: regex
+    target: "**/*.swift"
+    pattern: "kSecAttrAccessibleAlways[^T]|kSecAttrAccessibleAlways\\b(?!ThisDeviceOnly)"
+    severity: error
+    desc: "Insecure Keychain accessibility — use kSecAttrAccessibleWhenUnlockedThisDeviceOnly"
+
+  - id: SA-IOS-02
+    type: regex
+    target: "**/Info.plist"
+    pattern: "NSAllowsArbitraryLoads[\\s\\S]{0,30}<true"
+    severity: error
+    desc: "App Transport Security disabled — enforce HTTPS connections"
+
+  - id: SA-IOS-03
+    type: regex
+    target: "**/*.{swift,m}"
+    pattern: "UIWebView"
+    severity: error
+    desc: "Deprecated UIWebView usage — migrate to WKWebView"
+
+  - id: SA-IOS-04
+    type: regex
+    target: "**/*.{swift,m}"
+    pattern: "UIPasteboard\\.general\\.(string|setString|setItems|setValue)[\\s\\S]{0,60}(token|password|secret|key|credential|session)"
+    severity: warning
+    desc: "Sensitive data on general pasteboard — use UIPasteboard.withUniqueName()"
+
+  - id: SA-IOS-05
+    type: regex
+    target: "**/*.{swift,m}"
+    pattern: "UserDefaults\\.(standard\\.)?set\\s*\\([^,]+,\\s*forKey:\\s*\"(token|password|secret|key|credential|session|auth)|NSUserDefaults.*set(Object|Value).*forKey.*@\"(token|password|secret)"
+    severity: error
+    desc: "Sensitive data in UserDefaults/NSUserDefaults — use Keychain instead"
+
+  - id: SA-IOS-06
+    type: regex
+    target: "**/*.{swift,m}"
+    pattern: "application\\s*\\(\\s*_\\s+app.*open\\s+url:\\s*URL|openURL:\\s*\\(NSURL\\s*\\*\\)"
+    severity: warning
+    desc: "URL scheme handler — verify source app validation and parameter sanitization"
+
+  - id: SA-IOS-07
+    type: regex
+    target: "**/*.{swift,m}"
+    pattern: "arc4random\\s*\\(|arc4random_uniform\\s*\\([\\s\\S]{0,80}(token|key|secret|session|nonce)"
+    severity: error
+    desc: "Insecure random for security tokens — use SecRandomCopyBytes"
+
+  - id: SA-IOS-08
+    type: regex
+    target: "**/*.{swift,m}"
+    pattern: "CC_MD5\\s*\\(|CC_SHA1\\s*\\(|CC_MD5_DIGEST_LENGTH"
+    severity: warning
+    desc: "Weak hash algorithm (MD5/SHA-1) — use SHA-256 via CryptoKit"
+
+  - id: SA-IOS-09
+    type: regex
+    target: "**/*.pbxproj"
+    pattern: "GCC_GENERATE_POSITION_DEPENDENT_CODE\\s*=\\s*YES|CLANG_ENABLE_OBJC_ARC\\s*=\\s*NO"
+    severity: error
+    desc: "Missing binary protections (PIE/ARC) — enable in Xcode build settings"
+
+  - id: SA-IOS-10
+    type: regex
+    target: "**/*.{swift,m}"
+    pattern: "NSLog\\s*\\(\\s*@?\"[^\"]*%([@dfs])[^\"]*\"\\s*,\\s*[^)]*?(password|token|secret|key|credential|session)"
+    severity: warning
+    desc: "Sensitive data in NSLog — use os_log with .private annotation"
+
 llm_reviews:
   # === HARDCODED CREDENTIALS REVIEW ===
   - id: SA-16

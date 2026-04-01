@@ -43,6 +43,7 @@ VALID_PREFIXES = [
     "SA-NEST-",    # NestJS
     "SA-KTOR-",    # Ktor
     "SA-VAPOR-",   # Vapor
+    "SA-ANDROID-", # Android
     "SA-IOS-",     # iOS
     "SA-FLUTTER-", # Flutter
     "SA-PHOENIX-", # Phoenix
@@ -54,6 +55,12 @@ VALID_PREFIXES = [
     "SA-FE-",      # Frontend (legacy)
     "SA-AI-",      # AI (legacy)
     "SA-IAC-",     # Infrastructure-as-Code (legacy)
+    "SA-AWS-",     # AWS cloud security
+    "SA-GCP-",     # GCP cloud security
+    "SA-AZURE-",   # Azure cloud security
+    "SA-WP-",      # WordPress
+    "SA-DRUPAL-",  # Drupal
+    "SA-JOOMLA-",  # Joomla
 ]
 
 # Pattern: SA-{PREFIX}-{NN}, SA-{NN}, or legacy formats like SA-08b, SA-FE-LLM-01
@@ -119,6 +126,8 @@ def main() -> int:
         "input-validation.md", "path-traversal-prevention.md",
         "supply-chain-incident-response.md",
         "iac-security.md", "api-security.md", "frontend-security.md", "llm-security.md",
+        "wordpress-security.md", "drupal-security.md", "joomla-security.md",
+        "android-sdk-security.md", "ios-sdk-security.md",
     ]
     missing = [ref for ref in expected_refs if ref not in ref_files]
     if missing:
