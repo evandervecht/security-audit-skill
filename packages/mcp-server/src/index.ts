@@ -11,6 +11,7 @@ import {
   explainFinding,
   listReferences,
   getReference,
+  lookupCvesForCheckpoint,
 } from "@security-audit/core";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -114,6 +115,30 @@ server.tool(
         {
           type: "text" as const,
           text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  },
+);
+
+server.tool(
+  "lookup_cves",
+  "Look up known CVEs associated with a checkpoint ID by querying the NVD API. Returns matching CVEs with CVSS scores and descriptions.",
+  {
+    checkpointId: z
+      .string()
+      .describe("The checkpoint ID to look up CVEs for (e.g., SA-PY-01, SA-JAVA-03)"),
+  },
+  async ({ checkpointId }) => {
+    const cves = await lookupCvesForCheckpoint(checkpointId);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text:
+            cves.length > 0
+              ? JSON.stringify(cves, null, 2)
+              : `No CVEs found for checkpoint ${checkpointId} (may not have a CWE mapping or NVD returned no results)`,
         },
       ],
     };
