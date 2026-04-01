@@ -1390,6 +1390,277 @@ mechanical:
     severity: error
     desc: "Potential hardcoded credential — use environment variables or secret manager"
 
+  # === VUE.JS SECURITY CHECKS ===
+  - id: SA-VUE-01
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: "v-html\\s*="
+    severity: warning
+    desc: "v-html directive — potential XSS if used with user input"
+
+  - id: SA-VUE-02
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: "Vue\\.compile\\s*\\("
+    severity: error
+    desc: "Vue.compile() with dynamic input — potential template injection"
+
+  - id: SA-VUE-03
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: ":(href|src)\\s*=\\s*\"[^\"]*[a-zA-Z]"
+    severity: warning
+    desc: "v-bind:href/src with variable — validate URL protocol to prevent javascript: XSS"
+
+  - id: SA-VUE-04
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: "beforeEnter\\s*:|beforeEach\\s*\\("
+    severity: warning
+    desc: "Client-side route guard — ensure server-side authorization exists"
+
+  - id: SA-VUE-05
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: "(computed|watch|methods)\\s*:\\s*\\{[^}]*eval\\s*\\("
+    severity: error
+    desc: "eval() in Vue reactivity hook — potential code injection"
+
+  - id: SA-VUE-06
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: "(defineStore|new\\s+Vuex\\.Store)\\s*\\([^)]*\\{[\\s\\S]*?(token|secret|password|apiKey|api_key|ssn|creditCard)"
+    severity: error
+    desc: "Sensitive data in Vuex/Pinia store — exposed via DevTools"
+
+  - id: SA-VUE-07
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: "(asyncData|serverPrefetch|fetch)\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?(secret|internal|private|apiKey|connectionString)"
+    severity: error
+    desc: "SSR hydration may leak server-only data to client HTML"
+
+  - id: SA-VUE-08
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: "Vue\\.mixin\\s*\\(|app\\.mixin\\s*\\("
+    severity: warning
+    desc: "Global mixin — applies to every component, audit for side effects"
+
+  # === ANGULAR SECURITY CHECKS ===
+  - id: SA-ANG-01
+    type: regex
+    target: "**/*.{ts,html}"
+    pattern: "bypassSecurityTrust(Html|Script|Url|ResourceUrl)\\s*\\("
+    severity: error
+    desc: "bypassSecurityTrust* disables Angular sanitization — audit for user input"
+
+  - id: SA-ANG-02
+    type: regex
+    target: "**/*.{ts,html}"
+    pattern: "compiler\\.compileModuleAndAllComponentsAsync|Component\\(\\s*\\{\\s*template\\s*:"
+    severity: error
+    desc: "Dynamic template compilation — potential template injection"
+
+  - id: SA-ANG-03
+    type: regex
+    target: "**/*.{ts,html}"
+    pattern: "@Pipe[\\s\\S]*?bypassSecurityTrust"
+    severity: error
+    desc: "Pipe with bypassSecurityTrust — reusable sanitization bypass"
+
+  - id: SA-ANG-04
+    type: regex
+    target: "**/*.{ts,html}"
+    pattern: "\\[innerHTML\\]\\s*="
+    severity: warning
+    desc: "innerHTML binding — verify input is sanitized before binding"
+
+  - id: SA-ANG-05
+    type: regex
+    target: "**/*.{ts,html}"
+    pattern: "canActivate|CanActivate|canLoad|CanLoad"
+    severity: warning
+    desc: "Client-side route guard — ensure server-side authorization exists"
+
+  - id: SA-ANG-06
+    type: regex
+    target: "**/*.{ts,html}"
+    pattern: "HttpInterceptor[\\s\\S]*?intercept\\s*\\("
+    severity: warning
+    desc: "HTTP interceptor — verify tokens are only sent to trusted origins"
+
+  - id: SA-ANG-07
+    type: regex
+    target: "**/*.{ts,html}"
+    pattern: "eval\\s*\\([^)]*\\)|new\\s+Function\\s*\\("
+    severity: error
+    desc: "eval/new Function in Angular code — potential code injection"
+
+  - id: SA-ANG-08
+    type: regex
+    target: "**/*.{ts,html}"
+    pattern: "ngZone\\.run\\s*\\([\\s\\S]*?(password|token|secret|creditCard|ssn|apiKey)"
+    severity: warning
+    desc: "Sensitive data in Zone.js context — may persist in memory"
+
+  # === REACT SECURITY CHECKS ===
+  - id: SA-REACT-01
+    type: regex
+    target: "**/*.{jsx,tsx}"
+    pattern: "dangerouslySetInnerHTML"
+    severity: warning
+    desc: "dangerouslySetInnerHTML usage — potential XSS"
+
+  - id: SA-REACT-02
+    type: regex
+    target: "**/*.{jsx,tsx}"
+    pattern: "\\{\\s*\\.\\.\\.(?:user|props|data|input|params|query)"
+    severity: warning
+    desc: "Spreading user-controlled object as JSX props — may inject dangerouslySetInnerHTML"
+
+  - id: SA-REACT-03
+    type: regex
+    target: "**/*.{jsx,tsx}"
+    pattern: "href\\s*=\\s*\\{(?!['\"](https?:|mailto:|/)[^}])"
+    severity: warning
+    desc: "Dynamic href from variable — potential javascript: protocol XSS"
+
+  - id: SA-REACT-04
+    type: regex
+    target: "**/*.{jsx,tsx}"
+    pattern: "'use client'[\\s\\S]*?\\b(password|secret|token|ssn|creditCard|hash)\\b"
+    severity: warning
+    desc: "Client component may receive sensitive data as props — data visible in browser"
+
+  - id: SA-REACT-05
+    type: regex
+    target: "**/*.{jsx,tsx}"
+    pattern: "\\beval\\s*\\(|new\\s+Function\\s*\\("
+    severity: error
+    desc: "eval() or Function constructor — code injection risk"
+
+  - id: SA-REACT-06
+    type: regex
+    target: "**/*.{jsx,tsx}"
+    pattern: "useState\\s*\\(\\s*\\{[^}]*(token|secret|password|refreshToken|cvv|ssn|creditCard)"
+    severity: warning
+    desc: "Sensitive data in React state — visible in DevTools"
+
+  - id: SA-REACT-07
+    type: regex
+    target: "**/*.{jsx,tsx}"
+    pattern: "useEffect\\s*\\(\\s*\\(\\)\\s*=>\\s*\\{[^}]*fetch\\s*\\([^)]*\\)\\.then"
+    severity: warning
+    desc: "useEffect fetch without visible auth — verify credentials are included"
+
+  - id: SA-REACT-08
+    type: regex
+    target: "**/*.{jsx,tsx}"
+    pattern: "key\\s*=\\s*\\{[^}]*(index|idx|i)\\s*\\}"
+    severity: info
+    desc: "Array index as React key — may cause state leaks between list items"
+
+  # === NEXT.JS SECURITY CHECKS ===
+  - id: SA-NEXT-01
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx}"
+    pattern: "'use server'[\\s\\S]*?export\\s+async\\s+function\\s+\\w+"
+    severity: warning
+    desc: "Server Action — verify auth/authorization check inside function body"
+
+  - id: SA-NEXT-02
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "export\\s+async\\s+function\\s+(GET|POST|PUT|DELETE|PATCH)\\s*\\("
+    severity: warning
+    desc: "Next.js API route handler — verify authentication is enforced"
+
+  - id: SA-NEXT-03
+    type: regex
+    target: "**/*.env*"
+    pattern: "NEXT_PUBLIC_[A-Z_]*(SECRET|KEY|PASSWORD|TOKEN|CREDENTIAL|PRIVATE|DATABASE)"
+    severity: error
+    desc: "NEXT_PUBLIC_ env var with secret-like name — exposed to client bundle"
+
+  - id: SA-NEXT-04
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx}"
+    pattern: "(getServerSideProps|getStaticProps)[\\s\\S]*?return\\s*\\{\\s*props:"
+    severity: warning
+    desc: "getServerSideProps/getStaticProps return — verify no sensitive fields in props"
+
+  - id: SA-NEXT-05
+    type: regex
+    target: "**/next.config.{js,mjs,ts}"
+    pattern: "hostname:\\s*['\"]?\\*{1,2}['\"]?"
+    severity: error
+    desc: "Wildcard hostname in next/image config — SSRF risk via image optimization"
+
+  - id: SA-NEXT-06
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx}"
+    pattern: "Response\\.redirect\\s*\\([^)]*searchParams|redirect\\s*\\(\\s*(?:req|request)"
+    severity: warning
+    desc: "Redirect with user-controlled destination — potential open redirect"
+
+  - id: SA-NEXT-07
+    type: regex
+    target: "**/*.{js,ts,jsx,tsx}"
+    pattern: "JSON\\.stringify\\s*\\([^)]*(config|secret|user|session|token|key|credential)"
+    severity: warning
+    desc: "JSON.stringify of potentially sensitive object — may leak in RSC payload"
+
+  - id: SA-NEXT-08
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "export\\s+async\\s+function\\s+POST\\s*\\([^)]*\\)\\s*\\{[^}]*(?:cookie|session|auth)"
+    severity: warning
+    desc: "POST handler with cookie/session auth — verify CSRF protection"
+
+  # === NUXT SECURITY CHECKS ===
+  - id: SA-NUXT-01
+    type: regex
+    target: "server/**/*.{js,ts}"
+    pattern: "defineEventHandler\\s*\\(\\s*async\\s*\\(\\s*event\\s*\\)"
+    severity: warning
+    desc: "Nitro server handler — verify authentication middleware is applied"
+
+  - id: SA-NUXT-02
+    type: regex
+    target: "**/*.{vue,js,ts}"
+    pattern: "useFetch\\s*\\(\\s*['\"][^'\"]*admin|useAsyncData\\s*\\(\\s*['\"][^'\"]*secret"
+    severity: warning
+    desc: "useFetch/useAsyncData fetching sensitive endpoint — data exposed in hydration payload"
+
+  - id: SA-NUXT-03
+    type: regex
+    target: "**/nuxt.config.{js,ts}"
+    pattern: "runtimeConfig[\\s\\S]*?public\\s*:\\s*\\{[^}]*(secret|password|token|key|credential|private|database)"
+    severity: error
+    desc: "Secret in runtimeConfig.public — exposed to client"
+
+  - id: SA-NUXT-04
+    type: regex
+    target: "**/*.vue"
+    pattern: "v-html\\s*="
+    severity: warning
+    desc: "v-html directive — potential XSS, especially dangerous in SSR context"
+
+  - id: SA-NUXT-05
+    type: regex
+    target: "server/**/*.{js,ts}"
+    pattern: "exec\\s*\\(|execSync\\s*\\(|\\$queryRawUnsafe\\s*\\("
+    severity: error
+    desc: "Shell exec or raw SQL in Nitro handler — injection risk"
+
+  - id: SA-NUXT-06
+    type: regex
+    target: "plugins/**/*.{js,ts}"
+    pattern: "defineNuxtPlugin\\s*\\(\\s*(?:async\\s*)?\\(\\s*nuxtApp\\s*\\)\\s*=>"
+    severity: info
+    desc: "Nuxt plugin without enforce/dependsOn — verify execution order for security plugins"
+
 llm_reviews:
   # === HARDCODED CREDENTIALS REVIEW ===
   - id: SA-16
