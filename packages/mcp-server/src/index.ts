@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import {
   scanProject,
   scanFile,
+  scanLive,
   explainFinding,
   listReferences,
   getReference,
@@ -94,6 +95,25 @@ server.tool(
         {
           type: "text" as const,
           text: result.reference,
+        },
+      ],
+    };
+  },
+);
+
+server.tool(
+  "security_scan_live",
+  "Scan a live URL for security misconfigurations — checks security headers (HSTS, CSP), TLS version, CORS policy, cookie flags, open redirects, and verbose error pages.",
+  {
+    url: z.string().describe("URL to scan (e.g., https://example.com)"),
+  },
+  async ({ url }) => {
+    const result = await scanLive(url);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify(result, null, 2),
         },
       ],
     };
