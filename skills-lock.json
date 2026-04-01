@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "security-audit": {
+      "source": "evandervecht/security-audit-skill",
+      "sourceType": "github",
+      "computedHash": "68d4c1a3fa41a30a6a75e58c7454d0250f989db896b4d9be86e35c45a1939a0c"
+    }
+  }
+}

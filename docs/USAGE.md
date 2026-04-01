@@ -29,9 +29,9 @@ Copy the `skills/security-audit/` directory into your agent's skill path. The sk
 
 ## Quick Start
 
-### 1. Audit a PHP Project
+### 1. Audit a Software Project
 
-Navigate to your PHP project directory and ask your AI agent:
+Navigate to your software project directory and ask your AI agent:
 
 > "Run a security audit on this project"
 
@@ -39,7 +39,7 @@ Or run the automated script directly:
 
 ```bash
 # From within the security-audit-skill directory
-./skills/security-audit/scripts/security-audit.sh /path/to/your/php-project
+./skills/security-audit/scripts/security-audit.sh /path/to/your/project
 ```
 
 This scans `src/` and `Classes/` directories for:
@@ -111,7 +111,7 @@ The skill detects:
 
 Reference: `references/api-security.md`
 
-Covers the OWASP API Top 10 (2023):
+Covers the OWASP API Top 10 (2025):
 - Broken Object-Level Authorization (BOLA/IDOR)
 - Mass assignment and excessive data exposure
 - Missing rate limiting and pagination
@@ -277,7 +277,7 @@ All reference docs are in `skills/security-audit/references/`. Read them for dee
 |---|---|
 | `owasp-top10.md` | OWASP Top 10 (2021) with PHP patterns |
 | `cwe-top25.md` | CWE Top 25 (2025) |
-| `api-security.md` | OWASP API Top 10 (2023), GraphQL, REST |
+| `api-security.md` | OWASP API Top 10 (2025), GraphQL, REST |
 | `iac-security.md` | Dockerfile, K8s, Terraform, Docker Compose |
 | `frontend-security.md` | DOM XSS, SRI, CORS, postMessage |
 | `llm-security.md` | OWASP LLM Top 10 (2025), agent/skill auditing |
