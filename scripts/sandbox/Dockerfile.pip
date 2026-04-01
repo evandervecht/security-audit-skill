@@ -1,12 +1,12 @@
 # Stage 1: Build tools in dev container
-FROM dhi.io/library/python:3.13-alpine@sha256:bb1f2fdb1065c85468775c9d680dcd344f6442a2d1181ef7916b60a623f11d40 AS builder
+FROM dhi.io/python:3.13-alpine@sha256:bb1f2fdb1065c85468775c9d680dcd344f6442a2d1181ef7916b60a623f11d40 AS builder
 
 RUN apk add --no-cache strace
 # Install uv (fast Python package manager) and pip-audit
 RUN pip install --no-cache-dir uv pip-audit
 
 # Stage 2: Hardened non-root runtime
-FROM dhi.io/library/python:3.13-alpine@sha256:bb1f2fdb1065c85468775c9d680dcd344f6442a2d1181ef7916b60a623f11d40
+FROM dhi.io/python:3.13-alpine@sha256:bb1f2fdb1065c85468775c9d680dcd344f6442a2d1181ef7916b60a623f11d40
 
 COPY --from=builder /usr/bin/strace /usr/bin/strace
 COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv

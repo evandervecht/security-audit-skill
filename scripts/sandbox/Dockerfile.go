@@ -1,11 +1,11 @@
 # Stage 1: Build toolchain + govulncheck in dev container
-FROM dhi.io/library/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3d5c1147b19880afe40e052 AS builder
+FROM dhi.io/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3d5c1147b19880afe40e052 AS builder
 
 RUN apk add --no-cache strace
 RUN go install golang.org/x/vuln/cmd/govulncheck@latest
 
 # Stage 2: Hardened non-root runtime
-FROM dhi.io/library/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3d5c1147b19880afe40e052
+FROM dhi.io/golang:1.22-alpine@sha256:1699c10032ca2582ec89a24a1312d986a3f094aed3d5c1147b19880afe40e052
 
 COPY --from=builder /usr/bin/strace /usr/bin/strace
 COPY --from=builder /root/go/bin/govulncheck /usr/local/bin/govulncheck
