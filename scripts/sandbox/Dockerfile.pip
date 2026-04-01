@@ -1,0 +1,15 @@
+# Minimal Python image for sandboxed pip install
+FROM python:3.13-alpine
+
+# Install strace for syscall monitoring
+RUN apk add --no-cache strace
+
+# Create non-root user
+RUN adduser -D -h /sandbox sandbox
+WORKDIR /sandbox
+
+# Drop to non-root
+USER sandbox
+
+# Entry point: strace monitors pip install
+ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/tmp/strace.log", "--", "pip", "install", "--user", "--no-warn-script-location"]
