@@ -10,13 +10,9 @@ FROM dhi.io/dotnet/sdk:8.0-alpine@sha256:608d8a4b570b88bd8b1fbb792f00cee88d557ee
 COPY --from=builder /usr/bin/strace /usr/bin/strace
 
 # Create non-root user with restricted home
-RUN echo 'sandbox:x:10001:10001::/sandbox:/bin/false' >> /etc/passwd \
-    && echo 'sandbox:x:10001:' >> /etc/group \
-    && mkdir -p /sandbox && chown 10001:10001 /sandbox
-
 ENV DOTNET_CLI_HOME=/sandbox/.dotnet
 ENV NUGET_PACKAGES=/sandbox/.nuget
-RUN mkdir -p /sandbox/.dotnet /sandbox/.nuget && chown -R sandbox:sandbox /sandbox
+RUN mkdir -p /sandbox/.dotnet /sandbox/.nuget && chmod -R 777 /sandbox
 
 # Entrypoint script: restore + list vulnerable packages
 COPY entrypoint-dotnet.sh /usr/local/bin/entrypoint.sh
@@ -25,6 +21,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 WORKDIR /sandbox
 
 # Drop to non-root
-USER sandbox:sandbox
+USER 10001:10001
 
 ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/tmp/strace.log", "--", "/usr/local/bin/entrypoint.sh"]
