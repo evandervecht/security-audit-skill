@@ -6,3 +6,8 @@ node_modules/
 packages/*/dist/
 packages/*/node_modules/
 *.tsbuildinfo
+
+# JetBrains / Gradle
+packages/jetbrains-plugin/.gradle/
+packages/jetbrains-plugin/build/
+.idea/
