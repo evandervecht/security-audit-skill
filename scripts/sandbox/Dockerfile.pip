@@ -15,7 +15,7 @@ COPY --from=builder /usr/local/bin/pip-audit /usr/local/bin/pip-audit
 COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
 
 # Create non-root user with restricted home
-RUN groupadd -r sandbox && useradd -r -g sandbox -d /sandbox -s /usr/sbin/nologin sandbox && mkdir -p /sandbox && chown sandbox:sandbox /sandbox
+RUN addgroup --system sandbox && adduser --system --ingroup sandbox --home /sandbox --shell /bin/false sandbox
 
 # Entrypoint script: install with uv + pip-audit
 COPY entrypoint-pip.sh /usr/local/bin/entrypoint.sh

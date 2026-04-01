@@ -10,7 +10,7 @@ FROM dhi.io/node:25-debian13@sha256:36b558fa9be97d6416770a7be2d35f37797d814f13a3
 COPY --from=builder /usr/bin/strace /usr/bin/strace
 
 # Create non-root user with restricted home
-RUN groupadd -r sandbox && useradd -r -g sandbox -d /sandbox -s /usr/sbin/nologin sandbox && mkdir -p /sandbox && chown sandbox:sandbox /sandbox
+RUN addgroup --system sandbox && adduser --system --ingroup sandbox --home /sandbox --shell /bin/false sandbox
 
 # Entrypoint script: install + npm audit
 COPY entrypoint-npm.sh /usr/local/bin/entrypoint.sh

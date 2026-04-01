@@ -12,7 +12,7 @@ COPY --from=builder /usr/bin/strace /usr/bin/strace
 COPY --from=builder /root/go/bin/govulncheck /usr/local/bin/govulncheck
 
 # Create non-root user with restricted home
-RUN groupadd -r sandbox && useradd -r -g sandbox -d /sandbox -s /usr/sbin/nologin sandbox
+RUN addgroup --system sandbox && adduser --system --ingroup sandbox --home /sandbox --shell /bin/false sandbox
 
 ENV GOPATH=/sandbox/go
 RUN mkdir -p /sandbox/go && chown sandbox:sandbox /sandbox/go
