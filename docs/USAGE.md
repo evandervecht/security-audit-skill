@@ -290,7 +290,9 @@ All reference docs are in `skills/security-audit/references/`. Read them for dee
 | `modern-attacks.md` | SSRF, prototype pollution, cache poisoning |
 | `security-headers.md` | HSTS, CSP, CORS headers |
 | `security-logging.md` | Audit logging patterns |
-| `framework-security.md` | TYPO3, Symfony, Laravel specifics |
+| `typo3-security.md` | TYPO3 security patterns |
+| `symfony-security.md` | Symfony security patterns |
+| `laravel-security.md` | Laravel security patterns |
 | `cvss-scoring.md` | CVSS v3.1 and v4.0 scoring methodology |
 
 ---

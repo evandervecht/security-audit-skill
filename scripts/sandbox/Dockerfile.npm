@@ -1,0 +1,22 @@
+# Stage 1: Build/install in dev container
+FROM dhi.io/library/node:20-alpine@sha256:f598378b5240225e6beab68fa9f356db1fb8efe55173e6d4d8153113bb8f333c AS builder
+
+RUN apk add --no-cache strace
+
+# Stage 2: Hardened non-root runtime
+FROM dhi.io/library/node:20-alpine@sha256:f598378b5240225e6beab68fa9f356db1fb8efe55173e6d4d8153113bb8f333c
+
+COPY --from=builder /usr/bin/strace /usr/bin/strace
+
+# Remove unnecessary packages and shells where possible
+RUN apk add --no-cache libstdc++ \
+    && rm -rf /var/cache/apk/* /tmp/*
+
+# Create non-root user with restricted home
+RUN addgroup -S sandbox && adduser -S -G sandbox -h /sandbox -s /sbin/nologin sandbox
+WORKDIR /sandbox
+
+# Drop to non-root
+USER sandbox:sandbox
+
+ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/tmp/strace.log", "--", "npm", "install", "--ignore-scripts=false"]

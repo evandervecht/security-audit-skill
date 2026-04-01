@@ -1,0 +1,24 @@
+<!-- SA-ANDROID-01: Activity properly protected with permission -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.secure">
+
+    <permission
+        android:name="com.example.ADMIN_PERMISSION"
+        android:protectionLevel="signature" />
+
+    <application android:label="SecureApp">
+        <activity
+            android:name=".AdminActivity"
+            android:exported="false">
+        </activity>
+
+        <activity
+            android:name=".PaymentActivity"
+            android:permission="com.example.ADMIN_PERMISSION">
+            <intent-filter>
+                <action android:name="com.example.ACTION_PAY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

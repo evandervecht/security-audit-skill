@@ -1,0 +1,19 @@
+{
+  "name": "@security-audit/runtime-agent",
+  "version": "0.1.0",
+  "description": "Runtime taint tracing agent — detects when untrusted HTTP input reaches dangerous sinks without sanitization",
+  "type": "module",
+  "main": "dist/hook.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^20.0.0"
+  },
+  "files": [
+    "dist",
+    "python"
+  ],
+  "license": "MIT"
+}

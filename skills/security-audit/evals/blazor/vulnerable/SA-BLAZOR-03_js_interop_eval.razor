@@ -1,0 +1,19 @@
+@* SA-BLAZOR-03: JS interop injection via eval with user input *@
+@page "/calculator"
+@inject IJSRuntime JS
+
+<h1>Calculator</h1>
+<input @bind="expression" placeholder="Enter expression" />
+<button @onclick="Calculate">Calculate</button>
+<p>Result: @result</p>
+
+@code {
+    private string expression = "";
+    private string result = "";
+
+    private async Task Calculate()
+    {
+        await JS.InvokeVoidAsync("eval", expression);
+        result = value;
+    }
+}

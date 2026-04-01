@@ -1,0 +1,26 @@
+{
+  "name": "@security-audit/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for security-audit-skill — exposes security scanning tools to AI-powered IDEs",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "security-audit-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@security-audit/core": "file:../core"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^20.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT"
+}

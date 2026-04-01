@@ -1,0 +1,24 @@
+{
+  "name": "@security-audit/core",
+  "version": "0.1.0",
+  "description": "Core detection engine for security-audit-skill — loads checkpoints, runs regex patterns, returns structured findings",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0",
+    "glob": "^11.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^20.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT"
+}

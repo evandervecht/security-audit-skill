@@ -1,0 +1,104 @@
+{
+  "name": "security-audit",
+  "displayName": "Security Audit",
+  "description": "Real-time security vulnerability detection — 408 checkpoints across 9 languages, 18 frameworks, cloud providers, CMS platforms, and mobile SDKs",
+  "version": "0.1.0",
+  "publisher": "evandervecht",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "security",
+    "owasp",
+    "vulnerability",
+    "audit",
+    "xss",
+    "sql-injection",
+    "cwe"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/evandervecht/security-audit-skill"
+  },
+  "icon": "icon.png",
+  "activationEvents": [
+    "onLanguage:php",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onLanguage:python",
+    "onLanguage:java",
+    "onLanguage:csharp",
+    "onLanguage:go",
+    "onLanguage:rust",
+    "onLanguage:ruby",
+    "onLanguage:vue",
+    "onLanguage:swift",
+    "onLanguage:kotlin",
+    "onLanguage:terraform",
+    "onLanguage:xml",
+    "onLanguage:yaml",
+    "onLanguage:json",
+    "onLanguage:bicep",
+    "onLanguage:razor"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "security-audit.scanWorkspace",
+        "title": "Security Audit: Scan Workspace"
+      },
+      {
+        "command": "security-audit.scanFile",
+        "title": "Security Audit: Scan Current File"
+      },
+      {
+        "command": "security-audit.showReference",
+        "title": "Security Audit: Show Reference"
+      }
+    ],
+    "configuration": {
+      "title": "Security Audit",
+      "properties": {
+        "securityAudit.severity.minimum": {
+          "type": "string",
+          "default": "info",
+          "enum": ["error", "warning", "info"],
+          "description": "Minimum severity level to show diagnostics"
+        },
+        "securityAudit.enabledLanguages": {
+          "type": "array",
+          "default": [],
+          "items": { "type": "string" },
+          "description": "Languages to scan (empty = all detected languages)"
+        },
+        "securityAudit.excludedCheckpoints": {
+          "type": "array",
+          "default": [],
+          "items": { "type": "string" },
+          "description": "Checkpoint IDs to exclude (e.g., SA-JS-10)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "package": "npx @vscode/vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1",
+    "@security-audit/core": "file:../core"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^20.0.0"
+  }
+}

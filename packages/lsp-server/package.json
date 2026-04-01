@@ -1,0 +1,27 @@
+{
+  "name": "@security-audit/lsp-server",
+  "version": "0.1.0",
+  "description": "LSP server for security-audit-skill — publishes security diagnostics in any LSP-compatible editor",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "security-audit-lsp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js --stdio"
+  },
+  "dependencies": {
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "@security-audit/core": "file:../core"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "@types/node": "^20.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,23 @@
+@* SA-BLAZOR-03: Safe JS interop — parameterized call with textContent *@
+@page "/greeting"
+@inject IJSRuntime JS
+
+<h1>Greeting</h1>
+<input @bind="userName" placeholder="Enter your name" />
+<button @onclick="ShowGreeting">Greet</button>
+<div id="greeting-box"></div>
+
+@code {
+    private string userName = "";
+
+    private async Task ShowGreeting()
+    {
+        await JS.InvokeVoidAsync("displayGreeting", userName);
+    }
+}
+
+@* wwwroot/js/app.js:
+   window.displayGreeting = (name) => {
+       document.getElementById("greeting-box").textContent = "Hello, " + name;
+   };
+*@
