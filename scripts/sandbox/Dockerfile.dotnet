@@ -13,14 +13,17 @@ RUN rm -rf /var/cache/apk/* /tmp/*
 # Create non-root user with restricted home
 RUN addgroup -S sandbox && adduser -S -G sandbox -h /sandbox -s /sbin/nologin sandbox
 
-# .NET needs writable NuGet cache
 ENV DOTNET_CLI_HOME=/sandbox/.dotnet
 ENV NUGET_PACKAGES=/sandbox/.nuget
 RUN mkdir -p /sandbox/.dotnet /sandbox/.nuget && chown -R sandbox:sandbox /sandbox
+
+# Entrypoint script: restore + list vulnerable packages
+COPY entrypoint-dotnet.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /sandbox
 
 # Drop to non-root
 USER sandbox:sandbox
 
-ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/tmp/strace.log", "--", "dotnet", "restore"]
+ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/tmp/strace.log", "--", "/usr/local/bin/entrypoint.sh"]

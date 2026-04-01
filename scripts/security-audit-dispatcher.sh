@@ -102,6 +102,21 @@ for scanner in "${DETECTED_SCANNERS[@]}"; do
     fi
 done
 
+# Always run secrets scanner regardless of detected languages
+echo "========================================"
+echo "Running secrets scanner..."
+echo "========================================"
+SECRETS_SCRIPT="$SCANNERS_DIR/secrets.sh"
+if [[ -f "$SECRETS_SCRIPT" ]]; then
+    set +e
+    bash "$SECRETS_SCRIPT" "$PROJECT_DIR"
+    SCANNER_EXIT=$?
+    set -e
+    TOTAL_ERRORS=$((TOTAL_ERRORS + SCANNER_EXIT))
+    SCANNERS_RUN=$((SCANNERS_RUN + 1))
+    echo ""
+fi
+
 # === Summary ===
 echo "========================================"
 echo "=== Dispatcher Summary ==="
