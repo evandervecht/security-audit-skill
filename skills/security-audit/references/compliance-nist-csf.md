@@ -46,14 +46,12 @@ The GOVERN function establishes and monitors the organization's cybersecurity ri
 
 | NIST CSF 2.0 ID | Category / Subcategory | Related Checkpoints | Coverage |
 |---|---|---|---|
-| ID.AM | Asset Management | | |
-| ID.AM-01 | Inventories of hardware managed by the organization are maintained | N/A — hardware inventory | **N/A** |
-| ID.AM-02 | Inventories of software, services, and systems managed by the organization are maintained | SA-*-dep (dependency inventory across all languages), supply-chain-security.md (SBOM concepts) | **Partial** |
-| ID.AM-03 | Representations of the organization's authorized network communication and internal and external data flows are maintained | SA-AWS-09 (security group rules document flows), SA-GCP-06 (firewall rules), SA-AZURE-06 (NSG rules), LIVE-CORS-* (allowed origins) | **Supporting** |
-| ID.AM-04 | Inventories of services provided by suppliers are maintained | Dependency scanning provides third-party service/library inventory | **Supporting** |
-| ID.AM-05 | Assets are prioritized based on classification, criticality, resources, and impact on the mission | CVSS scoring prioritizes vulnerabilities by asset impact | **Supporting** |
-| ID.AM-07 | Inventories of data and corresponding metadata for designated data types are maintained | SA-*-secrets (identifies sensitive data locations in codebase) | **Supporting** |
-| ID.AM-08 | Systems, hardware, software, services, and data are managed throughout their life cycles | N/A — full lifecycle management | **N/A** |
+| ID.AM | **Asset Management** — ID.AM-01 (hardware inventory) and ID.AM-08 (lifecycle) are N/A. Mapped subcategories: | | |
+| ID.AM-02 | Software/service inventories maintained | SA-*-dep (dependency inventory), supply-chain-security.md (SBOM) | **Partial** |
+| ID.AM-03 | Network communication flows documented | SA-AWS-09, SA-GCP-06, SA-AZURE-06 (firewall/NSG rules), LIVE-CORS-* | **Supporting** |
+| ID.AM-04 | Supplier service inventories maintained | Dependency scanning provides third-party library inventory | **Supporting** |
+| ID.AM-05 | Assets prioritized by criticality | CVSS scoring prioritizes by impact | **Supporting** |
+| ID.AM-07 | Data inventories maintained | SA-*-secrets (sensitive data locations in codebase) | **Supporting** |
 | ID.RA | Risk Assessment | | |
 | ID.RA-01 | Vulnerabilities in assets are identified, validated, and recorded | **All 408 scanning checkpoints** — automated vulnerability identification, validation via pattern matching, recorded in structured output | **Full** |
 | ID.RA-02 | Cyber threat intelligence is received from information sharing forums and sources | CVE database (cve-database.md), CWE Top 25 (cwe-top25.md), modern-attacks.md, OWASP Top 10 (owasp-top10.md) | **Partial** |
@@ -61,15 +59,14 @@ The GOVERN function establishes and monitors the organization's cybersecurity ri
 | ID.RA-04 | Potential impacts and likelihoods of threats exploiting vulnerabilities are identified and recorded | CVSS v4.0 scoring (cvss-scoring.md) calculates impact and exploitability scores | **Full** |
 | ID.RA-05 | Threats, vulnerabilities, likelihoods, and impacts are used to understand risk and inform prioritization | Severity classification (Critical/High/Medium/Low/Info), CVSS scoring, CWE mapping | **Full** |
 | ID.RA-06 | Risk responses are chosen, prioritized, planned, tracked, and communicated | Remediation guidance in each checkpoint, fix suggestions | **Partial** |
-| ID.RA-07 | Changes and exceptions are managed, assessed for risk impact, recorded, and tracked | N/A — change management process | **N/A** |
-| ID.RA-08 | Processes for receiving, analyzing, and responding to vulnerability disclosures are established | supply-chain-incident-response.md (vulnerability disclosure response) | **Supporting** |
-| ID.RA-09 | The authenticity and integrity of hardware and software are assessed prior to acquisition or use | supply-chain-security.md (package integrity verification), lockfile integrity, signature checks | **Partial** |
-| ID.RA-10 | Critical suppliers are assessed prior to acquisition | N/A — procurement assessment | **N/A** |
-| ID.IM | Improvement | | |
-| ID.IM-01 | Improvements are identified from evaluations | Gap analysis sections in compliance mappings identify improvement areas | **Supporting** |
-| ID.IM-02 | Improvements are identified from security tests and exercises | Scan results identify specific remediation improvements | **Partial** |
-| ID.IM-03 | Improvements are identified from execution of operational processes | N/A — operational process review | **N/A** |
-| ID.IM-04 | Incident response plans and other cybersecurity plans are established, communicated, maintained, and improved | supply-chain-incident-response.md | **Supporting** |
+| ID.RA-07 | Changes/exceptions managed for risk impact | N/A — change management process | **N/A** |
+| ID.RA-08 | Vulnerability disclosure processes established | supply-chain-incident-response.md | **Supporting** |
+| ID.RA-09 | Software authenticity/integrity assessed before use | supply-chain-security.md (package integrity, lockfile, signatures) | **Partial** |
+| ID.RA-10 | Critical suppliers assessed before acquisition | N/A — procurement | **N/A** |
+| ID.IM | **Improvement** — ID.IM-03 is N/A (operational process review). Mapped subcategories: | | |
+| ID.IM-01 | Improvements identified from evaluations | Gap analysis in compliance mappings | **Supporting** |
+| ID.IM-02 | Improvements from security tests | Scan results identify remediation improvements | **Partial** |
+| ID.IM-04 | Incident response plans maintained | supply-chain-incident-response.md | **Supporting** |
 
 ---
 
@@ -132,23 +129,18 @@ Strong checkpoint coverage in this function through runtime checks and automated
 
 | NIST CSF 2.0 ID | Category / Subcategory | Related Checkpoints | Coverage |
 |---|---|---|---|
-| RS.MA | Incident Management | | |
-| RS.MA-01 | The incident response plan is executed in coordination with relevant third parties | supply-chain-incident-response.md (incident response playbooks) | **Supporting** |
-| RS.MA-02 | Incident reports are triaged and validated | CVSS scoring for triage prioritization, false positive validation in scan output | **Supporting** |
-| RS.MA-03 | Incidents are categorized and prioritized | Severity classification (Critical/High/Medium/Low/Info), CWE categorization, OWASP categorization | **Partial** |
-| RS.MA-04 | Incidents are escalated or elevated as needed | N/A — escalation procedures | **N/A** |
-| RS.MA-05 | The criteria for initiating incident recovery are applied | N/A — recovery criteria | **N/A** |
-| RS.AN | Incident Analysis | | |
-| RS.AN-03 | Analysis is performed to determine what has taken place during an incident | Checkpoint remediation guidance provides root cause analysis context | **Supporting** |
-| RS.AN-06 | Actions performed during an investigation are recorded | Scan output provides timestamped, reproducible investigation records | **Supporting** |
-| RS.AN-07 | Incident data and metadata are collected and its integrity and provenance are preserved | Structured JSON scan output with timestamps and checkpoint IDs | **Supporting** |
-| RS.AN-08 | An incident's magnitude is estimated and validated | CVSS v4.0 scoring quantifies incident magnitude | **Partial** |
-| RS.CO | Incident Reporting and Communication | | |
-| RS.CO-02 | Internal and external stakeholders are notified of incidents | N/A — notification procedures | **N/A** |
-| RS.CO-03 | Information is shared with designated internal and external stakeholders | N/A — information sharing procedures | **N/A** |
-| RS.MI | Incident Mitigation | | |
-| RS.MI-01 | Incidents are contained | N/A — runtime containment actions | **N/A** |
-| RS.MI-02 | Incidents are eradicated | Remediation guidance in checkpoints provides eradication steps (code fixes, configuration changes) | **Supporting** |
+| RS.MA | **Incident Management** — RS.MA-04/05 are N/A (escalation, recovery criteria). Mapped subcategories: | | |
+| RS.MA-01 | Incident response plan executed with third parties | supply-chain-incident-response.md (playbooks) | **Supporting** |
+| RS.MA-02 | Incident reports triaged and validated | CVSS scoring for triage, false positive validation | **Supporting** |
+| RS.MA-03 | Incidents categorized and prioritized | Severity classification (Critical/High/Medium/Low/Info), CWE/OWASP categorization | **Partial** |
+| RS.AN | **Incident Analysis** | | |
+| RS.AN-03 | Analysis of what took place during incident | Checkpoint remediation guidance provides root cause context | **Supporting** |
+| RS.AN-06 | Investigation actions recorded | Scan output: timestamped, reproducible records | **Supporting** |
+| RS.AN-07 | Incident data integrity preserved | Structured JSON output with timestamps and checkpoint IDs | **Supporting** |
+| RS.AN-08 | Incident magnitude estimated | CVSS v4.0 scoring quantifies magnitude | **Partial** |
+| RS.CO | **Incident Reporting** — RS.CO-02/03 are N/A (notification and sharing procedures). | | **N/A** |
+| RS.MI | **Incident Mitigation** — RS.MI-01 is N/A (runtime containment). Mapped subcategory: | | |
+| RS.MI-02 | Incidents eradicated | Remediation guidance provides eradication steps (code fixes, config changes) | **Supporting** |
 
 ---
 
@@ -198,36 +190,13 @@ Recovery is primarily procedural and operational. RC.RP-01/02/04/05/06 and RC.CO
 
 ### Functions with No or Minimal Coverage
 
-#### GOVERN (GV) — 0 Full, 3 Partial
+- **GOVERN (GV)** — 0 Full, 3 Partial. Inherently organizational. GV.SC (Supply Chain) has strongest coverage via supply-chain-security.md. **Recommendation:** Add SBOM generation for GV.SC-04.
+- **RECOVER (RC)** — 0 Full, 0 Partial. Entirely procedural. Appropriately outside scope; backup config checks (SA-AWS/GCP/AZURE-05) are the sole contribution.
+- **RESPOND (RS)** — 0 Full, 2 Partial. Primarily procedural. **Recommendation:** Add IR-* checkpoint series for incident response automation (auto-blocking, rollback triggers, circuit breakers).
 
-The GOVERN function is inherently organizational. Code scanning cannot establish governance structures, risk appetite, or policy frameworks. However:
+### Key N/A Subcategories
 
-- **GV.SC (Supply Chain Risk Management)** has the strongest coverage in GOVERN through supply-chain-security.md integration.
-- **Recommendation:** Enhance supply chain checkpoints to provide better GV.SC evidence. Add SBOM generation (GV.SC-04 supplier inventory).
-
-#### RECOVER (RC) — 0 Full, 0 Partial
-
-Recovery is entirely procedural and operational. Code scanning cannot execute recovery plans or verify restoration.
-
-- **Recommendation:** No checkpoint additions recommended — this is appropriately outside scope. Organizations should reference backup configuration checks (SA-AWS-05, SA-GCP-05, SA-AZURE-05) as the sole technical contribution.
-
-#### RESPOND (RS) — 0 Full, 2 Partial
-
-Incident response is primarily procedural. Current coverage through supply-chain-incident-response.md and CVSS scoring provides limited support.
-
-- **Recommendation:** Add IR-* (Incident Response) checkpoint series for verifying incident response automation (e.g., auto-blocking malicious IPs, automated rollback triggers, circuit breakers).
-
-### Subcategories with No Coverage Requiring Attention
-
-1. **ID.AM-01 (Hardware Inventory)** — Outside scope but organizations may want SBOM integration.
-
-2. **DE.CM-02 (Physical Monitoring)** — Outside scope.
-
-3. **PR.AA-06 (Physical Access)** — Outside scope.
-
-4. **RS.MA-04/RS.MA-05 (Escalation/Recovery Criteria)** — Procedural. **Recommendation:** Add severity-threshold based escalation rules as checkpoint metadata.
-
-5. **RS.CO-02/RS.CO-03 (Incident Notification)** — Procedural. Consider webhook/notification integration for scan findings.
+Physical controls (ID.AM-01, DE.CM-02, PR.AA-06) and procedural controls (RS.MA-04/05, RS.CO-02/03) are outside code scanning scope. No checkpoint additions recommended for these.
 
 ### Recommended New Checkpoint Series for NIST CSF Alignment
 
@@ -242,24 +211,14 @@ Incident response is primarily procedural. Current coverage through supply-chain
 
 ## Cross-References
 
-| Related Framework | Mapping Document | Primary Overlap |
-|---|---|---|
-| SOC 2 Trust Services Criteria | compliance-soc2.md | CC6 maps to PR.AA, CC7 maps to DE.CM |
-| ISO 27001:2022 Annex A | compliance-iso27001.md | A.8 Technological maps to PR and DE functions |
-| OWASP Top 10 | owasp-top10.md | Maps to PR.PS-06 (secure SDLC) and ID.RA-01 (vulnerability identification) |
-| CWE Top 25 | cwe-top25.md | Maps to ID.RA-01 and DE.AE-07 (threat intelligence) |
-| CVSS v4.0 | cvss-scoring.md | Maps to ID.RA-04/05 (risk prioritization) and DE.AE-04 (impact estimation) |
-
-### NIST CSF 2.0 to Other Frameworks Quick-Map
-
-| NIST CSF 2.0 | SOC 2 | ISO 27001:2022 |
-|---|---|---|
-| GV (Govern) | CC1, CC2, CC3 | A.5 Organizational |
-| ID (Identify) | CC3, CC4 | A.5.7, A.5.9, A.8.8 |
-| PR (Protect) | CC5, CC6, CC8 | A.8 Technological |
-| DE (Detect) | CC7 | A.8.15, A.8.16 |
-| RS (Respond) | CC7.4, CC7.5 | A.5.24–A.5.28 |
-| RC (Recover) | CC9 | A.5.29, A.5.30 |
+| NIST CSF 2.0 | SOC 2 Equivalent | ISO 27001 Equivalent | Skill Reference |
+|---|---|---|---|
+| GV (Govern) | CC1, CC2, CC3 | A.5 Organizational | compliance-soc2.md, compliance-iso27001.md |
+| ID (Identify) | CC3, CC4 | A.5.7, A.5.9, A.8.8 | cve-database.md, cvss-scoring.md |
+| PR (Protect) | CC5, CC6, CC8 | A.8 Technological | owasp-top10.md, cryptography-guide.md |
+| DE (Detect) | CC7 | A.8.15, A.8.16 | cwe-top25.md, automated-scanning.md |
+| RS (Respond) | CC7.4, CC7.5 | A.5.24–A.5.28 | supply-chain-incident-response.md |
+| RC (Recover) | CC9 | A.5.29, A.5.30 | N/A — outside code scanning scope |
 
 ---
 

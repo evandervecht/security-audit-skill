@@ -1,6 +1,6 @@
-# Security Audit Skill - Usage Guide
+# Security Audit Skill — Usage Guide
 
-How to apply the security audit skill to any project: PHP applications, Infrastructure-as-Code, APIs, frontend code, and AI agent skills/configurations.
+How to apply the security audit skill to any project. Supports 9 languages, 18 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, with 408 automated checkpoints, runtime analysis, CVE correlation, and compliance mapping.
 
 ---
 
@@ -29,25 +29,26 @@ Copy the `skills/security-audit/` directory into your agent's skill path. The sk
 
 ## Quick Start
 
-### 1. Audit a PHP Project
+### 1. Audit a Software Project
 
-Navigate to your PHP project directory and ask your AI agent:
+Navigate to your software project directory and ask your AI agent:
 
 > "Run a security audit on this project"
 
-Or run the automated script directly:
+Or run the automated scanner directly:
 
 ```bash
-# From within the security-audit-skill directory
-./skills/security-audit/scripts/security-audit.sh /path/to/your/php-project
+# Multi-language scan (auto-detects your stack)
+./scripts/security-audit-dispatcher.sh /path/to/your/project
+
+# Scan a live URL for runtime security
+# (via MCP tool or directly in packages/core)
+
+# Sandbox a dependency install
+./scripts/dependency-sandbox.sh npm suspicious-package@1.0.0
 ```
 
-This scans `src/` and `Classes/` directories for:
-- Hardcoded secrets
-- SQL injection patterns
-- XXE vulnerabilities
-- Command injection
-- XSS patterns
+The dispatcher auto-detects languages via indicator files (`package.json`, `requirements.txt`, `go.mod`, `Cargo.toml`, etc.) and runs only relevant scanners plus the secrets scanner.
 - Insecure password hashing
 - Path traversal
 - Type juggling
@@ -77,13 +78,15 @@ When the skill is installed, your AI agent will automatically use it when you as
 
 ## Auditing Different Project Types
 
+The skill auto-detects your project's stack and runs relevant checkpoints. 408 checkpoints across 36 technologies.
+
 ### PHP / TYPO3 / Symfony / Laravel
 
-The skill's core strength. Covers 80+ checkpoints including:
+References: `php-security-features.md`, `typo3-security.md`, `symfony-security.md`, `laravel-security.md`
 
 - **OWASP Top 10**: Injection, XSS, CSRF, SSRF, XXE, broken access control
 - **CWE Top 25**: Type juggling, deserialization, path traversal, command injection
-- **Framework-specific**: TYPO3 Extbase, Symfony components, Laravel Eloquent
+- **Framework-specific**: TYPO3 QueryBuilder/Extbase, Symfony voters/firewall, Laravel Eloquent/gates
 
 ```
 "Run the OWASP Top 10 audit on this PHP project"
@@ -91,27 +94,187 @@ The skill's core strength. Covers 80+ checkpoints including:
 "Audit the TYPO3 extension for CWE Top 25 issues"
 ```
 
-### Infrastructure-as-Code (Dockerfiles, Kubernetes, Terraform)
+### JavaScript / TypeScript / Node.js
 
-Reference: `references/iac-security.md`
+References: `javascript-typescript-security-features.md`, `nodejs-security-features.md`
 
-The skill detects:
+- Prototype pollution, `eval()`/`Function()` injection, DOM XSS (innerHTML, document.write)
+- `postMessage` origin validation, regex DoS, `Math.random()` for security tokens
+- Node.js: `child_process` injection, `fs` path traversal, `vm` sandbox escape, `Buffer` misuse
+- TypeScript: `any` vs `unknown`, type assertion abuse, branded types
+
+```
+"Check for prototype pollution vulnerabilities"
+"Audit the Node.js code for command injection via child_process"
+"Are there any eval() calls with user input?"
+```
+
+### React / Next.js / Vue / Angular / Nuxt
+
+References: `react-security.md`, `nextjs-security.md`, `vue-security.md`, `angular-security.md`, `nuxt-security.md`
+
+- React: `dangerouslySetInnerHTML`, `javascript:` hrefs, sensitive state exposure
+- Next.js: Server Action auth bypass, `NEXT_PUBLIC_*` secret leaks, image SSRF, open redirects
+- Vue: `v-html` XSS, template injection, Pinia/Vuex state exposure
+- Angular: `bypassSecurityTrust*` misuse, `DomSanitizer` bypass, `innerHTML` binding
+- Nuxt: Server route auth, `runtimeConfig` secrets, SSR XSS
+
+```
+"Check the React components for XSS vulnerabilities"
+"Audit Next.js server actions for missing auth checks"
+"Are there any v-html directives with user input in the Vue templates?"
+```
+
+### Python / Django / Flask / FastAPI
+
+References: `python-security-features.md`, `django-security.md`, `flask-security.md`, `fastapi-security.md`
+
+- `pickle`/`marshal` deserialization, `eval()`/`exec()`, Jinja2 SSTI, `subprocess` injection
+- `yaml.load()` vs `yaml.safe_load()`, SQL injection via f-strings, `hashlib` weak algorithms
+- Django: ORM raw injection, `@csrf_exempt`, `mark_safe` XSS, `DEBUG=True`
+- Flask: SSTI, `send_file` traversal, debug mode, session tampering
+- FastAPI: Missing auth dependencies, Pydantic bypass, CORS wildcard
+
+```
+"Audit this Python project for pickle deserialization issues"
+"Check the Django views for CSRF exemptions"
+"Are there any Flask routes with SSTI vulnerabilities?"
+```
+
+### Java / Spring
+
+References: `java-security-features.md`, `spring-security.md`
+
+- `ObjectInputStream` deserialization, JNDI injection (Log4Shell), reflection abuse
+- JDBC SQL injection, XXE via `DocumentBuilderFactory`, `Runtime.exec` command injection
+- Spring: `permitAll` overreach, SpEL injection, actuator exposure, Thymeleaf SSTI
+
+```
+"Check for JNDI injection patterns (Log4Shell)"
+"Audit the Spring Security configuration"
+"Are there any ObjectInputStream usages with untrusted data?"
+```
+
+### C# / .NET / Blazor
+
+References: `csharp-security-features.md`, `dotnet-security.md`, `blazor-security.md`
+
+- `BinaryFormatter` deserialization, Entity Framework `FromSqlRaw`, LDAP injection
+- `Process.Start` command injection, `XmlDocument` XXE, CORS misconfiguration
+- .NET: Middleware ordering, `[AllowAnonymous]` overreach, Razor `Html.Raw` XSS
+- Blazor: WASM client-side auth bypass, JS interop injection, render mode security
+
+```
+"Check for BinaryFormatter usage in the C# code"
+"Audit the ASP.NET Core middleware ordering"
+"Are there any Blazor components with client-side auth checks?"
+```
+
+### Go / Gin
+
+References: `go-security-features.md`, `gin-security.md`
+
+- Race conditions, `unsafe` pointer usage, `text/template` vs `html/template` injection
+- SQL string concatenation, `os/exec` command injection, `InsecureSkipVerify`
+- `math/rand` vs `crypto/rand`, HTTP header injection, SSRF
+- Gin: Middleware ordering, `c.Bind` mass assignment, template injection
+
+```
+"Check for InsecureSkipVerify in the TLS configuration"
+"Audit the Go code for SQL injection via string concatenation"
+"Are there any goroutine race conditions?"
+```
+
+### Rust
+
+Reference: `rust-security-features.md`
+
+- `unsafe` blocks, FFI boundary issues, `panic!` in library code
+- `.unwrap()`/`.expect()` in production paths, integer overflow (debug vs release)
+- SQL injection in Diesel/sqlx, `Command` injection, `serde` deserialization pitfalls
+- Timing side-channels, `mem::forget` leaks
+
+```
+"Audit the unsafe blocks in the Rust code"
+"Check for unwrap() calls in production error paths"
+"Are there any serde deserialization issues with untrusted input?"
+```
+
+### Ruby / Rails
+
+References: `ruby-security-features.md`, `rails-security.md`
+
+- `eval`/`send` injection, `system`/`exec` command injection, `Marshal.load` deserialization
+- `YAML.load` vs `YAML.safe_load`, ERB template injection, `html_safe`/`raw` XSS
+- Rails: Mass assignment, `find_by_sql` injection, CSRF config, `send_file` traversal
+
+```
+"Check for Marshal.load with user input"
+"Audit the Rails controllers for mass assignment"
+"Are there any html_safe calls with unsanitized data?"
+```
+
+### Infrastructure-as-Code (Docker, Kubernetes, Terraform)
+
+Reference: `iac-security.md`
+
 - Dockerfiles running as root, secrets in layers, unpinned base images
 - Docker Compose privileged mode, Docker socket mounts
 - Kubernetes pods without securityContext, missing NetworkPolicy, overly permissive RBAC
-- Terraform public S3 buckets, open security groups, unencrypted storage
+- Terraform public resources, open security groups, unencrypted storage
 
 ```
 "Audit the Dockerfile for security issues"
-"Check the Kubernetes manifests in k8s/ for misconfigurations"
+"Check the Kubernetes manifests for misconfigurations"
 "Review the Terraform files for public access risks"
+```
+
+### Cloud Providers (AWS, GCP, Azure)
+
+References: `aws-security.md`, `gcp-security.md`, `azure-security.md`
+
+- AWS: IAM wildcard policies, public S3 buckets, open Security Groups, missing KMS rotation, CloudTrail disabled
+- GCP: Primitive IAM roles, `allUsers` bindings, public Cloud Storage, missing audit logs
+- Azure: Owner role at subscription scope, public Blob Storage, open NSGs, missing Key Vault
+
+```
+"Audit the Terraform files for AWS IAM misconfigurations"
+"Check for public S3 buckets in the CloudFormation templates"
+"Are there any overly permissive Azure RBAC assignments?"
+```
+
+### CMS (WordPress, Drupal, Joomla)
+
+References: `wordpress-security.md`, `drupal-security.md`, `joomla-security.md`
+
+- WordPress: `$wpdb->query()` without `prepare()`, missing nonces, unescaped output, REST API permissions
+- Drupal: `db_query` without placeholders, `#markup` XSS, entity access, Form API
+- Joomla: `JInput` without filtering, `JDatabaseQuery` injection, ACL checks
+
+```
+"Audit this WordPress plugin for SQL injection"
+"Check the Drupal module for XSS via render arrays"
+"Are there any Joomla controllers missing ACL checks?"
+```
+
+### Mobile (Android, iOS)
+
+References: `android-sdk-security.md`, `ios-sdk-security.md`
+
+- Android: Exported components, ContentProvider injection, WebView JS bridge, SharedPreferences, manifest flags (`debuggable`, `allowBackup`)
+- iOS: Keychain `kSecAttrAccessibleAlways`, ATS bypass (`NSAllowsArbitraryLoads`), UIWebView, UIPasteboard leaks, URL scheme hijacking
+
+```
+"Audit the AndroidManifest.xml for exported components"
+"Check for insecure Keychain accessibility settings"
+"Are there any UIWebView usages that should be WKWebView?"
 ```
 
 ### APIs (REST, GraphQL)
 
-Reference: `references/api-security.md`
+Reference: `api-security.md`
 
-Covers the OWASP API Top 10 (2023):
+Covers the OWASP API Top 10 (2025):
 - Broken Object-Level Authorization (BOLA/IDOR)
 - Mass assignment and excessive data exposure
 - Missing rate limiting and pagination
@@ -126,9 +289,8 @@ Covers the OWASP API Top 10 (2023):
 
 ### Frontend / Client-Side
 
-Reference: `references/frontend-security.md`
+Reference: `frontend-security.md`
 
-Detects:
 - DOM-based XSS (innerHTML, document.write, eval)
 - Missing Subresource Integrity (SRI) on CDN scripts
 - CORS misconfiguration (wildcard origins)
@@ -139,6 +301,19 @@ Detects:
 "Check the JavaScript files for DOM XSS vulnerabilities"
 "Audit the CORS configuration"
 "Are there any sensitive tokens stored in localStorage?"
+```
+
+### Secrets Detection
+
+Scanner: `scripts/scanners/secrets.sh` (runs automatically on every project)
+
+- TruffleHog filesystem + git history scan (when installed)
+- 19 regex patterns: AWS keys, GitHub/GitLab/Slack tokens, private keys, JWTs, database URLs
+- `.env` file detection, `.gitignore` validation
+
+```
+"Scan this project for leaked secrets"
+"Check the git history for accidentally committed API keys"
 ```
 
 ---
@@ -271,29 +446,110 @@ The audit would flag:
 
 ## Reference Docs
 
-All reference docs are in `skills/security-audit/references/`. Read them for deep-dive patterns:
+All 64 reference docs are in `skills/security-audit/references/`.
+
+**Standards & Scoring:**
 
 | Reference | Coverage |
 |---|---|
-| `owasp-top10.md` | OWASP Top 10 (2021) with PHP patterns |
+| `owasp-top10.md` | OWASP Top 10 (2021) |
 | `cwe-top25.md` | CWE Top 25 (2025) |
-| `api-security.md` | OWASP API Top 10 (2023), GraphQL, REST |
+| `cvss-scoring.md` | CVSS v3.1 and v4.0 scoring methodology |
+| `cve-database.md` | 113 CVEs mapped to checkpoints |
+
+**Language Security Features:**
+
+| Reference | Coverage |
+|---|---|
+| `php-security-features.md` | PHP 8.0-8.4 |
+| `javascript-typescript-security-features.md` | JS/TS + ES2020+ |
+| `nodejs-security-features.md` | Node.js 16-22 |
+| `python-security-features.md` | Python 3.9-3.13 |
+| `java-security-features.md` | Java 11-21 |
+| `csharp-security-features.md` | C# 9-12 |
+| `go-security-features.md` | Go 1.18-1.22 |
+| `rust-security-features.md` | Rust editions |
+| `ruby-security-features.md` | Ruby 3.0-3.3 |
+
+**Framework Security:**
+
+| Reference | Coverage |
+|---|---|
+| `react-security.md` | React (dangerouslySetInnerHTML, JSX injection) |
+| `nextjs-security.md` | Next.js (Server Actions, NEXT_PUBLIC_ leaks) |
+| `vue-security.md` | Vue (v-html, template injection) |
+| `angular-security.md` | Angular (bypassSecurityTrust, DomSanitizer) |
+| `nuxt-security.md` | Nuxt (server routes, runtimeConfig) |
+| `django-security.md` | Django (ORM injection, CSRF, mark_safe) |
+| `flask-security.md` | Flask (SSTI, debug mode, session tampering) |
+| `fastapi-security.md` | FastAPI (auth deps, Pydantic, CORS) |
+| `spring-security.md` | Spring (SpEL, actuator, permitAll) |
+| `dotnet-security.md` | ASP.NET Core (middleware, EF, Razor) |
+| `blazor-security.md` | Blazor (WASM auth, JS interop) |
+| `gin-security.md` | Gin (middleware, template injection) |
+| `rails-security.md` | Rails (mass assignment, html_safe) |
+| `express-security.md` | Express (helmet, sendFile, sessions) |
+| `nestjs-security.md` | NestJS (guards, DTOs, @Public) |
+| `typo3-security.md` | TYPO3 (QueryBuilder, Extbase) |
+| `symfony-security.md` | Symfony (voters, firewall, CSRF) |
+| `laravel-security.md` | Laravel (Eloquent, gates, Crypt) |
+
+**Cloud, CMS & Mobile:**
+
+| Reference | Coverage |
+|---|---|
+| `aws-security.md` | AWS IAM, S3, Lambda, Security Groups, KMS |
+| `gcp-security.md` | GCP IAM, Cloud Storage, Cloud Functions, VPC |
+| `azure-security.md` | Azure RBAC, Blob Storage, NSGs, Key Vault |
+| `wordpress-security.md` | WordPress ($wpdb, nonces, REST API) |
+| `drupal-security.md` | Drupal (db_query, #markup, entity access) |
+| `joomla-security.md` | Joomla (JInput, JDatabaseQuery, ACL) |
+| `android-sdk-security.md` | Android (Intents, WebView, manifest flags) |
+| `ios-sdk-security.md` | iOS (Keychain, ATS, UIWebView, URL schemes) |
+
+**Infrastructure, APIs & AI:**
+
+| Reference | Coverage |
+|---|---|
 | `iac-security.md` | Dockerfile, K8s, Terraform, Docker Compose |
+| `api-security.md` | OWASP API Top 10 (2025), GraphQL, REST |
 | `frontend-security.md` | DOM XSS, SRI, CORS, postMessage |
 | `llm-security.md` | OWASP LLM Top 10 (2025), agent/skill auditing |
+
+**Vulnerability Prevention:**
+
+| Reference | Coverage |
+|---|---|
 | `xxe-prevention.md` | XML External Entity prevention |
+| `path-traversal-prevention.md` | Path traversal prevention |
+| `input-validation.md` | Input validation patterns |
 | `authentication-patterns.md` | Auth, sessions, JWT |
 | `cryptography-guide.md` | Encryption, hashing, key management |
-| `supply-chain-security.md` | SLSA, SBOM, dependency security |
-| `ci-security-pipeline.md` | CI/CD security integration |
-| `automated-scanning.md` | Semgrep, Trivy, Gitleaks setup |
-| `modern-attacks.md` | SSRF, prototype pollution, cache poisoning |
 | `security-headers.md` | HSTS, CSP, CORS headers |
 | `security-logging.md` | Audit logging patterns |
-| `typo3-security.md` | TYPO3 security patterns |
-| `symfony-security.md` | Symfony security patterns |
-| `laravel-security.md` | Laravel security patterns |
-| `cvss-scoring.md` | CVSS v3.1 and v4.0 scoring methodology |
+| `api-key-encryption.md` | API key encryption at rest |
+
+**DevSecOps & Supply Chain:**
+
+| Reference | Coverage |
+|---|---|
+| `ci-security-pipeline.md` | CI/CD security integration |
+| `automated-scanning.md` | Semgrep, Trivy, Gitleaks setup |
+| `supply-chain-security.md` | SLSA, SBOM, dependency security |
+| `supply-chain-incident-response.md` | Incident response playbooks |
+| `modern-attacks.md` | SSRF, prototype pollution, cache poisoning |
+| `cve-patterns.md` | CVE pattern references |
+
+**Compliance Mappings:**
+
+| Reference | Coverage |
+|---|---|
+| `compliance-soc2.md` | SOC 2 Trust Services Criteria → checkpoints |
+| `compliance-iso27001.md` | ISO 27001:2022 Annex A → checkpoints |
+| `compliance-pci-dss.md` | PCI DSS v4.0 → checkpoints |
+| `compliance-hipaa.md` | HIPAA Security Rule → checkpoints |
+| `compliance-gdpr.md` | GDPR Article 32 → checkpoints |
+| `compliance-nist-csf.md` | NIST CSF 2.0 → checkpoints |
 
 ---
 

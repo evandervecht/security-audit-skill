@@ -23,7 +23,7 @@ This is an **Agent Skill** following the [open standard](https://agentskills.io)
 - **Standards Compliance**: OWASP Top 10, CWE Top 25 (2025), OWASP ASVS v4.0, Proactive Controls — applicable to any project
 - **PHP/TYPO3 Deep Scanning**: 80+ automated checkpoints, PHP 8.x security features, framework patterns (TYPO3, Symfony, Laravel)
 - **Infrastructure-as-Code**: Dockerfile security (root user, secrets in layers, unpinned images), Docker Compose (privileged mode, socket mounts), Kubernetes (RBAC, NetworkPolicy, pod security), Terraform (public access, encryption)
-- **API Security**: OWASP API Top 10 (2023), GraphQL (introspection, depth limits, batching), REST hardening, BOLA/IDOR, mass assignment, rate limiting
+- **API Security**: OWASP API Top 10 (2025), GraphQL (introspection, depth limits, batching), REST hardening, BOLA/IDOR, mass assignment, rate limiting
 - **Frontend Security**: DOM-based XSS, Subresource Integrity (SRI), CORS misconfiguration, postMessage validation, localStorage secrets, client-side open redirects
 - **AI/LLM Agent Security**: OWASP LLM Top 10 (2025), prompt injection defense, excessive agency detection, MCP server auditing, system prompt leakage, agent permission least-privilege analysis
 - **DevSecOps**: CI/CD security pipeline, SAST, dependency scanning, supply chain security, SLSA
@@ -150,7 +150,7 @@ security-audit-skill/
 │   └── references/
 │       ├── owasp-top10.md                # OWASP Top 10 patterns
 │       ├── cwe-top25.md                  # CWE Top 25 (2025) coverage map
-│       ├── api-security.md               # OWASP API Top 10 (2023), GraphQL, REST
+│       ├── api-security.md               # OWASP API Top 10 (2025), GraphQL, REST
 │       ├── iac-security.md               # Dockerfile, K8s, Terraform, Compose
 │       ├── frontend-security.md          # DOM XSS, SRI, CORS, postMessage
 │       ├── llm-security.md               # OWASP LLM Top 10 (2025), agent auditing
@@ -199,7 +199,7 @@ security-audit-skill/
 - Terraform: public S3 buckets, open security groups, unencrypted storage
 
 ### API Security
-- OWASP API Top 10 (2023): BOLA, mass assignment, rate limiting, function-level auth
+- OWASP API Top 10 (2025): BOLA, mass assignment, rate limiting, function-level auth
 - GraphQL: introspection, query depth/complexity limits, batching attacks
 - REST: versioning security, content-type validation, CORS configuration
 

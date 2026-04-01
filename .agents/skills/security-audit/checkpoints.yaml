@@ -1,0 +1,1218 @@
+# Checkpoints for security-audit skill
+# Focuses on security best practices for PHP/TYPO3 extensions
+
+version: 2
+skill_id: security-audit
+
+mechanical:
+  # === SECURITY DOCUMENTATION ===
+  - id: SA-01
+    type: file_exists
+    target: SECURITY.md
+    severity: warning
+    desc: "SECURITY.md should exist for vulnerability reporting"
+
+  # === SECRETS NOT IN VCS ===
+  - id: SA-02
+    type: contains
+    target: .gitignore
+    pattern: ".env"
+    severity: error
+    desc: ".env files must be in .gitignore to prevent credential leaks"
+
+  - id: SA-03
+    type: file_not_exists
+    target: .env
+    severity: error
+    desc: ".env file must not be committed to repository"
+
+  - id: SA-04
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "password = "
+    severity: warning
+    desc: "PHP files should not contain hardcoded password assignments"
+
+  - id: SA-05
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "api_key = "
+    severity: warning
+    desc: "PHP files should not contain hardcoded API key assignments"
+
+  - id: SA-06
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "secret = "
+    severity: warning
+    desc: "PHP files should not contain hardcoded secret assignments"
+
+  # === COMPOSER AUDIT IN CI ===
+  - id: SA-07
+    type: regex
+    target: .github/workflows/*.yml
+    pattern: "composer audit"
+    severity: error
+    desc: "CI must run composer audit to detect vulnerable dependencies"
+
+  # === XXE PREVENTION ===
+  # Use command type to avoid false positives from glob fallback to config files
+  - id: SA-08
+    type: command
+    target: "! grep -rqF 'LIBXML_NOENT' --include='*.php' Classes/ 2>/dev/null"
+    severity: error
+    desc: "PHP files must not use LIBXML_NOENT flag that enables XXE"
+
+  - id: SA-08b
+    type: command
+    target: "! grep -rqF 'LIBXML_DTDLOAD' --include='*.php' Classes/ 2>/dev/null"
+    severity: error
+    desc: "PHP files must not use LIBXML_DTDLOAD flag that enables XXE"
+
+  - id: SA-09
+    type: command
+    target: "! grep -rqF 'libxml_disable_entity_loader(false)' --include='*.php' Classes/ 2>/dev/null"
+    severity: error
+    desc: "Must not explicitly enable XML entity loading (XXE vulnerability)"
+
+  # === SQL INJECTION PREVENTION ===
+  - id: SA-10
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "$_GET["
+    severity: warning
+    desc: "Direct use of $_GET should be avoided (use framework request handling)"
+
+  - id: SA-11
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "$_POST["
+    severity: warning
+    desc: "Direct use of $_POST should be avoided (use framework request handling)"
+
+  - id: SA-12
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "$_REQUEST["
+    severity: warning
+    desc: "Direct use of $_REQUEST should be avoided (use framework request handling)"
+
+  # === XSS PREVENTION ===
+  # Use command type to avoid false positives from glob fallback to config files
+  - id: SA-13
+    type: command
+    target: "! grep -rqF 'echo $' --include='*.php' Classes/ 2>/dev/null"
+    severity: warning
+    desc: "Direct echo of variables may be XSS vulnerable - use htmlspecialchars()"
+
+  # === DEPENDABOT FOR SECURITY ===
+  - id: SA-14
+    type: file_exists
+    target: .github/dependabot.yml
+    severity: warning
+    desc: "Dependabot should be enabled for security updates"
+
+  - id: SA-15
+    type: contains
+    target: .github/dependabot.yml
+    pattern: 'package-ecosystem: "composer"'
+    severity: warning
+    desc: "Dependabot should monitor composer for security vulnerabilities"
+
+  # === DESERIALIZATION PREVENTION ===
+  - id: SA-21
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "unserialize($_"
+    severity: error
+    desc: "Never unserialize user input - use json_decode instead"
+
+  - id: SA-22
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "unserialize($"
+    severity: warning
+    desc: "unserialize() should use allowed_classes parameter or be replaced with json_decode"
+
+  # === INSECURE PASSWORD HASHING ===
+  - id: SA-23
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "md5($pass"
+    severity: error
+    desc: "md5 must not be used for password hashing - use password_hash()"
+
+  - id: SA-24
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "sha1($pass"
+    severity: error
+    desc: "sha1 must not be used for password hashing - use password_hash()"
+
+  # === COMMAND INJECTION ===
+  - id: SA-25
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "exec($_"
+    severity: error
+    desc: "Running commands with user input is a command injection vulnerability"
+
+  - id: SA-26
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "system($_"
+    severity: error
+    desc: "system() with user input is a command injection vulnerability"
+
+  - id: SA-27
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "shell_exec($_"
+    severity: error
+    desc: "shell_exec() with user input is a command injection vulnerability"
+
+  - id: SA-28
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "passthru($_"
+    severity: error
+    desc: "passthru() with user input is a command injection vulnerability"
+
+  # === INSECURE RANDOMNESS ===
+  - id: SA-29
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "rand()"
+    severity: warning
+    desc: "rand() should not be used for security purposes - use random_int()"
+
+  - id: SA-30
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "mt_rand()"
+    severity: warning
+    desc: "mt_rand() should not be used for security purposes - use random_int()"
+
+  # === INFORMATION DISCLOSURE ===
+  - id: SA-31
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "phpinfo()"
+    severity: warning
+    desc: "phpinfo() should not be in production code - information disclosure risk"
+
+  # === FILE UPLOAD SAFETY ===
+  - id: SA-32
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "move_uploaded_file($_"
+    severity: warning
+    desc: "Direct move_uploaded_file with superglobal needs security review - use framework file handling"
+
+  # === COOKIE SECURITY ===
+  - id: SA-33
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "$_COOKIE["
+    severity: warning
+    desc: "Direct use of $_COOKIE should be avoided (use framework request handling)"
+
+  # === OPEN REDIRECT ===
+  - id: SA-34
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "header('Location: ' . $_"
+    severity: error
+    desc: "Open redirect vulnerability - never use user input directly in Location header"
+
+  - id: SA-35
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: 'header("Location: " . $_'
+    severity: error
+    desc: "Open redirect vulnerability - never use user input directly in Location header"
+
+  # === SECURITY HEADERS ===
+  - id: SA-36
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "X-XSS-Protection: 1"
+    severity: warning
+    desc: "X-XSS-Protection is deprecated - use Content-Security-Policy instead"
+
+  # === CODE INJECTION (CWE-94) ===
+  - id: SA-37
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "eval($_"
+    severity: error
+    desc: "Code injection via eval() with user input (CWE-94)"
+
+  - id: SA-38
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "assert($_"
+    severity: error
+    desc: "Code injection via assert() with user input (CWE-94)"
+
+  - id: SA-39
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "preg_replace\\s*\\(.*?/e['\"]"
+    severity: error
+    desc: "Deprecated /e modifier in preg_replace enables code execution (CWE-94)"
+
+  # === IDOR (CWE-639) ===
+  - id: SA-40
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "->find\\(\\$_(GET|POST|REQUEST)\\["
+    severity: warning
+    desc: "Direct use of user-supplied ID in database lookup without authorization check (CWE-639 IDOR)"
+
+  # === SECRET SCANNING ===
+  - id: SA-SEC-01
+    type: not_contains
+    target: "**/*.php"
+    pattern: "AKIA"
+    severity: error
+    desc: "Possible AWS access key found in source code"
+
+  - id: SA-SEC-02
+    type: not_contains
+    target: "**/*.php"
+    pattern: "sk-ant-"
+    severity: error
+    desc: "Possible Anthropic API key found in source code"
+
+  - id: SA-SEC-03
+    type: not_contains
+    target: "**/*.php"
+    pattern: "sk-proj-"
+    severity: error
+    desc: "Possible OpenAI API key found in source code"
+
+  - id: SA-SEC-04
+    type: file_exists
+    target: .gitignore
+    severity: error
+    desc: ".gitignore must exist to prevent accidental secret commits"
+
+  # === SUPPLY CHAIN ===
+  - id: SA-SC-01
+    type: file_exists
+    target: composer.lock
+    severity: warning
+    desc: "composer.lock should exist for reproducible builds (apps, not libraries)"
+
+  - id: SA-SC-02
+    type: not_contains
+    target: "composer.json"
+    pattern: '"*"'
+    severity: error
+    desc: "Wildcard (*) version constraints in composer.json are insecure"
+
+  # === TYPE JUGGLING (CWE-843) ===
+  - id: SA-41
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "==\\s*\\$_(GET|POST|REQUEST|COOKIE)"
+    severity: error
+    desc: "Loose comparison (==) with superglobal enables type juggling attacks (CWE-843)"
+
+  - id: SA-42
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "in_array\\s*\\(\\s*\\$_(GET|POST|REQUEST|COOKIE)[^,)]*,[^,)]*(?:,\\s*(?!true)[^)]*)?\\)"
+    severity: warning
+    desc: "in_array() with superglobal without strict flag enables type juggling (CWE-843)"
+
+  # === PHAR DESERIALIZATION (CWE-502) ===
+  - id: SA-43
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "phar://"
+    severity: error
+    desc: "phar:// stream wrapper triggers deserialization and can lead to RCE (CWE-502)"
+
+  # === SSTI (CWE-1336) ===
+  - id: SA-44
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "createTemplate\\s*\\(.*\\$"
+    severity: error
+    desc: "Dynamic template creation with variables enables server-side template injection (CWE-1336)"
+
+  # === EMAIL HEADER INJECTION (CWE-93) ===
+  - id: SA-45
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "\\bmail\\s*\\([^)]*\\$_(GET|POST|REQUEST)"
+    severity: error
+    desc: "mail() with user input enables email header injection via CRLF (CWE-93)"
+
+  # === LDAP INJECTION (CWE-90) ===
+  - id: SA-46
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "ldap_(search|bind)\\s*\\([^)]*\\$_(GET|POST|REQUEST)"
+    severity: error
+    desc: "LDAP operations with user input without ldap_escape() enables LDAP injection (CWE-90)"
+
+  # === INSECURE TOKEN GENERATION (CWE-330) ===
+  - id: SA-47
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "(md5|sha1)\\s*\\(\\s*(time|microtime|uniqid|rand|mt_rand)\\s*\\("
+    severity: error
+    desc: "Predictable token generation using md5/sha1 of time/rand (CWE-330) - use random_bytes()"
+
+  # === LOG INJECTION / CRLF (CWE-117) ===
+  - id: SA-48
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "error_log\\s*\\([^)]*\\$_(GET|POST|REQUEST|COOKIE)"
+    severity: warning
+    desc: "Logging user input without sanitization enables log injection/forgery (CWE-117)"
+
+  # === SESSION FIXATION (CWE-384) ===
+  - id: SA-49
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "session_id\\s*\\(\\s*\\$_(GET|POST|REQUEST|COOKIE)"
+    severity: error
+    desc: "Setting session ID from user input enables session fixation attacks (CWE-384)"
+
+  # === HOST HEADER POISONING (CWE-644) ===
+  - id: SA-50
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "\\$_SERVER\\[['\"]HTTP_HOST['\"]\\].*(/reset|/confirm|/verify|/activate)"
+    severity: warning
+    desc: "HTTP_HOST used in security-critical URL construction enables host header poisoning (CWE-644)"
+
+  # === MASS ASSIGNMENT (CWE-915) ===
+  - id: SA-51
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "\\$guarded\\s*=\\s*\\[\\s*\\]"
+    severity: error
+    desc: "Empty $guarded array allows mass assignment of all model fields (CWE-915)"
+
+  - id: SA-52
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "->allowAllProperties()"
+    severity: error
+    desc: "allowAllProperties() disables TYPO3 Extbase mass assignment protection (CWE-915)"
+
+  # === SAST TOOLING ===
+  - id: SA-SAST-01
+    type: regex
+    target: .github/workflows/*.yml
+    pattern: "phpstan"
+    severity: warning
+    desc: "PHPStan should be configured in CI for static analysis"
+
+  # === DEPENDENCY SCANNING ===
+  - id: SA-DEP-01
+    type: file_exists
+    target: .github/dependabot.yml
+    severity: warning
+    desc: "Dependabot or Renovate should be configured for dependency updates"
+
+  - id: SA-DEP-02
+    type: regex
+    target: .github/workflows/*.yml
+    pattern: "composer audit|trivy|snyk"
+    severity: warning
+    desc: "CI should include dependency vulnerability scanning"
+
+  # === GITLEAKS IN CI ===
+  - id: SA-DEP-03
+    type: regex
+    target: .github/workflows/*.yml
+    pattern: "gitleaks"
+    severity: info
+    desc: "CI should include gitleaks for secret scanning"
+
+  # === PATH TRAVERSAL PREVENTION (CWE-22) ===
+  - id: SA-53
+    type: regex
+    target: "Classes/**/*.php"
+    pattern: "(file_get_contents|fopen|include|require)\\s*\\(.*\\$_(GET|POST|REQUEST)"
+    severity: error
+    desc: "File operations with user input without path validation enables path traversal (CWE-22)"
+
+  - id: SA-54
+    type: not_contains
+    target: "Classes/**/*.php"
+    pattern: "../"
+    severity: warning
+    desc: "Hardcoded relative path traversal patterns should be avoided in PHP source"
+
+  # === SEMGREP IN CI ===
+  - id: SA-SAST-02
+    type: regex
+    target: .github/workflows/*.yml
+    pattern: "semgrep"
+    severity: info
+    desc: "CI should include semgrep for SAST scanning"
+
+  # === SECURITY POLICY ===
+  - id: SA-SP-01
+    type: file_exists
+    target: SECURITY.md
+    severity: warning
+    desc: "SECURITY.md must exist with vulnerability reporting instructions"
+
+  - id: SA-SP-02
+    type: contains
+    target: SECURITY.md
+    pattern: "Reporting"
+    severity: warning
+    desc: "SECURITY.md should contain reporting instructions"
+
+  # === INFRASTRUCTURE-AS-CODE SECURITY ===
+  - id: SA-IAC-01
+    type: command
+    target: "! grep -rqP '^USER\\s+root' Dockerfile* 2>/dev/null || ! grep -rqP '^USER\\s' Dockerfile* 2>/dev/null"
+    severity: warning
+    desc: "Dockerfile should not run as root - add a USER directive with a non-root user"
+
+  - id: SA-IAC-02
+    type: command
+    target: "! grep -rqE '(COPY|ADD).*\\.env' Dockerfile* 2>/dev/null"
+    severity: error
+    desc: "Dockerfile must not copy .env files into image layers (secrets leak)"
+
+  - id: SA-IAC-03
+    type: command
+    target: "! grep -rqE 'ARG.*(PASSWORD|SECRET|TOKEN|API_KEY)' Dockerfile* 2>/dev/null"
+    severity: error
+    desc: "Dockerfile ARG must not contain secrets (visible in image history)"
+
+  - id: SA-IAC-04
+    type: command
+    target: "! grep -rqE '^FROM\\s+\\w+\\s*$' Dockerfile* 2>/dev/null"
+    severity: warning
+    desc: "Dockerfile base images should be pinned to specific tags or digests, not latest"
+
+  - id: SA-IAC-05
+    type: command
+    target: "! grep -rqE 'privileged:\\s*true' docker-compose*.yml 2>/dev/null"
+    severity: error
+    desc: "Docker Compose must not use privileged mode (container escape risk)"
+
+  - id: SA-IAC-06
+    type: command
+    target: "! grep -rqE '/var/run/docker\\.sock' docker-compose*.yml 2>/dev/null"
+    severity: error
+    desc: "Docker Compose must not mount Docker socket (container escape risk)"
+
+  - id: SA-IAC-07
+    type: command
+    target: "! grep -rqE 'runAsUser:\\s*0' k8s/ kubernetes/ deploy/ manifests/ charts/ 2>/dev/null"
+    severity: error
+    desc: "Kubernetes pods must not run as root (runAsUser: 0)"
+
+  - id: SA-IAC-08
+    type: command
+    target: "! grep -rqE 'hostNetwork:\\s*true' k8s/ kubernetes/ deploy/ manifests/ charts/ 2>/dev/null"
+    severity: error
+    desc: "Kubernetes pods should not use host networking"
+
+  - id: SA-IAC-09
+    type: command
+    target: "! grep -rqE 'cidr_blocks.*0\\.0\\.0\\.0/0' *.tf **/*.tf 2>/dev/null"
+    severity: warning
+    desc: "Terraform security groups should not allow unrestricted ingress (0.0.0.0/0)"
+
+  - id: SA-IAC-10
+    type: command
+    target: "! grep -rqE 'acl.*public' *.tf **/*.tf 2>/dev/null"
+    severity: warning
+    desc: "Terraform S3 buckets should not use public ACLs"
+
+  # === FRONTEND/CLIENT-SIDE SECURITY ===
+  - id: SA-FE-01
+    type: not_contains
+    target: "**/*.js"
+    pattern: ".innerHTML ="
+    severity: warning
+    desc: "Direct innerHTML assignment may enable DOM-based XSS - use textContent or sanitize"
+
+  - id: SA-FE-02
+    type: not_contains
+    target: "**/*.js"
+    pattern: "document.write("
+    severity: warning
+    desc: "document.write() may enable DOM-based XSS - use DOM manipulation methods"
+
+  - id: SA-FE-03
+    type: command
+    target: "! grep -rqE 'eval\\s*\\(' --include='*.js' --include='*.ts' . 2>/dev/null"
+    severity: warning
+    desc: "eval() in JavaScript enables code injection - use safer alternatives"
+
+  - id: SA-FE-04
+    type: command
+    target: "! grep -rqE 'localStorage\\.(set|get)Item.*(token|password|secret|key|credential|session)' --include='*.js' --include='*.ts' . 2>/dev/null"
+    severity: error
+    desc: "Sensitive data (tokens, passwords, secrets) must not be stored in localStorage"
+
+  - id: SA-FE-05
+    type: command
+    target: "! grep -rqE 'Access-Control-Allow-Origin.*\\*' --include='*.php' --include='*.js' --include='*.conf' --include='*.yaml' --include='*.yml' . 2>/dev/null"
+    severity: warning
+    desc: "CORS wildcard (*) origin should be avoided - use specific allowed origins"
+
+  - id: SA-FE-06
+    type: command
+    target: "! grep -rqE 'new Function\\s*\\(' --include='*.js' --include='*.ts' . 2>/dev/null"
+    severity: warning
+    desc: "new Function() enables dynamic code execution - use safer alternatives"
+
+  # === AI/LLM AGENT SECURITY ===
+  - id: SA-AI-01
+    type: command
+    target: "! grep -rqE '(api_key|apiKey|API_KEY|secret|password|token)\\s*[:=]\\s*[\"'\\''](sk-|AKIA|ghp_|ghs_)' SKILL.md AGENTS.md CLAUDE.md .claude/ 2>/dev/null"
+    severity: error
+    desc: "AI agent config files must not contain hardcoded API keys or secrets"
+
+  - id: SA-AI-02
+    type: command
+    target: "! grep -rqE 'dangerouslyDisableSandbox|--no-verify|--force' SKILL.md AGENTS.md CLAUDE.md .claude/ 2>/dev/null"
+    severity: error
+    desc: "AI agent configs must not disable safety mechanisms (sandbox, hooks, verification)"
+
+  - id: SA-AI-03
+    type: command
+    target: "! grep -rqE 'Bash\\(\\*\\)|allowed-tools:.*Bash\\b[^(]' SKILL.md skills/*/SKILL.md 2>/dev/null"
+    severity: warning
+    desc: "AI skills should not grant unrestricted Bash access - scope to specific commands"
+
+  - id: SA-AI-04
+    type: command
+    target: "! grep -rqE '\"version\"\\s*:\\s*\"latest\"' .claude/mcp*.json mcp.json 2>/dev/null"
+    severity: warning
+    desc: "MCP server versions should be pinned, not 'latest' (supply chain risk)"
+
+llm_reviews:
+  # === HARDCODED CREDENTIALS REVIEW ===
+  - id: SA-16
+    domain: security
+    prompt: |
+      Search for hardcoded credentials in the codebase:
+      1. Look for patterns like: password, secret, api_key, token, credentials
+      2. Check configuration files for plaintext secrets
+      3. Look for Base64-encoded strings that might be credentials
+      4. Check for AWS keys, database connection strings with passwords
+      5. Verify environment variables are used instead of hardcoded values
+
+      Report any findings with file paths and line numbers.
+    severity: error
+    desc: "Verify no hardcoded credentials exist in codebase"
+
+  # === SQL INJECTION REVIEW ===
+  - id: SA-17
+    domain: security
+    prompt: |
+      Audit for SQL injection vulnerabilities:
+      1. Check if database queries use prepared statements/parameterized queries
+      2. Look for string concatenation in SQL queries
+      3. Verify TYPO3 QueryBuilder is used correctly with parameters
+      4. Check for raw SQL with user input
+      5. Look for patterns like: "SELECT * FROM table WHERE id = " . $id
+
+      For TYPO3, verify:
+      - QueryBuilder createNamedParameter() is used for user input
+      - No direct SQL string building with request data
+    severity: error
+    desc: "Verify prepared statements are used to prevent SQL injection"
+
+  # === XXE PREVENTION REVIEW ===
+  - id: SA-18
+    domain: security
+    prompt: |
+      Audit XML parsing for XXE vulnerabilities:
+      1. Check all XML parsing code (DOMDocument, SimpleXML, XMLReader)
+      2. Verify LIBXML_NOENT and LIBXML_DTDLOAD are NOT used
+      3. Look for safe flags: LIBXML_NONET, LIBXML_NOBLANKS
+      4. Check if libxml_disable_entity_loader() is called (deprecated in PHP 8)
+      5. For PHP 8+, verify no external entity loading configuration
+
+      Safe pattern example:
+      $doc = new DOMDocument();
+      $doc->loadXML($xml, LIBXML_NONET | LIBXML_NOBLANKS);
+    severity: error
+    desc: "Verify XML parsing is protected against XXE attacks"
+
+  # === XSS PREVENTION REVIEW ===
+  - id: SA-19
+    domain: security
+    prompt: |
+      Audit for Cross-Site Scripting (XSS) vulnerabilities:
+      1. Check output encoding in PHP files and templates
+      2. Verify htmlspecialchars() or equivalent is used for HTML output
+      3. Check Fluid templates for proper escaping (f:format.htmlspecialchars)
+      4. Look for echo/print of unescaped user input
+      5. Check JavaScript contexts for proper JSON encoding
+
+      For TYPO3/Fluid:
+      - By default Fluid escapes output, but check for f:format.raw usage
+      - Verify ContentObjectRenderer output is properly escaped
+    severity: error
+    desc: "Verify output encoding prevents XSS attacks"
+
+  # === AUTHENTICATION/AUTHORIZATION REVIEW ===
+  - id: SA-20
+    domain: security
+    prompt: |
+      Review authentication and authorization mechanisms:
+      1. Check if backend modules require proper authentication
+      2. Verify frontend plugins validate user permissions
+      3. Look for access control checks before sensitive operations
+      4. Check for proper CSRF token validation
+      5. Verify session handling is secure
+
+      For TYPO3:
+      - Check for proper $GLOBALS['BE_USER'] access checks
+      - Verify Extbase actions use @TYPO3\CMS\Extbase\Annotation\IgnoreValidation carefully
+    severity: warning
+    desc: "Verify proper authentication and authorization controls"
+
+  # === DESERIALIZATION REVIEW ===
+  - id: SA-LLM-21
+    domain: security
+    prompt: |
+      Audit for insecure deserialization:
+      1. Search for unserialize() calls - check if allowed_classes parameter is used
+      2. Look for phar:// usage in file operations (triggers deserialization)
+      3. Check if user-controlled data reaches unserialize()
+      4. Verify JSON is used instead of serialize/unserialize for data exchange
+      5. Check for __wakeup() and __destruct() methods that could be gadget chains
+
+      Safe pattern: unserialize($data, ['allowed_classes' => false])
+      Best pattern: json_decode($data) instead
+    severity: error
+    desc: "Verify no insecure deserialization exists"
+
+  # === FILE UPLOAD REVIEW ===
+  - id: SA-LLM-22
+    domain: security
+    prompt: |
+      Audit file upload handling:
+      1. Check if MIME type is validated server-side (not just extension)
+      2. Verify uploaded files are renamed to random filenames
+      3. Check if uploads are stored outside the web root
+      4. Look for prevention of script execution in upload directories
+      5. Verify file size limits are enforced
+      6. Check for image reprocessing to strip metadata
+
+      For TYPO3: verify FAL (File Abstraction Layer) is used
+    severity: warning
+    desc: "Verify file uploads are handled securely"
+
+  # === CRYPTOGRAPHY REVIEW ===
+  - id: SA-LLM-23
+    domain: security
+    prompt: |
+      Audit cryptographic implementations:
+      1. Check for weak algorithms (MD5, SHA1 for integrity, DES, RC4, ECB mode)
+      2. Verify authenticated encryption is used (sodium_crypto_secretbox or AES-GCM)
+      3. Look for hardcoded encryption keys or IVs
+      4. Check for proper random generation (random_bytes, not rand/mt_rand)
+      5. Verify key derivation uses HKDF or similar (not plain hash)
+      6. Check for sodium_memzero() usage to clear sensitive data from memory
+
+      Recommended: Use sodium_crypto_secretbox for symmetric encryption
+    severity: error
+    desc: "Verify cryptographic practices are secure"
+
+  # === SECURITY HEADERS REVIEW ===
+  - id: SA-LLM-24
+    domain: security
+    prompt: |
+      Audit HTTP security headers configuration:
+      1. Check for HSTS (Strict-Transport-Security) with adequate max-age
+      2. Verify Content-Security-Policy is configured
+      3. Check X-Content-Type-Options: nosniff is set
+      4. Verify X-Frame-Options or CSP frame-ancestors is set
+      5. Check that X-XSS-Protection is set to 0 (deprecated, not 1; mode=block)
+      6. Look for Referrer-Policy and Permissions-Policy headers
+      7. Check middleware or TypoScript configuration for header settings
+
+      Note: X-XSS-Protection should be 0, not 1. The feature is deprecated.
+    severity: warning
+    desc: "Verify security headers are properly configured"
+
+  # === CSRF REVIEW (CWE-352) ===
+  - id: SA-LLM-25
+    domain: security
+    prompt: |
+      Audit CSRF protection coverage:
+      1. Identify all state-changing endpoints (POST, PUT, DELETE, PATCH)
+      2. Verify each has CSRF token validation
+      3. Check that tokens are unique per session and per form
+      4. Verify SameSite cookie attribute is set (Lax or Strict)
+      5. Check for proper token regeneration after login
+
+      For TYPO3:
+      - Verify FormProtectionFactory is used in backend modules
+      - Check Extbase plugins use form ViewHelpers (auto-include CSRF)
+      - Look for AJAX endpoints missing CSRF validation
+    severity: error
+    desc: "Verify CSRF token coverage on all state-changing endpoints (CWE-352)"
+
+  # === SSRF REVIEW (CWE-918) ===
+  - id: SA-LLM-26
+    domain: security
+    prompt: |
+      Audit for Server-Side Request Forgery (SSRF):
+      1. Find all HTTP client usage (file_get_contents with URLs, curl, Guzzle, HttpClient)
+      2. Check if any URL parameter comes from user input
+      3. Verify URL allowlisting is applied (not just blocklisting)
+      4. Check for DNS rebinding protection (resolve hostname before request)
+      5. Verify internal network ranges are blocked (127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16)
+      6. Check for protocol restrictions (only allow http/https)
+
+      Common vulnerable patterns:
+      - file_get_contents($_GET['url'])
+      - curl_init($userProvidedUrl)
+      - $client->request('GET', $request->get('callback_url'))
+    severity: error
+    desc: "Verify SSRF protection in HTTP client calls (CWE-918)"
+
+  # === CODE INJECTION REVIEW (CWE-94) ===
+  - id: SA-LLM-27
+    domain: security
+    prompt: |
+      Audit for dynamic code execution and code injection:
+      1. Search for eval(), assert(), create_function() usage
+      2. Check for dynamic include/require with variable paths
+      3. Look for preg_replace with /e modifier (deprecated)
+      4. Check call_user_func/call_user_func_array with user-controlled callable
+      5. Verify no user input flows into code generation or template rendering
+      6. Check for reflection-based instantiation with user-controlled class names
+
+      Safe alternatives:
+      - Use allowlists for dynamic class/function references
+      - Use preg_replace_callback() instead of /e modifier
+      - Use match/switch instead of eval for conditional logic
+    severity: error
+    desc: "Verify no dynamic code execution with user input (CWE-94)"
+
+  # === IDOR REVIEW (CWE-639) ===
+  - id: SA-LLM-28
+    domain: security
+    prompt: |
+      Audit for Insecure Direct Object References (IDOR):
+      1. Find all endpoints that accept resource IDs from user input
+      2. Verify each performs ownership/authorization checks before access
+      3. Check for patterns like find($id) without verifying the resource belongs to the user
+      4. Look for sequential/predictable IDs that enable enumeration
+      5. Verify API endpoints use scoped queries (e.g., findByUserAndId)
+
+      Common vulnerable patterns:
+      - $repo->find($_GET['id']) without ownership check
+      - Direct database lookup by user-supplied ID
+      - Download/export endpoints with unvalidated file/record IDs
+    severity: error
+    desc: "Verify authorization checks prevent IDOR bypasses (CWE-639)"
+
+  # === RESOURCE EXHAUSTION REVIEW (CWE-770) ===
+  - id: SA-LLM-29
+    domain: security
+    prompt: |
+      Audit for resource exhaustion vulnerabilities:
+      1. Check for unbounded loops or recursive calls with user-controlled depth
+      2. Verify file upload size limits are enforced (upload_max_filesize, post_max_size)
+      3. Check database queries have LIMIT clauses (especially findAll/findBy)
+      4. Look for missing pagination on list endpoints
+      5. Verify rate limiting exists on authentication and API endpoints
+      6. Check for ReDoS (Regular Expression Denial of Service) patterns
+      7. Verify memory_limit and max_execution_time are set appropriately
+
+      Common vulnerable patterns:
+      - $repo->findAll() without limit
+      - file_get_contents('php://input') without size check
+      - while loops with user-controlled termination condition
+    severity: warning
+    desc: "Verify resource limits prevent denial of service (CWE-770)"
+
+  # === INFORMATION EXPOSURE REVIEW (CWE-200) ===
+  - id: SA-LLM-30
+    domain: security
+    prompt: |
+      Audit for sensitive information exposure:
+      1. Check exception handling - verify stack traces are not shown to users
+      2. Look for error messages that reveal internal structure (DB schema, file paths)
+      3. Verify display_errors is Off in production configuration
+      4. Check for debug endpoints or debug mode toggles left enabled
+      5. Look for verbose logging that includes sensitive data (passwords, tokens)
+      6. Verify API responses don't include internal IDs, timestamps, or metadata unnecessarily
+      7. Check for information leakage in HTTP headers (Server, X-Powered-By)
+
+      For TYPO3:
+      - Check $GLOBALS['TYPO3_CONF_VARS']['SYS']['displayErrors'] is 0 in production
+      - Verify devIPmask does not include wildcard or broad ranges
+    severity: warning
+    desc: "Verify no sensitive information exposure in errors and responses (CWE-200)"
+
+  # === ACCESS CONTROL REVIEW (CWE-284) ===
+  - id: SA-LLM-31
+    domain: security
+    prompt: |
+      Audit access control completeness:
+      1. Check that authentication middleware is applied consistently (not missing on routes)
+      2. Verify authorization is enforced at controller level, not just in UI/templates
+      3. Look for "security through obscurity" (hidden URLs without auth checks)
+      4. Check that API endpoints have the same access controls as web endpoints
+      5. Verify role/permission checks cannot be bypassed via parameter manipulation
+      6. Check for default-allow vs default-deny access control patterns
+
+      For TYPO3:
+      - Verify backend module access is configured in ext_tables.php
+      - Check that Extbase controllers verify BE_USER permissions
+      - Verify frontend plugin access restrictions via TypoScript/Flexform
+    severity: warning
+    desc: "Verify access control is applied consistently at all layers (CWE-284)"
+
+  # === TYPE JUGGLING (CWE-843) ===
+  - id: SA-LLM-32
+    domain: security
+    prompt: |
+      Audit for PHP type juggling vulnerabilities in authentication and authorization:
+      1. Search for loose comparison (==) with user-supplied values, especially in auth code
+      2. Check password/token comparisons - must use hash_equals() not == or ===
+      3. Look for switch statements comparing user input (switch uses loose comparison)
+      4. Verify JWT/HMAC signature verification uses timing-safe comparison
+      5. Check for "0e" magic hash vulnerability in password comparisons
+      6. Look for in_array() without strict flag (third parameter true)
+
+      Vulnerable patterns:
+      - if ($token == $_POST['token'])  // "0" matches "0e12345"
+      - if ($role == 0)  // "admin" == 0 is true
+      - switch ($_GET['action']) { case 0: ... }  // "anything" == 0
+      - in_array($input, $whitelist)  // Without strict, "0" matches 0
+
+      Safe patterns:
+      - hash_equals($expected, $actual)
+      - in_array($input, $whitelist, true)
+      - === for all comparisons with user input
+    severity: error
+    desc: "Verify no loose comparison (==) with user input in auth/security code (CWE-843)"
+
+  # === JWT IMPLEMENTATION FLAWS (CWE-347) ===
+  - id: SA-LLM-33
+    domain: security
+    prompt: |
+      Audit JWT implementation for common vulnerabilities:
+      1. Check that JWT decode specifies allowed algorithms explicitly (algorithm confusion attack)
+      2. Verify "none" algorithm is not accepted
+      3. Check that RS256 tokens cannot be verified with HS256 using public key as secret
+      4. Verify JWT expiration (exp claim) is checked and enforced
+      5. Check that JWT secret/key is not hardcoded or too short
+      6. Verify audience (aud) and issuer (iss) claims are validated
+      7. Check for JWK/JWKS endpoint security (key injection via jku/x5u headers)
+
+      Vulnerable patterns:
+      - JWT::decode($token, $key) without algorithm allowlist
+      - Accepting tokens with alg: "none"
+      - Short/predictable JWT secrets (less than 256 bits)
+
+      Safe patterns:
+      - JWT::decode($token, new Key($publicKey, 'RS256'))
+      - Explicit algorithm allowlist in JWT configuration
+      - Key rotation with proper JWKS endpoint
+    severity: error
+    desc: "Verify JWT implementation prevents algorithm confusion and signature bypass (CWE-347)"
+
+  # === HTTP HOST HEADER ATTACKS (CWE-644) ===
+  - id: SA-LLM-34
+    domain: security
+    prompt: |
+      Audit for HTTP Host header poisoning vulnerabilities:
+      1. Check if $_SERVER['HTTP_HOST'] is used to construct URLs (password reset, email links)
+      2. Verify base URL comes from configuration, not from Host header
+      3. Look for cache poisoning via Host header in reverse proxy setups
+      4. Check if web cache includes Host header in cache key
+      5. Verify password reset links use configured base URL, not request host
+
+      Vulnerable patterns:
+      - $url = 'https://' . $_SERVER['HTTP_HOST'] . '/reset?token=' . $token
+      - $baseUrl = $request->getSchemeAndHttpHost() in security-critical code
+
+      Safe patterns:
+      - $baseUrl = $config->get('app.url') or env('APP_URL')
+      - Allowlist of valid Host header values in web server config
+    severity: warning
+    desc: "Verify HTTP Host header is not trusted for security-critical URL generation (CWE-644)"
+
+  # === TIMING ATTACKS IN AUTH (CWE-208) ===
+  - id: SA-LLM-35
+    domain: security
+    prompt: |
+      Audit for timing side-channel vulnerabilities in authentication:
+      1. Check that token/password comparisons use hash_equals() (constant-time)
+      2. Verify HMAC verification uses hash_equals(), not === or strcmp()
+      3. Look for early-return patterns in password verification (leaks valid usernames)
+      4. Check that login failure response time is consistent regardless of whether user exists
+      5. Verify API key comparison is timing-safe
+
+      Vulnerable patterns:
+      - if ($apiKey === $storedKey)  // Timing leak
+      - if (strcmp($hmac, $expected) !== 0)  // Not constant-time
+      - if (!$user) return error; if (!password_verify(...)) return error;  // Different timing for user exists vs wrong password
+
+      Safe patterns:
+      - hash_equals($stored, $provided)
+      - password_verify($password, $hash) // Already constant-time internally
+      - Consistent response time via sleep/delay for auth failures
+    severity: warning
+    desc: "Verify authentication comparisons are constant-time to prevent timing attacks (CWE-208)"
+
+  # === SECOND-ORDER SQL INJECTION ===
+  - id: SA-LLM-36
+    domain: security
+    prompt: |
+      Audit for second-order SQL injection:
+      1. Trace data stored from user input through the application
+      2. Check if stored data is later used in SQL queries without parameterization
+      3. Look for patterns where data is safely INSERT-ed but unsafely SELECT-ed later
+      4. Check admin panels, reports, and batch processing that read stored user data
+      5. Verify all queries use parameterized statements, even for "trusted" stored data
+
+      Vulnerable flow:
+      - Step 1: INSERT INTO users (name) VALUES (?)  -- safe insert with "admin'--"
+      - Step 2: "SELECT * FROM posts WHERE author = '" . $user->name . "'"  -- unsafe read
+
+      Key insight: No data from the database is "safe" - always use prepared statements.
+    severity: error
+    desc: "Verify stored data is not used unsafely in subsequent SQL queries (second-order SQLi)"
+
+  # === ReDoS PATTERNS (CWE-1333) ===
+  - id: SA-LLM-37
+    domain: security
+    prompt: |
+      Audit for Regular Expression Denial of Service (ReDoS):
+      1. Search for preg_match/preg_replace with user-controlled input
+      2. Check for nested quantifiers: (a+)+, (a*)+, (a+)*, ([^"]*)*
+      3. Look for alternation with overlapping matches: (a|a)+, (.*|.+)+
+      4. Check if pcre.backtrack_limit is set to a reasonable value
+      5. Verify regex patterns used on user input have bounded execution time
+      6. Check for possessive quantifiers or atomic groups as mitigations
+
+      Vulnerable patterns:
+      - preg_match('/^(a+)+$/', $userInput)
+      - preg_match('/^([a-zA-Z0-9]+)*@/', $email)
+      - preg_match('/(.*)+/', $input)
+
+      Safe patterns:
+      - Use atomic groups: (?>a+) or possessive: a++
+      - Set pcre.backtrack_limit in php.ini
+      - Use filter_var() instead of regex for email/URL validation
+      - Limit input length before applying regex
+    severity: warning
+    desc: "Verify regex patterns with user input are not vulnerable to catastrophic backtracking (CWE-1333)"
+
+  # === PRIVILEGE ESCALATION (CWE-269) ===
+  - id: SA-LLM-38
+    domain: security
+    prompt: |
+      Audit for privilege escalation via parameter manipulation:
+      1. Check if role/permission values can be set via user input (POST data, JSON body)
+      2. Verify that role changes require admin authorization, not just authentication
+      3. Look for hidden form fields containing role or permission data
+      4. Check API endpoints that modify user attributes for proper authorization
+      5. Verify that user profile updates cannot modify role or permission fields
+      6. Check for vertical privilege escalation (user -> admin)
+      7. Check for horizontal privilege escalation (user A -> user B's data)
+
+      Vulnerable patterns:
+      - User::create($request->all()) where request includes 'role' field
+      - $user->role = $_POST['role'] without authorization check
+      - PUT /api/users/me with {"role": "admin"} accepted
+
+      Safe patterns:
+      - Explicit allowlist of user-modifiable fields
+      - Server-side role assignment only by authorized admins
+      - Different endpoints for profile update vs admin user management
+    severity: error
+    desc: "Verify role/permission changes require proper authorization (CWE-269)"
+
+  # === API SECURITY (OWASP API TOP 10) ===
+  - id: SA-API-01
+    domain: security
+    prompt: |
+      Audit API endpoints for Broken Object-Level Authorization (BOLA):
+      1. Find all API endpoints that accept resource IDs (path params, query params)
+      2. Verify each endpoint checks that the authenticated user owns/has access to the resource
+      3. Check for patterns where find($id) is called without scoping to the current user
+      4. Verify GraphQL resolvers enforce per-field authorization
+      5. Check that batch/list endpoints scope results to the authorized user
+    severity: error
+    desc: "Verify API endpoints enforce object-level authorization (OWASP API1:2023 BOLA)"
+
+  - id: SA-API-02
+    domain: security
+    prompt: |
+      Audit API endpoints for mass assignment and excessive data exposure:
+      1. Check if request body is directly assigned to models without allowlisting fields
+      2. Verify API responses don't include sensitive fields (password hashes, internal IDs, tokens)
+      3. Check for different response schemas for admin vs regular users
+      4. Look for $request->all() or similar patterns that accept all input fields
+      5. Verify serialization groups or DTOs control what data is exposed
+    severity: error
+    desc: "Verify API endpoints prevent mass assignment and excessive data exposure (OWASP API3:2023)"
+
+  - id: SA-API-03
+    domain: security
+    prompt: |
+      Audit API rate limiting and resource consumption controls:
+      1. Check if rate limiting middleware is applied to API routes
+      2. Verify pagination is enforced on list endpoints (max page size)
+      3. Check for query complexity limits on GraphQL endpoints
+      4. Look for unbounded file upload sizes on API endpoints
+      5. Verify timeout settings exist for long-running API operations
+      6. Check that bulk/batch endpoints limit the number of items per request
+    severity: warning
+    desc: "Verify API rate limiting and resource consumption controls (OWASP API4:2023)"
+
+  - id: SA-API-04
+    domain: security
+    prompt: |
+      Audit API function-level authorization:
+      1. Check that admin-only API endpoints have authorization middleware
+      2. Verify that changing HTTP method (GET to DELETE) doesn't bypass authorization
+      3. Look for API endpoints that lack authentication entirely
+      4. Check that role checks cover all CRUD operations (not just read)
+      5. Verify that API documentation/spec doesn't expose undocumented admin endpoints
+    severity: error
+    desc: "Verify API function-level authorization controls (OWASP API5:2023)"
+
+  - id: SA-API-05
+    domain: security
+    prompt: |
+      Audit GraphQL security (if GraphQL is used):
+      1. Check if introspection is disabled in production
+      2. Verify query depth limits are configured
+      3. Check for query complexity/cost analysis
+      4. Look for batching attack protection (limit concurrent queries)
+      5. Verify field-level authorization in resolvers
+      6. Check that error messages don't leak schema details
+      If no GraphQL is found, note that and skip.
+    severity: warning
+    desc: "Verify GraphQL-specific security controls (introspection, depth limits, batching)"
+
+  - id: SA-API-06
+    domain: security
+    prompt: |
+      Audit API error handling and information disclosure:
+      1. Check that API error responses use generic messages (not stack traces)
+      2. Verify different error codes don't leak information (404 vs 403 for unauthorized resources)
+      3. Look for debug/verbose mode that can be enabled via headers or params
+      4. Check that validation errors don't reveal internal field names or schema
+      5. Verify CORS configuration is restrictive (not wildcard with credentials)
+    severity: warning
+    desc: "Verify API error handling doesn't disclose sensitive information (OWASP API8:2023)"
+
+  # === FRONTEND/CLIENT-SIDE SECURITY ===
+  - id: SA-FE-LLM-01
+    domain: security
+    prompt: |
+      Audit frontend JavaScript/TypeScript for client-side security:
+      1. Check for DOM-based XSS sinks: innerHTML, outerHTML, document.write, eval, setTimeout/setInterval with string args
+      2. Trace user-controlled sources (location.hash, location.search, document.referrer, postMessage data) to sinks
+      3. Check postMessage handlers for origin validation
+      4. Verify localStorage/sessionStorage doesn't contain sensitive data
+      5. Look for client-side open redirect patterns (window.location = userInput)
+      6. Check for unsafe use of jQuery .html(), .append() with user input
+      If no JavaScript/TypeScript is found, note that and skip.
+    severity: warning
+    desc: "Verify frontend code is protected against DOM-based XSS and client-side attacks"
+
+  - id: SA-FE-LLM-02
+    domain: security
+    prompt: |
+      Audit CORS configuration and SRI usage:
+      1. Check for Access-Control-Allow-Origin with wildcard (*) combined with credentials
+      2. Verify origin reflection is not used (reflecting request Origin header)
+      3. Check that SRI (integrity=) attributes are present on CDN-hosted scripts/stylesheets
+      4. Verify crossorigin attribute is set when SRI is used
+      5. Check for missing Content-Security-Policy headers for frontend assets
+      If no frontend assets are found, note that and skip.
+    severity: warning
+    desc: "Verify CORS and Subresource Integrity are properly configured"
+
+  # === AI/LLM AGENT SECURITY (OWASP LLM TOP 10 2025) ===
+  - id: SA-AI-LLM-01
+    domain: security
+    prompt: |
+      Audit AI agent skills and configurations for prompt injection risks (OWASP LLM01:2025):
+      1. Check if skills that ingest external content (web pages, files, API responses) sanitize or segregate that content before passing to the model
+      2. Look for tool results passed back to the model without content filtering
+      3. Check if system prompts include instructions to validate/sanitize user input
+      4. Verify that skills processing untrusted data mark it clearly as external content
+      5. Check for multimodal injection risks (images, PDFs processed by the model)
+      Look in: SKILL.md files, AGENTS.md, CLAUDE.md, hooks definitions
+    severity: error
+    desc: "Verify AI agent skills mitigate prompt injection risks (OWASP LLM01:2025)"
+
+  - id: SA-AI-LLM-02
+    domain: security
+    prompt: |
+      Audit AI agent configurations for sensitive information disclosure (OWASP LLM02:2025):
+      1. Check system prompts, SKILL.md, AGENTS.md for hardcoded secrets, API keys, credentials
+      2. Look for skills that load sensitive files (.env, credentials, private keys) into LLM context
+      3. Check if agent conversation logs or tool outputs are stored without redaction
+      4. Verify that skills don't expose internal infrastructure details (URLs, IPs, paths)
+      5. Check MCP server configs for embedded credentials
+      Look in: SKILL.md, AGENTS.md, CLAUDE.md, .claude/, mcp.json
+    severity: error
+    desc: "Verify AI agent configs don't leak sensitive information (OWASP LLM02:2025)"
+
+  - id: SA-AI-LLM-03
+    domain: security
+    prompt: |
+      Audit AI agent tool permissions for excessive agency (OWASP LLM06:2025):
+      1. Check allowed-tools in SKILL.md - are permissions minimal? (e.g., read-only when write isn't needed)
+      2. Look for skills with unrestricted Bash access (Bash(*) or Bash without command scoping)
+      3. Check if high-impact actions (file deletion, git push, API calls) require human approval
+      4. Verify MCP servers expose only necessary capabilities
+      5. Check that safety hooks (PreToolUse, PostToolUse) exist for dangerous operations
+      6. Look for skills that can modify their own configuration or other skills
+      Look in: SKILL.md, .claude/settings*, hooks/, mcp.json
+    severity: error
+    desc: "Verify AI agent permissions follow least privilege (OWASP LLM06:2025)"
+
+  - id: SA-AI-LLM-04
+    domain: security
+    prompt: |
+      Audit AI agent configurations for improper output handling (OWASP LLM05:2025):
+      1. Check if LLM output is passed directly to shell execution without validation
+      2. Look for patterns where model-generated code is written to files without review gates
+      3. Check if model-generated SQL, API calls, or commands use parameterized inputs
+      4. Verify that agent hooks validate tool inputs before execution
+      5. Check for skills that auto-execute generated code without sandboxing
+      Look in: SKILL.md, scripts/, hooks/, .claude/settings*
+    severity: warning
+    desc: "Verify LLM output is validated before execution (OWASP LLM05:2025)"
+
+  - id: SA-AI-LLM-05
+    domain: security
+    prompt: |
+      Audit AI agent configurations for system prompt leakage and supply chain risks:
+      LLM07 (System Prompt Leakage):
+      1. Check if system prompts contain credentials, API keys, or internal URLs
+      2. Verify security controls are enforced externally, not just in prompt instructions
+      3. Look for business logic or filtering criteria that would be harmful if leaked
+
+      LLM03 (Supply Chain):
+      4. Check MCP server sources - are they pinned to specific versions/commits?
+      5. Verify installed skills come from verified/trusted sources
+      6. Check for AI/agent dependencies without version pinning
+      Look in: SKILL.md, AGENTS.md, CLAUDE.md, .claude/, mcp.json
+    severity: warning
+    desc: "Verify system prompts don't leak secrets and AI supply chain is secured (OWASP LLM03/07:2025)"

@@ -1,12 +1,14 @@
-# Stage 1: Build toolchain in dev container
+# Stage 1: Build toolchain + cargo-audit in dev container
 FROM dhi.io/library/rust:1.78-alpine@sha256:214477ec837f9bedd80be4b087fec09e3f270831979412840f3f6c38e5a0d9c1 AS builder
 
 RUN apk add --no-cache strace musl-dev
+RUN cargo install cargo-audit
 
 # Stage 2: Hardened non-root runtime
 FROM dhi.io/library/rust:1.78-alpine@sha256:214477ec837f9bedd80be4b087fec09e3f270831979412840f3f6c38e5a0d9c1
 
 COPY --from=builder /usr/bin/strace /usr/bin/strace
+COPY --from=builder /usr/local/cargo/bin/cargo-audit /usr/local/cargo/bin/cargo-audit
 
 RUN apk add --no-cache musl-dev \
     && rm -rf /var/cache/apk/* /tmp/*
@@ -14,13 +16,18 @@ RUN apk add --no-cache musl-dev \
 # Create non-root user with restricted home
 RUN addgroup -S sandbox && adduser -S -G sandbox -h /sandbox -s /sbin/nologin sandbox
 
-# Cargo needs writable registry
 ENV CARGO_HOME=/sandbox/.cargo
-RUN mkdir -p /sandbox/.cargo && chown sandbox:sandbox /sandbox/.cargo
+RUN mkdir -p /sandbox/.cargo/bin && chown -R sandbox:sandbox /sandbox/.cargo
+# Make cargo-audit available to sandbox user
+RUN cp /usr/local/cargo/bin/cargo-audit /sandbox/.cargo/bin/cargo-audit
+
+# Entrypoint script: fetch + cargo-audit
+COPY entrypoint-rust.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /sandbox
 
 # Drop to non-root
 USER sandbox:sandbox
 
-ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/tmp/strace.log", "--", "cargo", "fetch"]
+ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/tmp/strace.log", "--", "/usr/local/bin/entrypoint.sh"]

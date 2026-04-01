@@ -21,7 +21,7 @@ Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub pr
 - **Secure Coding**: Input validation, output encoding, cryptography, session management, authentication
 - **Standards**: OWASP Top 10, CWE Top 25, OWASP ASVS, Proactive Controls
 - **Infrastructure**: Dockerfile, Docker Compose, Kubernetes, Terraform security scanning
-- **API Security**: OWASP API Top 10 (2023), GraphQL security, REST API hardening
+- **API Security**: OWASP API Top 10 (2025), GraphQL security, REST API hardening
 - **Frontend**: DOM XSS, Subresource Integrity, CORS, postMessage, client-side storage security
 - **AI/LLM Security**: OWASP LLM Top 10 (2025), agent permission auditing, MCP security, prompt injection defense
 
