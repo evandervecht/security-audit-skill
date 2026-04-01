@@ -12,7 +12,9 @@ COPY --from=builder /usr/bin/strace /usr/bin/strace
 COPY --from=builder /usr/local/cargo/bin/cargo-audit /usr/local/cargo/bin/cargo-audit
 
 # Create non-root user with restricted home
-RUN addgroup --system sandbox && adduser --system --ingroup sandbox --home /sandbox --shell /bin/false sandbox
+RUN echo 'sandbox:x:10001:10001::/sandbox:/bin/false' >> /etc/passwd \
+    && echo 'sandbox:x:10001:' >> /etc/group \
+    && mkdir -p /sandbox && chown 10001:10001 /sandbox
 
 ENV CARGO_HOME=/sandbox/.cargo
 RUN mkdir -p /sandbox/.cargo/bin && chown -R sandbox:sandbox /sandbox/.cargo
