@@ -1,7 +1,7 @@
 # Multi-Language & Framework Security References — PRD
 
 **Date:** 2026-03-31
-**Author:** Evan de Recht
+**Author:** E van der Vecht
 **Status:** Draft
 
 ---

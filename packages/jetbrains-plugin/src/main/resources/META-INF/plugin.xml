@@ -1,0 +1,72 @@
+<idea-plugin>
+    <id>com.securityaudit.plugin</id>
+    <name>Security Audit</name>
+    <version>0.1.0</version>
+    <vendor email="evan@evandervecht.com" url="https://github.com/evandervecht/security-audit-skill">
+        E van der Vecht
+    </vendor>
+
+    <description><![CDATA[
+        <p>Real-time security vulnerability detection — 408 checkpoints across 9 languages,
+        18 frameworks, cloud providers, CMS platforms, and mobile SDKs.</p>
+
+        <p>Powered by the security-audit-skill detection engine via LSP.</p>
+
+        <h3>Features</h3>
+        <ul>
+            <li>Real-time security diagnostics as you type</li>
+            <li>408 checkpoints covering OWASP Top 10, CWE Top 25, and more</li>
+            <li>Support for PHP, JavaScript/TypeScript, Python, Java, C#, Go, Rust, Ruby, and Node.js</li>
+            <li>Framework-specific checks for React, Next.js, Vue, Angular, Django, Spring, Rails, and more</li>
+            <li>Cloud IaC scanning for AWS, GCP, Azure (Terraform/CloudFormation/Bicep)</li>
+            <li>CMS security for WordPress, Drupal, Joomla, TYPO3</li>
+            <li>Mobile SDK checks for Android and iOS</li>
+            <li>Quick-fix suggestions with secure code alternatives</li>
+            <li>Findings tool window grouped by file and severity</li>
+        </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- LSP Server Support -->
+        <platform.lsp.serverSupportProvider
+                implementation="com.securityaudit.plugin.SecurityAuditLspServerSupportProvider"/>
+
+        <!-- Tool Window -->
+        <toolWindow id="Security Audit"
+                    anchor="bottom"
+                    factoryClass="com.securityaudit.plugin.SecurityAuditToolWindowFactory"
+                    icon="AllIcons.General.Shield"/>
+
+        <!-- Status Bar Widget -->
+        <statusBarWidgetFactory
+                id="SecurityAuditStatusBar"
+                implementation="com.securityaudit.plugin.SecurityAuditStatusBarWidgetFactory"/>
+
+        <!-- Settings -->
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.securityaudit.plugin.SecurityAuditSettingsConfigurable"
+                id="com.securityaudit.plugin.settings"
+                displayName="Security Audit"/>
+
+        <applicationService
+                serviceImplementation="com.securityaudit.plugin.SecurityAuditSettings"/>
+    </extensions>
+
+    <actions>
+        <group id="SecurityAudit.Actions" text="Security Audit" popup="true">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <action id="SecurityAudit.ScanFile"
+                    class="com.securityaudit.plugin.actions.ScanFileAction"
+                    text="Scan Current File"
+                    description="Run security audit on the current file"
+                    icon="AllIcons.General.Shield"/>
+            <action id="SecurityAudit.ShowReference"
+                    class="com.securityaudit.plugin.actions.ShowReferenceAction"
+                    text="Show Security Reference"
+                    description="Show reference documentation for a checkpoint"/>
+        </group>
+    </actions>
+</idea-plugin>

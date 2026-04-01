@@ -4,7 +4,7 @@ description: "Use when conducting security assessments, running OWASP Top 10 or 
 license: "MIT. See LICENSE-MIT"
 compatibility: "Requires grep, jq, gh CLI."
 metadata:
-  author: Evan de Recht
+  author: E van der Vecht
   version: "3.0.0"
   repository: https://github.com/evandervecht/security-audit-skill
 allowed-tools: Bash(grep:*) Bash(jq:*) Bash(gh:*) Read Glob Grep
