@@ -38,7 +38,8 @@ while [[ $# -gt 0 ]]; do
         --help|-h)
             echo "Usage: $0 [OPTIONS] <ecosystem> <package-or-path>"
             echo ""
-            echo "Ecosystems: npm, pip, go, rust, dotnet, npm-project, pip-project, go-project, rust-project, dotnet-project"
+            echo "Ecosystems: npm, pip, go, rust, dotnet, npm-project, pnpm-project, uv-project, pip-project, go-project, rust-project, dotnet-project"
+            echo "  (npm uses pnpm, pip uses uv under the hood)"
             echo ""
             echo "Options:"
             echo "  --registry <host>     Add a private registry to the safe allowlist (can be repeated)"
@@ -51,6 +52,8 @@ while [[ $# -gt 0 ]]; do
             echo "  $0 go github.com/gin-gonic/gin"
             echo "  $0 rust serde"
             echo "  $0 dotnet Newtonsoft.Json"
+            echo "  $0 pnpm-project ./pnpm-lock.yaml"
+            echo "  $0 uv-project ./uv.lock"
             echo "  $0 npm-project ./package.json"
             echo ""
             echo "Auth file format (scoped — never mount your full ~/.npmrc):"
@@ -119,6 +122,9 @@ run_sandbox() {
     local image="$1"
     shift
     local container_name="${CONTAINER_PREFIX}-$$"
+    local strace_dir
+    strace_dir="$(mktemp -d "/tmp/${container_name}-strace.XXXXXX")"
+    chmod 777 "$strace_dir"
 
     echo "Running sandboxed install in container: $container_name"
     echo "Command: $*"
@@ -129,8 +135,9 @@ run_sandbox() {
         --name "$container_name"
         --rm=false
         --read-only
-        --tmpfs /tmp:rw,noexec,nosuid,size=256m
-        --tmpfs /sandbox:rw,exec,size=512m
+        --tmpfs /tmp:rw,noexec,nosuid,size=256m,uid=10001,gid=10001
+        --tmpfs /sandbox:rw,exec,size=512m,uid=10001,gid=10001
+        -v "$strace_dir:/strace:rw"
         --memory=512m
         --cpus=1
         --cap-drop=ALL
@@ -147,16 +154,14 @@ run_sandbox() {
 
     docker run "${docker_args[@]}" "$image" "$@" 2>&1 || true
 
-    # Extract strace log from container
     echo ""
     echo "Extracting analysis data..."
-    docker cp "$container_name:/tmp/strace.log" "/tmp/${container_name}-strace.log" 2>/dev/null || true
 
-    # Cleanup container
+    # Cleanup container (strace dir persists with strace.log + audit.json)
     docker rm -f "$container_name" >/dev/null 2>&1 || true
 
     # Build analyzer arguments
-    local analyzer_args=("/tmp/${container_name}-strace.log")
+    local analyzer_args=("$strace_dir/strace.log")
     for reg in "${PRIVATE_REGISTRIES[@]}"; do
         analyzer_args+=(--registry "$reg")
     done
@@ -164,92 +169,98 @@ run_sandbox() {
         analyzer_args+=(--monitor-auth "/sandbox/.auth-credentials")
     fi
 
-    # Analyze
-    if [[ -f "/tmp/${container_name}-strace.log" ]]; then
-        bash "$SANDBOX_DIR/analyze-strace.sh" "${analyzer_args[@]}"
-        local result=$?
-        rm -f "/tmp/${container_name}-strace.log"
+    # Analyze strace for supply chain behavior
+    if [[ -f "$strace_dir/strace.log" ]]; then
+        local result=0
+        bash "$SANDBOX_DIR/analyze-strace.sh" "${analyzer_args[@]}" || result=$?
+
+        # Show artifacts summary
+        echo ""
+        echo "=== Artifacts ==="
+        echo "Results directory: $strace_dir"
+        for f in audit.json sbom.json deps.json ips.txt strace.log; do
+            if [[ -f "$strace_dir/$f" ]]; then
+                local size
+                size=$(wc -c < "$strace_dir/$f" | tr -d ' ')
+                echo "  $f (${size} bytes)"
+            fi
+        done
+
         return $result
     else
         echo "WARNING: Could not extract strace log — container may have crashed"
+        rm -rf "$strace_dir"
         return 1
+    fi
+}
+
+# --- Analyze project sandbox results ---
+analyze_project() {
+    local strace_dir="$1"
+    echo ""
+    echo "Extracting analysis data..."
+
+    docker rm -f "${CONTAINER_PREFIX}-project-$$" >/dev/null 2>&1 || true
+
+    if [[ -f "$strace_dir/strace.log" ]]; then
+        local result=0
+        bash "$SANDBOX_DIR/analyze-strace.sh" "$strace_dir/strace.log" || result=$?
+
+        echo ""
+        echo "=== Artifacts ==="
+        echo "Results directory: $strace_dir"
+        for f in audit.json sbom.json deps.json ips.txt strace.log; do
+            if [[ -f "$strace_dir/$f" ]]; then
+                local size
+                size=$(wc -c < "$strace_dir/$f" | tr -d ' ')
+                echo "  $f (${size} bytes)"
+            fi
+        done
+
+        exit $result
+    else
+        echo "WARNING: Could not extract strace log — container may have crashed"
+        exit 1
     fi
 }
 
 # --- Execute based on mode ---
 case "$MODE" in
-    npm)
-        build_image "$SANDBOX_DIR/Dockerfile.npm" "$CONTAINER_PREFIX-npm"
-        run_sandbox "$CONTAINER_PREFIX-npm" "$TARGET"
+    npm|pnpm)
+        build_image "$SANDBOX_DIR/Dockerfile.pnpm" "$CONTAINER_PREFIX-pnpm"
+        run_sandbox "$CONTAINER_PREFIX-pnpm" "$TARGET"
         ;;
 
-    pip)
-        build_image "$SANDBOX_DIR/Dockerfile.pip" "$CONTAINER_PREFIX-pip"
-        run_sandbox "$CONTAINER_PREFIX-pip" "$TARGET"
+    pip|uv)
+        build_image "$SANDBOX_DIR/Dockerfile.uv" "$CONTAINER_PREFIX-uv"
+        run_sandbox "$CONTAINER_PREFIX-uv" "$TARGET"
         ;;
 
-    npm-project)
+    pip-project|uv-project)
         if [[ ! -f "$TARGET" ]]; then
             echo "ERROR: File not found: $TARGET"
             exit 2
         fi
-        build_image "$SANDBOX_DIR/Dockerfile.npm" "$CONTAINER_PREFIX-npm"
-        # Copy package.json into container via volume mount
+        target_dir="$(cd "$(dirname "$TARGET")" && pwd)"
+        build_image "$SANDBOX_DIR/Dockerfile.uv" "$CONTAINER_PREFIX-uv"
+        strace_dir_proj="$(mktemp -d "/tmp/${CONTAINER_PREFIX}-project-$$-strace.XXXXXX")"
+        chmod 777 "$strace_dir_proj"
         docker run \
             --name "${CONTAINER_PREFIX}-project-$$" \
             --rm=false \
             --read-only \
-            --tmpfs /tmp:rw,noexec,nosuid,size=256m \
-            --tmpfs /sandbox:rw,exec,size=512m \
-            -v "$(cd "$(dirname "$TARGET")" && pwd)/$(basename "$TARGET"):/sandbox/package.json:ro" \
-            --memory=512m \
-            --cpus=1 \
+            --tmpfs /tmp:rw,noexec,nosuid,size=256m,uid=10001,gid=10001 \
+            --tmpfs /sandbox:rw,exec,size=4g,uid=10001,gid=10001 \
+            -v "$strace_dir_proj:/strace:rw" \
+            -v "$target_dir:/project:ro" \
+            --memory=4g \
+            --cpus=2 \
             --cap-drop=ALL \
             --security-opt=no-new-privileges:true \
             --pids-limit=256 \
-            "$CONTAINER_PREFIX-npm" 2>&1 || true
+            "$CONTAINER_PREFIX-uv" 2>&1 || true
 
-        docker cp "${CONTAINER_PREFIX}-project-$$:/tmp/strace.log" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" 2>/dev/null || true
-        docker rm -f "${CONTAINER_PREFIX}-project-$$" >/dev/null 2>&1 || true
-
-        if [[ -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" ]]; then
-            bash "$SANDBOX_DIR/analyze-strace.sh" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            result=$?
-            rm -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            exit $result
-        fi
-        ;;
-
-    pip-project)
-        if [[ ! -f "$TARGET" ]]; then
-            echo "ERROR: File not found: $TARGET"
-            exit 2
-        fi
-        build_image "$SANDBOX_DIR/Dockerfile.pip" "$CONTAINER_PREFIX-pip"
-        docker run \
-            --name "${CONTAINER_PREFIX}-project-$$" \
-            --rm=false \
-            --read-only \
-            --tmpfs /tmp:rw,noexec,nosuid,size=256m \
-            --tmpfs /sandbox:rw,exec,size=512m \
-            -v "$(cd "$(dirname "$TARGET")" && pwd)/$(basename "$TARGET"):/sandbox/requirements.txt:ro" \
-            --memory=512m \
-            --cpus=1 \
-            --cap-drop=ALL \
-            --security-opt=no-new-privileges:true \
-            --pids-limit=256 \
-            "$CONTAINER_PREFIX-pip" \
-            -r /sandbox/requirements.txt 2>&1 || true
-
-        docker cp "${CONTAINER_PREFIX}-project-$$:/tmp/strace.log" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" 2>/dev/null || true
-        docker rm -f "${CONTAINER_PREFIX}-project-$$" >/dev/null 2>&1 || true
-
-        if [[ -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" ]]; then
-            bash "$SANDBOX_DIR/analyze-strace.sh" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            result=$?
-            rm -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            exit $result
-        fi
+        analyze_project "$strace_dir_proj"
         ;;
 
     go)
@@ -276,14 +287,16 @@ case "$MODE" in
             exit 2
         fi
         build_image "$SANDBOX_DIR/Dockerfile.go" "$CONTAINER_PREFIX-go"
+        strace_dir_proj="$(mktemp -d "/tmp/${CONTAINER_PREFIX}-project-$$-strace.XXXXXX")"
+        chmod 777 "$strace_dir_proj"
         docker run \
             --name "${CONTAINER_PREFIX}-project-$$" \
             --rm=false \
             --read-only \
-            --tmpfs /tmp:rw,noexec,nosuid,size=256m \
-            --tmpfs /sandbox:rw,exec,size=1g \
-            -v "$(cd "$(dirname "$TARGET")" && pwd)/go.mod:/sandbox/go.mod:ro" \
-            -v "$(cd "$(dirname "$TARGET")" && pwd)/go.sum:/sandbox/go.sum:ro" \
+            --tmpfs /tmp:rw,noexec,nosuid,size=256m,uid=10001,gid=10001 \
+            --tmpfs /sandbox:rw,exec,size=1g,uid=10001,gid=10001 \
+            -v "$strace_dir_proj:/strace:rw" \
+            -v "$(cd "$(dirname "$TARGET")" && pwd):/project:ro" \
             --memory=1g \
             --cpus=2 \
             --cap-drop=ALL \
@@ -291,15 +304,7 @@ case "$MODE" in
             --pids-limit=256 \
             "$CONTAINER_PREFIX-go" 2>&1 || true
 
-        docker cp "${CONTAINER_PREFIX}-project-$$:/tmp/strace.log" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" 2>/dev/null || true
-        docker rm -f "${CONTAINER_PREFIX}-project-$$" >/dev/null 2>&1 || true
-
-        if [[ -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" ]]; then
-            bash "$SANDBOX_DIR/analyze-strace.sh" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            result=$?
-            rm -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            exit $result
-        fi
+        analyze_project "$strace_dir_proj"
         ;;
 
     rust-project)
@@ -308,14 +313,16 @@ case "$MODE" in
             exit 2
         fi
         build_image "$SANDBOX_DIR/Dockerfile.rust" "$CONTAINER_PREFIX-rust"
+        strace_dir_proj="$(mktemp -d "/tmp/${CONTAINER_PREFIX}-project-$$-strace.XXXXXX")"
+        chmod 777 "$strace_dir_proj"
         docker run \
             --name "${CONTAINER_PREFIX}-project-$$" \
             --rm=false \
             --read-only \
-            --tmpfs /tmp:rw,noexec,nosuid,size=256m \
-            --tmpfs /sandbox:rw,exec,size=1g \
-            -v "$(cd "$(dirname "$TARGET")" && pwd)/Cargo.toml:/sandbox/Cargo.toml:ro" \
-            -v "$(cd "$(dirname "$TARGET")" && pwd)/Cargo.lock:/sandbox/Cargo.lock:ro" \
+            --tmpfs /tmp:rw,noexec,nosuid,size=256m,uid=10001,gid=10001 \
+            --tmpfs /sandbox:rw,exec,size=1g,uid=10001,gid=10001 \
+            -v "$strace_dir_proj:/strace:rw" \
+            -v "$(cd "$(dirname "$TARGET")" && pwd):/project:ro" \
             --memory=1g \
             --cpus=2 \
             --cap-drop=ALL \
@@ -323,15 +330,7 @@ case "$MODE" in
             --pids-limit=256 \
             "$CONTAINER_PREFIX-rust" 2>&1 || true
 
-        docker cp "${CONTAINER_PREFIX}-project-$$:/tmp/strace.log" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" 2>/dev/null || true
-        docker rm -f "${CONTAINER_PREFIX}-project-$$" >/dev/null 2>&1 || true
-
-        if [[ -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" ]]; then
-            bash "$SANDBOX_DIR/analyze-strace.sh" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            result=$?
-            rm -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            exit $result
-        fi
+        analyze_project "$strace_dir_proj"
         ;;
 
     dotnet-project)
@@ -340,34 +339,56 @@ case "$MODE" in
             exit 2
         fi
         build_image "$SANDBOX_DIR/Dockerfile.dotnet" "$CONTAINER_PREFIX-dotnet"
+        strace_dir_proj="$(mktemp -d "/tmp/${CONTAINER_PREFIX}-project-$$-strace.XXXXXX")"
+        chmod 777 "$strace_dir_proj"
         docker run \
             --name "${CONTAINER_PREFIX}-project-$$" \
             --rm=false \
             --read-only \
-            --tmpfs /tmp:rw,noexec,nosuid,size=256m \
-            --tmpfs /sandbox:rw,exec,size=1g \
-            -v "$(cd "$(dirname "$TARGET")" && pwd):/sandbox/project:ro" \
+            --tmpfs /tmp:rw,noexec,nosuid,size=256m,uid=10001,gid=10001 \
+            --tmpfs /sandbox:rw,exec,size=1g,uid=10001,gid=10001 \
+            -v "$strace_dir_proj:/strace:rw" \
+            -v "$(cd "$(dirname "$TARGET")" && pwd):/project:ro" \
             --memory=1g \
             --cpus=2 \
             --cap-drop=ALL \
             --security-opt=no-new-privileges:true \
             --pids-limit=256 \
             "$CONTAINER_PREFIX-dotnet" \
-            --project /sandbox/project 2>&1 || true
+            --project /project 2>&1 || true
 
-        docker cp "${CONTAINER_PREFIX}-project-$$:/tmp/strace.log" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" 2>/dev/null || true
-        docker rm -f "${CONTAINER_PREFIX}-project-$$" >/dev/null 2>&1 || true
+        analyze_project "$strace_dir_proj"
+        ;;
 
-        if [[ -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log" ]]; then
-            bash "$SANDBOX_DIR/analyze-strace.sh" "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            result=$?
-            rm -f "/tmp/${CONTAINER_PREFIX}-project-$$-strace.log"
-            exit $result
+    npm-project|pnpm-project)
+        if [[ ! -f "$TARGET" ]]; then
+            echo "ERROR: File not found: $TARGET"
+            exit 2
         fi
+        target_dir="$(cd "$(dirname "$TARGET")" && pwd)"
+        build_image "$SANDBOX_DIR/Dockerfile.pnpm" "$CONTAINER_PREFIX-pnpm"
+        strace_dir_proj="$(mktemp -d "/tmp/${CONTAINER_PREFIX}-project-$$-strace.XXXXXX")"
+        chmod 777 "$strace_dir_proj"
+        docker run \
+            --name "${CONTAINER_PREFIX}-project-$$" \
+            --rm=false \
+            --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=256m,uid=10001,gid=10001 \
+            --tmpfs /sandbox:rw,exec,size=4g,uid=10001,gid=10001 \
+            -v "$strace_dir_proj:/strace:rw" \
+            -v "$target_dir:/project:ro" \
+            --memory=4g \
+            --cpus=2 \
+            --cap-drop=ALL \
+            --security-opt=no-new-privileges:true \
+            --pids-limit=256 \
+            "$CONTAINER_PREFIX-pnpm" 2>&1 || true
+
+        analyze_project "$strace_dir_proj"
         ;;
 
     *)
-        echo "ERROR: Unknown mode '$MODE'. Use: npm, pip, go, rust, dotnet, npm-project, pip-project, go-project, rust-project, dotnet-project"
+        echo "ERROR: Unknown mode '$MODE'. Use: npm, pip, go, rust, dotnet, pnpm-project, uv-project, npm-project, pip-project, go-project, rust-project, dotnet-project"
         exit 2
         ;;
 esac

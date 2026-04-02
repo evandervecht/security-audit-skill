@@ -25,4 +25,4 @@ WORKDIR /sandbox
 # Drop to non-root
 USER 10001:10001
 
-ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/tmp/strace.log", "--", "/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["strace", "-f", "-e", "trace=network,process,openat", "-o", "/strace/strace.log", "--", "/usr/local/bin/entrypoint.sh"]
