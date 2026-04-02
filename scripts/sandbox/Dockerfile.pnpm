@@ -3,8 +3,9 @@ FROM dhi.io/node:25-debian13-dev@sha256:aa7e54aa027bc9404173a09c85b8380b53c37c90
 
 RUN apt-get update && apt-get install -y --no-install-recommends strace \
     && rm -rf /var/lib/apt/lists/*
+RUN npm install -g pnpm --force
 
-COPY entrypoint-npm.sh /tmp/entrypoint.sh
+COPY entrypoint-pnpm.sh /tmp/entrypoint.sh
 RUN chmod +x /tmp/entrypoint.sh
 
 # Bundle strace + shell + libs into one directory
@@ -12,8 +13,8 @@ RUN mkdir -p /tmp/bundle/bin /tmp/bundle/lib \
     && cp /usr/bin/strace /tmp/bundle/bin/ \
     && cp /bin/bash /tmp/bundle/bin/ \
     && ln -s bash /tmp/bundle/bin/sh \
-    && printf '#!/bin/sh\nnode /usr/local/lib/node_modules/npm/bin/npm-cli.js "$@"\n' > /tmp/bundle/bin/npm \
-    && chmod +x /tmp/bundle/bin/npm \
+    && printf '#!/bin/sh\nnode /usr/local/lib/node_modules/pnpm/bin/pnpm.cjs "$@"\n' > /tmp/bundle/bin/pnpm \
+    && chmod +x /tmp/bundle/bin/pnpm \
     && for bin in /usr/bin/strace /bin/bash; do \
          for lib in $(ldd "$bin" 2>/dev/null | grep "=>" | awk '{print $3}'); do \
            cp "$lib" /tmp/bundle/lib/ 2>/dev/null || true; \
@@ -28,12 +29,12 @@ COPY --from=builder /tmp/bundle/bin/bash /bin/bash
 COPY --from=builder /tmp/bundle/bin/sh /bin/sh
 COPY --from=builder /tmp/bundle/lib/ /usr/lib/
 COPY --from=builder /usr/bin/env /usr/bin/env
-COPY --from=builder /opt/nodejs/node-v25.8.2/lib/node_modules/npm/ /usr/local/lib/node_modules/npm/
-COPY --from=builder /tmp/bundle/bin/npm /usr/local/bin/npm
+COPY --from=builder /opt/nodejs/node-v25.8.2/lib/node_modules/pnpm/ /usr/local/lib/node_modules/pnpm/
+COPY --from=builder /tmp/bundle/bin/pnpm /usr/local/bin/pnpm
 COPY --from=builder /tmp/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 WORKDIR /sandbox
-ENV HOME=/tmp
+ENV HOME=/sandbox
 USER 10001:10001
 
 ENTRYPOINT ["/usr/bin/strace", "-f", "-e", "trace=network,process,openat", "-o", "/strace/strace.log", "--", "/usr/local/bin/entrypoint.sh"]
