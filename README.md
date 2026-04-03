@@ -1,6 +1,6 @@
 # Security Audit Skill
 
-Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for **any project**. Deep scanning across PHP/TYPO3, Infrastructure-as-Code, APIs, frontend code, and AI agent skills/configurations with 119+ checkpoints, 23 reference guides, and PreToolUse warnings.
+Security vulnerability detection for AI agents and IDEs. 408 checkpoints across 9 languages, 18 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, with compliance mapping to 6 frameworks.
 
 ## Compatibility
 
@@ -14,33 +14,94 @@ This is an **Agent Skill** following the [open standard](https://agentskills.io)
 
 > Skills are portable packages of procedural knowledge that work across any AI agent supporting the Agent Skills specification.
 
+## What It Does
 
-## Features
+### Static Analysis (408 Checkpoints)
 
-- **Vulnerability Assessment**: XXE injection, SQL injection, XSS, CSRF, command injection, path traversal, file upload vulnerabilities, insecure deserialization, SSRF, type juggling, SSTI, JWT flaws, LDAP injection, email header injection, session fixation
-- **Risk Scoring**: CVSS v3.1 and v4.0 scoring methodology, risk matrix assessment, impact and likelihood analysis, prioritization frameworks
-- **Secure Coding**: Input validation, output encoding, cryptographic best practices (sodium), session management, authentication patterns, security headers
-- **Standards Compliance**: OWASP Top 10, CWE Top 25 (2025), OWASP ASVS v4.0, Proactive Controls — applicable to any project
-- **PHP/TYPO3 Deep Scanning**: 80+ automated checkpoints, PHP 8.x security features, framework patterns (TYPO3, Symfony, Laravel)
-- **Infrastructure-as-Code**: Dockerfile security (root user, secrets in layers, unpinned images), Docker Compose (privileged mode, socket mounts), Kubernetes (RBAC, NetworkPolicy, pod security), Terraform (public access, encryption)
-- **API Security**: OWASP API Top 10 (2025), GraphQL (introspection, depth limits, batching), REST hardening, BOLA/IDOR, mass assignment, rate limiting
-- **Frontend Security**: DOM-based XSS, Subresource Integrity (SRI), CORS misconfiguration, postMessage validation, localStorage secrets, client-side open redirects
-- **AI/LLM Agent Security**: OWASP LLM Top 10 (2025), prompt injection defense, excessive agency detection, MCP server auditing, system prompt leakage, agent permission least-privilege analysis
-- **DevSecOps**: CI/CD security pipeline, SAST, dependency scanning, supply chain security, SLSA
+| Category | Checkpoints | Languages/Frameworks |
+|---|---|---|
+| **Languages** | SA-PY, SA-JS, SA-NODE, SA-JAVA, SA-CS, SA-GO, SA-RS, SA-RB, SA-PHP | Python, JavaScript, Node.js, Java, C#, Go, Rust, Ruby, PHP |
+| **Frameworks** | SA-REACT, SA-NEXT, SA-VUE, SA-ANG, SA-DJANGO, SA-FLASK, SA-SPRING, SA-LARAVEL, SA-SYMFONY | React, Next.js, Vue, Angular, Django, Flask, Spring, Laravel, Symfony |
+| **Cloud** | SA-AWS, SA-GCP, SA-AZURE | AWS, GCP, Azure |
+| **CMS** | SA-WP, SA-DRUPAL, SA-JOOMLA, SA-TYPO3 | WordPress, Drupal, Joomla, TYPO3 |
+| **Mobile** | SA-ANDROID, SA-IOS | Android SDK, iOS SDK |
+| **Infrastructure** | SA-01..SA-20 | Dockerfile, Kubernetes, Terraform, Compose |
+| **Runtime** | LIVE-HDR, LIVE-TLS, LIVE-CORS | Headers, TLS, CORS |
+
+### Dependency Sandbox
+
+Installs packages in a hardened Docker container with strace monitoring. Detects supply chain attacks: unauthorized network connections, file writes, process spawning, credential harvesting.
+
+```bash
+# Single package
+./scripts/dependency-sandbox.sh npm lodash
+./scripts/dependency-sandbox.sh pip requests
+
+# Full project (from lockfile)
+./scripts/dependency-sandbox.sh pnpm-project ./pnpm-lock.yaml
+./scripts/dependency-sandbox.sh uv-project ./uv.lock
+./scripts/dependency-sandbox.sh go-project ./go.sum
+./scripts/dependency-sandbox.sh rust-project ./Cargo.lock
+./scripts/dependency-sandbox.sh dotnet-project ./packages.lock.json
+```
+
+**Output artifacts:**
+- `audit.json` — CVE audit from the package manager (pnpm audit, pip-audit, govulncheck, cargo-audit)
+- `sbom.json` — CycloneDX 1.5 SBOM (full transitive dependency tree)
+- `deps.json` — Raw dependency tree with metadata
+- `ips.txt` — Public IPs contacted (for reverse DNS)
+- `strace.log` — Raw syscall trace
+
+**Container security:**
+- Read-only root filesystem
+- Non-root user (UID 10001)
+- All capabilities dropped (`--cap-drop=ALL`)
+- No new privileges (`--security-opt=no-new-privileges`)
+- Memory and PID limits
+- Network monitored via strace (not blocked — so postinstall scripts are observed)
+
+### Multi-Language Scanner
+
+Auto-detects project stack and runs language-specific scanners:
+
+```bash
+./scripts/security-audit-dispatcher.sh /path/to/project
+```
+
+19 scanner modules: Python, JavaScript, Node.js, Java, C#, Go, Rust, Ruby, PHP, React, Django, Flask, Spring, WordPress, Drupal, Joomla, AWS, GCP, Azure.
+
+### IDE Integration
+
+| Package | Description |
+|---|---|
+| `packages/core` | TypeScript detection engine (loads checkpoints, runs regex matching) |
+| `packages/mcp-server` | MCP server with 7 tools for AI IDEs |
+| `packages/lsp-server` | LSP server for traditional editors |
+| `packages/vscode-ext` | VS Code extension (sidebar, quick-fix, status bar) |
+| `packages/jetbrains-plugin` | JetBrains plugin (IntelliJ, PyCharm, WebStorm) |
+| `packages/runtime-agent` | Node.js + Python taint tracing |
+
+### CVE Enrichment
+
+Correlates findings with real CVEs via NVD and OSV APIs. Maps checkpoint CWE IDs to known vulnerabilities with CVSS scores and advisory links.
+
+### Compliance Mapping
+
+Checkpoints mapped to 6 compliance frameworks:
+- SOC 2 Type II
+- ISO 27001:2022
+- PCI DSS v4.0
+- HIPAA Security Rule
+- GDPR Article 32
+- NIST CSF 2.0
 
 ## Installation
 
 ### npx ([skills.sh](https://skills.sh))
 
-Install with any [Agent Skills](https://agentskills.io)-compatible agent:
-
 ```bash
 npx skills add https://github.com/evandervecht/security-audit-skill --skill security-audit
 ```
-
-### Download Release
-
-Download the [latest release](https://github.com/evandervecht/security-audit-skill/releases/latest) and extract to your agent's skills directory.
 
 ### Git Clone
 
@@ -50,263 +111,224 @@ git clone https://github.com/evandervecht/security-audit-skill.git
 
 ## Usage
 
-> For detailed usage instructions, step-by-step guides for each project type, and examples of auditing AI agent skills, see **[docs/USAGE.md](docs/USAGE.md)**.
-
-This skill is automatically triggered when:
-
-- Conducting security assessments on any project type
-- Identifying vulnerabilities (XXE, SQL injection, XSS, CSRF, command injection)
-- Scoring security risks with CVSS v3.1 or v4.0
-- Auditing PHP, Dockerfile, Kubernetes, Terraform, or frontend code
-- Reviewing API endpoints for OWASP API Top 10 issues
-- Auditing AI agent skills, MCP servers, or agent configurations
-- Setting up CI/CD security pipelines
+> For detailed usage instructions, see **[docs/USAGE.md](docs/USAGE.md)**.
 
 ### Example Queries
 
-**PHP / Application Security:**
-- "Audit this code for XXE vulnerabilities"
-- "Check for SQL injection risks"
-- "Score this vulnerability using CVSS v4.0"
-- "Review authentication implementation for security flaws"
-
-**Infrastructure-as-Code:**
-- "Review this Dockerfile for security best practices"
-- "Check the Kubernetes manifests for misconfigurations"
-- "Audit the Terraform files for public access risks"
-
-**API Security:**
-- "Audit the API endpoints for BOLA vulnerabilities"
-- "Check if GraphQL introspection is disabled in production"
-- "Review the API rate limiting configuration"
-
-**Frontend:**
-- "Check the JavaScript files for DOM XSS vulnerabilities"
-- "Audit the CORS configuration"
-- "Are there any sensitive tokens stored in localStorage?"
-
-**AI Agent / LLM Security:**
-- "Audit this AI skill for prompt injection risks"
-- "Check if the MCP server config has supply chain issues"
-- "Run an OWASP LLM Top 10 audit on this agent configuration"
-- "Review the allowed-tools for least-privilege violations"
-
-### Auditing a Downloaded AI Skill
-
-You can use this skill to audit any AI agent skill or configuration downloaded from GitHub:
-
-```bash
-# 1. Clone the skill you want to audit
-git clone https://github.com/someone/their-cool-skill.git /tmp/skill-to-audit
-cd /tmp/skill-to-audit
-
-# 2. Ask your AI agent (with security-audit-skill installed):
-#    "Audit this AI skill for security issues using the OWASP LLM Top 10"
 ```
-
-The skill checks SKILL.md, AGENTS.md, CLAUDE.md, mcp.json, hooks.json, and settings files for:
-
-| Check | What It Detects |
-|---|---|
-| Prompt Injection (LLM01) | External content ingested without segregation, missing input validation |
-| Sensitive Disclosure (LLM02) | Hardcoded API keys/secrets in skill configs, sensitive files loaded into context |
-| Supply Chain (LLM03) | Unpinned MCP server versions, unverified skill sources |
-| Improper Output (LLM05) | LLM output passed to shell without validation, auto-executed code |
-| Excessive Agency (LLM06) | Unrestricted Bash access, missing human approval gates, over-permissioned tools |
-| Prompt Leakage (LLM07) | Credentials in system prompts, security controls only in prompt text |
-
-See [docs/USAGE.md](docs/USAGE.md) for complete examples with sample findings.
+"Audit this code for security vulnerabilities"
+"Check my pnpm-lock.yaml for CVEs"
+"Score this vulnerability using CVSS v4.0"
+"Run an OWASP Top 10 audit on this project"
+"Audit this Dockerfile for security best practices"
+"Check the API endpoints for BOLA vulnerabilities"
+"Audit this AI skill for prompt injection risks"
+```
 
 ### Automated Scripts
 
 ```bash
-# PHP project security audit
+# Multi-language security scan
+./scripts/security-audit-dispatcher.sh /path/to/project
+
+# Dependency sandbox
+./scripts/dependency-sandbox.sh pnpm-project ./pnpm-lock.yaml
+
+# PHP project audit
 ./skills/security-audit/scripts/security-audit.sh /path/to/project
 
-# GitHub repository security audit
+# GitHub repository audit
 ./skills/security-audit/scripts/github-security-audit.sh owner/repo
 ```
 
-## Structure
+## Repository Structure
 
 ```
 security-audit-skill/
-├── SKILL.md                              # Skill metadata and core patterns
-├── SECURITY.md                           # Security policy
-├── docs/
-│   ├── USAGE.md                          # Detailed usage guide
-│   └── ARCHITECTURE.md                   # System architecture
-├── hooks/
-│   └── hooks.json                        # PreToolUse hook configuration
-├── scripts/
-│   ├── check_risky_command.py            # Risky command detection hook
-│   └── validate_checkpoints.py           # Checkpoint YAML validator
 ├── skills/security-audit/
-│   ├── SKILL.md                          # Skill definition (v3.0.0)
-│   ├── checkpoints.yaml                  # 119+ automated security checkpoints
-│   ├── scripts/
-│   │   ├── security-audit.sh             # PHP project security audit
-│   │   └── github-security-audit.sh      # GitHub repo security audit
-│   └── references/
-│       ├── owasp-top10.md                # OWASP Top 10 patterns
-│       ├── cwe-top25.md                  # CWE Top 25 (2025) coverage map
-│       ├── api-security.md               # OWASP API Top 10 (2025), GraphQL, REST
-│       ├── iac-security.md               # Dockerfile, K8s, Terraform, Compose
-│       ├── frontend-security.md          # DOM XSS, SRI, CORS, postMessage
-│       ├── llm-security.md               # OWASP LLM Top 10 (2025), agent auditing
-│       ├── xxe-prevention.md             # XXE detection and prevention
-│       ├── cvss-scoring.md               # CVSS v3.1 & v4.0 scoring
-│       ├── api-key-encryption.md         # API key encryption (sodium)
-│       ├── authentication-patterns.md    # Auth, session, JWT, MFA
-│       ├── security-headers.md           # HTTP security headers
-│       ├── security-logging.md           # Security logging & monitoring
-│       ├── input-validation.md           # Input validation & encoding
-│       ├── cryptography-guide.md         # Cryptographic best practices
-│       ├── framework-security.md         # TYPO3/Symfony/Laravel security
-│       ├── modern-attacks.md             # SSRF, mass assignment, race conditions
-│       ├── cve-patterns.md               # CVE-derived patterns
-│       ├── php-security-features.md      # PHP 8.x security features
-│       ├── ci-security-pipeline.md       # CI/CD security tooling
-│       ├── supply-chain-security.md      # SLSA, signing, OpenSSF
-│       ├── supply-chain-incident-response.md  # Incident response playbooks
-│       ├── path-traversal-prevention.md  # Path traversal prevention
-│       └── automated-scanning.md         # Semgrep, Trivy, Gitleaks setup
-└── .github/
-    ├── dependabot.yml                    # Automated dependency updates
-    └── workflows/
-        ├── release.yml                   # Release automation
-        └── ci.yml                        # ShellCheck, Python lint, tests
+│   ├── SKILL.md                        # Skill entry point
+│   ├── checkpoints.yaml                # 408 checkpoints (372 mechanical + 36 LLM)
+│   ├── evals/                          # 154 eval fixture tests
+│   └── references/                     # 63 security reference files
+│       ├── owasp-top10.md
+│       ├── cwe-top25.md
+│       ├── compliance-soc2.md          # + 5 more compliance frameworks
+│       ├── aws-security.md             # + gcp, azure
+│       ├── wordpress-security.md       # + drupal, joomla
+│       ├── android-sdk-security.md     # + ios
+│       └── ...                         # 63 files total
+├── scripts/
+│   ├── security-audit-dispatcher.sh    # Multi-language scanner
+│   ├── dependency-sandbox.sh           # Sandboxed dependency audit
+│   ├── scanners/                       # 19 language/framework scanner modules
+│   └── sandbox/                        # Docker sandbox (7 ecosystems)
+│       ├── Dockerfile.pnpm             # + npm, pip, uv, go, rust, dotnet
+│       ├── entrypoint-pnpm.sh          # Install + audit + SBOM generation
+│       └── analyze-strace.sh           # Supply chain behavior analysis
+├── packages/
+│   ├── core/                           # TypeScript detection engine
+│   ├── mcp-server/                     # MCP server (7 tools)
+│   ├── lsp-server/                     # LSP server
+│   ├── vscode-ext/                     # VS Code extension
+│   ├── jetbrains-plugin/               # JetBrains IDE plugin (Kotlin)
+│   └── runtime-agent/                  # Node.js + Python taint tracing
+├── docs/
+│   ├── USAGE.md
+│   ├── ARCHITECTURE.md
+│   └── CONTRIBUTING-REFERENCES.md
+├── SECURITY.md
+└── CLAUDE.md
 ```
+
+## Numbers
+
+| | |
+|---|---|
+| Checkpoints | 408 (372 mechanical + 36 LLM review) |
+| Reference files | 63 |
+| Scanner modules | 19 |
+| Eval fixtures | 154 |
+| Languages | 9 |
+| Frameworks | 18 |
+| Cloud providers | 3 (AWS, GCP, Azure) |
+| CMS platforms | 4 (WordPress, Drupal, Joomla, TYPO3) |
+| Mobile SDKs | 2 (Android, iOS) |
+| Compliance frameworks | 6 |
+| Sandbox ecosystems | 7 (npm/pnpm, pip/uv, Go, Rust, .NET) |
+| IDE integrations | 4 (VS Code, JetBrains, MCP, LSP) |
 
 ## Expertise Areas
 
-### Vulnerability Assessment
-- XXE (XML External Entity) injection detection
-- SQL injection pattern recognition
-- XSS (Cross-Site Scripting) analysis
-- CSRF protection verification
-- Command injection detection
-- Path traversal prevention
-- File upload security
-- Insecure deserialization
-- SSRF detection
-- Authentication/authorization flaws
+### Vulnerability Detection
+
+**Injection Attacks:**
+SQL injection (parameterized queries, ORM misuse), command injection (shell exec, subprocess), XSS (reflected, stored, DOM-based), XXE (XML external entities, LIBXML_NONET), SSTI (server-side template injection), LDAP injection, email header injection, log injection.
+
+**Authentication & Session:**
+Weak password hashing (MD5/SHA1 vs Argon2/bcrypt), session fixation, JWT algorithm confusion (none/HS256 forgery), insecure token storage, missing MFA enforcement, credential stuffing exposure, session timeout misconfigurations.
+
+**Data Exposure:**
+Insecure deserialization (pickle, ObjectInputStream, BinaryFormatter, Marshal.load, YAML.load), path traversal (directory escape, symlink attacks), file upload bypass (MIME spoofing, double extensions, polyglots), SSRF (internal network scanning, cloud metadata), information leakage (stack traces, verbose errors, directory listings).
+
+**Logic Flaws:**
+CSRF (missing tokens, SameSite cookie bypass), IDOR/BOLA (direct object references without authorization), mass assignment (unprotected model binding), race conditions (TOCTOU, double-spend), type juggling (PHP loose comparison), open redirects.
+
+### Language-Specific Patterns
+
+| Language | Key Checks |
+|---|---|
+| **Python** | pickle/yaml.load deserialization, eval/exec injection, subprocess shell=True, Django raw SQL, Flask SSTI, assert in production |
+| **JavaScript** | eval/Function constructor, innerHTML/document.write XSS, prototype pollution, regex DoS, postMessage origin bypass |
+| **Node.js** | child_process injection, path traversal (path.join with user input), vm sandbox escape, Express session secrets |
+| **Java** | ObjectInputStream deserialization, JNDI injection (Log4Shell pattern), SpEL injection, SQL concatenation, XXE in DocumentBuilder |
+| **C#** | BinaryFormatter deserialization, FromSqlRaw injection, Regex DoS, LDAP injection, XML resolver XXE |
+| **Go** | SQL string concatenation, InsecureSkipVerify TLS bypass, unsafe pointer use, template injection, goroutine race conditions |
+| **Rust** | Unsafe blocks (memory safety bypass), unchecked unwrap on user input, SQL format strings, command injection via std::process |
+| **Ruby** | Marshal.load/YAML.load deserialization, ERB injection, send/public_send with user input, open() command injection |
+| **PHP** | unserialize() with user input, extract() variable overwrite, preg_e modifier code execution, type juggling in auth, include with user path |
+
+### Framework Security
+
+| Framework | Key Checks |
+|---|---|
+| **React** | dangerouslySetInnerHTML XSS, href="javascript:" injection, unescaped user content in JSX |
+| **Next.js** | NEXT_PUBLIC_ secret exposure, getServerSideProps data leaks, API route auth bypass, middleware edge cases |
+| **Vue** | v-html XSS, dynamic component injection, SSR hydration mismatches |
+| **Angular** | bypassSecurityTrust* misuse, template injection, innerHTML binding |
+| **Django** | raw() SQL injection, |safe template filter XSS, CSRF_COOKIE_HTTPONLY, DEBUG=True in production |
+| **Flask** | Jinja2 SSTI via user templates, secret_key hardcoding, missing CSRF protection, debug mode |
+| **Spring** | SpEL injection, actuator exposure, CSRF disabled on state-changing endpoints, mass assignment via ModelAttribute |
+| **Laravel** | Blade {!! !!} unescaped output, DB::raw injection, mass assignment ($guarded vs $fillable), APP_DEBUG=true |
+
+### Cloud Provider Security
+
+| Provider | Checks |
+|---|---|
+| **AWS** (SA-AWS-01..12) | IAM wildcard policies, public S3 buckets, unencrypted EBS/RDS, open security groups, Lambda environment secrets, CloudTrail disabled, root account usage |
+| **GCP** (SA-GCP-01..13) | Overprivileged service accounts, public Cloud Storage, unencrypted disks, firewall 0.0.0.0/0 rules, Cloud Function env secrets, audit logging disabled |
+| **Azure** (SA-AZURE-01..13) | Excessive RBAC roles, public blob containers, unencrypted managed disks, NSG any/any rules, Function App secrets in config, Activity Log gaps |
+
+### CMS Security
+
+| CMS | Checks |
+|---|---|
+| **WordPress** (SA-WP-01..10) | SQL without $wpdb->prepare(), missing nonce verification, unescaped output (esc_html/esc_attr), REST API without permission_callback, direct file access without ABSPATH check |
+| **Drupal** (SA-DRUPAL-01..06) | Direct SQL without db_select/db_query, unfiltered render arrays, missing CSRF tokens on forms, Xss::filter* bypass, permissions in routing |
+| **Joomla** (SA-JOOMLA-01..04) | Raw input without JInput filtering, SQL without JDatabase::quote, missing ACL checks, unescaped output |
+
+### Mobile SDK Security
+
+| Platform | Checks |
+|---|---|
+| **Android** (SA-ANDROID-01..10) | Exported components without permissions, content provider SQL injection, WebView JavaScript bridge (addJavascriptInterface), SharedPreferences for secrets, cleartext traffic (usesCleartextTraffic), intent redirection, insecure broadcast receivers |
+| **iOS** (SA-IOS-01..10) | ATS bypass (NSAllowsArbitraryLoads), Keychain missing access control, WKWebView JavaScript enabled without validation, UIPasteboard sensitive data exposure, URL scheme hijacking, insecure data in UserDefaults, missing jailbreak detection |
 
 ### Infrastructure-as-Code
-- Dockerfile: root user, secrets in layers, unpinned base images, ADD vs COPY
-- Docker Compose: privileged mode, Docker socket mounts, exposed ports
-- Kubernetes: RBAC, NetworkPolicy, pod security contexts, host namespaces
-- Terraform: public S3 buckets, open security groups, unencrypted storage
+
+| Target | Checks |
+|---|---|
+| **Dockerfile** | Running as root (missing USER), secrets in ENV/ARG/COPY, unpinned base images (:latest), ADD instead of COPY for remote URLs, apt cache in final image |
+| **Kubernetes** | Missing securityContext (runAsNonRoot, readOnlyRootFilesystem), no NetworkPolicy, privileged containers, hostNetwork/hostPID, RBAC wildcards, secrets in pod spec |
+| **Terraform** | Public S3/GCS/Blob access, unencrypted storage, open security groups (0.0.0.0/0), hardcoded credentials, missing logging/monitoring |
+| **Docker Compose** | privileged: true, Docker socket mount (/var/run/docker.sock), capability additions (SYS_ADMIN), host network mode |
 
 ### API Security
-- OWASP API Top 10 (2025): BOLA, mass assignment, rate limiting, function-level auth
-- GraphQL: introspection, query depth/complexity limits, batching attacks
-- REST: versioning security, content-type validation, CORS configuration
+
+**OWASP API Top 10 (2023):** BOLA (broken object-level auth), broken authentication, excessive data exposure, lack of rate limiting, function-level auth bypass, mass assignment, SSRF, security misconfiguration, improper inventory management, unsafe consumption of APIs.
+
+**GraphQL:** Introspection enabled in production, no query depth limits, no complexity limits, batching attacks (alias-based brute force), field suggestion information leak.
+
+**REST:** Missing Content-Type validation, CORS wildcard origins, verbose error responses, unversioned APIs exposing deprecated endpoints, missing pagination (DoS via large result sets).
 
 ### Frontend Security
-- DOM-based XSS: sinks (innerHTML, document.write, eval) and sources (location, postMessage)
-- Subresource Integrity (SRI) for CDN assets
-- CORS misconfiguration detection
-- Client-side storage (localStorage/sessionStorage) sensitive data exposure
-- postMessage origin validation
+
+**DOM XSS:** Sinks (innerHTML, document.write, eval, setTimeout with strings, location.href assignment) combined with sources (location.hash, postMessage data, URL parameters, document.referrer).
+
+**Subresource Integrity:** CDN-hosted scripts/styles without SRI hashes, dynamic script injection without integrity verification.
+
+**CORS:** Wildcard origins, null origin allowance, credential-inclusive wildcards, origin reflection without validation.
+
+**Client-Side Storage:** Secrets/tokens in localStorage (accessible via XSS), sensitive PII in sessionStorage, unencrypted IndexedDB data.
 
 ### AI/LLM Agent Security
-- OWASP LLM Top 10 (2025) mapped to agent/skill auditing
-- Prompt injection defense (direct, indirect, tool output)
-- Excessive agency detection (tool permissions, human approval gates)
-- MCP server supply chain verification (version pinning, source trust)
-- System prompt leakage (secrets, infrastructure details)
-- Improper output handling (LLM output to shell/code without validation)
+
+**OWASP LLM Top 10 (2025):** Prompt injection (direct + indirect), sensitive information disclosure, supply chain vulnerabilities, data/model poisoning, improper output handling, excessive agency, system prompt leakage, vector/embedding weaknesses, misinformation, unbounded consumption.
+
+**Agent-Specific:** Unrestricted Bash tool access, missing human approval gates for destructive operations, MCP server version pinning, secrets in system prompts or CLAUDE.md, LLM output piped to shell without validation, over-permissioned tool configurations, skill supply chain verification.
+
+### Supply Chain Security
+
+**Dependency Sandbox:** Behavioral analysis during package installation — monitors network connections (DNS, TCP), file system writes outside package directory, unexpected process spawning, environment variable harvesting, credential file exfiltration. PID-to-package attribution traces suspicious activity back to the specific package responsible.
+
+**SBOM Generation:** CycloneDX 1.5 format with package name, version, purl, license. Full transitive dependency tree.
+
+**CVE Auditing:** Package manager native audit (pnpm audit, pip-audit, govulncheck, cargo-audit, dotnet list --vulnerable) run inside the sandbox container.
 
 ### Risk Scoring
-- CVSS v3.1 scoring methodology
-- CVSS v4.0 scoring methodology
-- Risk matrix assessment
-- Impact and likelihood analysis
-- Prioritization frameworks
 
-### Secure Coding
-- Input validation patterns
-- Output encoding strategies
-- Secure configuration
-- Cryptographic best practices (sodium)
-- Session management
-- Authentication patterns (Argon2, JWT, MFA)
-- Security headers (HSTS, CSP)
+**CVSS v3.1:** Attack vector, complexity, privileges required, user interaction, scope, confidentiality/integrity/availability impact. Base, temporal, and environmental score calculation.
 
-### DevSecOps
-- SAST integration (PHPStan, Semgrep, CodeQL)
-- Dependency scanning (composer audit, Trivy, npm audit)
-- Supply chain security (SLSA, Sigstore)
-- Container security (Hadolint, Trivy)
-- SBOM generation (CycloneDX)
+**CVSS v4.0:** Adds attack requirements, provider urgency, supplemental metrics. Updated scope handling with vulnerable/subsequent system impact separation.
 
-## Security Audit Checklist
+### Compliance Mapping
 
-### Authentication & Authorization
-- Password hashing uses bcrypt/Argon2 (PASSWORD_ARGON2ID)
-- Session tokens are cryptographically random (random_bytes)
-- Session fixation protection enabled (session_regenerate_id)
-- CSRF tokens on all state-changing operations
-- Authorization checks on all protected resources
-- Rate limiting on authentication endpoints
+Each checkpoint is mapped to relevant controls across 6 frameworks:
 
-### Input Handling
-- All input validated server-side
-- Parameterized queries for all SQL
-- XML parsing with external entities disabled (LIBXML_NONET only)
-- File uploads restricted by type (MIME validation) and size
-- Path traversal prevention on file operations
-- No unserialize() with user input
+| Framework | Coverage |
+|---|---|
+| **SOC 2 Type II** | Trust Services Criteria (CC6, CC7, CC8) |
+| **ISO 27001:2022** | Annex A controls (A.8 Technology, A.5 Organizational) |
+| **PCI DSS v4.0** | Requirements 2, 3, 4, 6, 7, 8, 10, 11 |
+| **HIPAA** | Security Rule (Access Control, Audit Controls, Integrity, Transmission) |
+| **GDPR Article 32** | Security of processing (encryption, resilience, testing) |
+| **NIST CSF 2.0** | Identify, Protect, Detect, Respond, Recover functions |
 
-### Output Handling
-- Context-appropriate output encoding (htmlspecialchars)
-- Content-Type headers set correctly
-- X-Content-Type-Options: nosniff
-- Content-Security-Policy configured
-- X-Frame-Options or CSP frame-ancestors set
-- Strict-Transport-Security (HSTS) enabled
+## CI
 
-### Data Protection
-- Sensitive data encrypted at rest (sodium_crypto_secretbox)
-- TLS 1.2+ for data in transit
-- Secrets not in version control
-- PII handling compliant with regulations
-- Audit logging for sensitive operations
-
-### Infrastructure-as-Code
-- Dockerfiles use non-root USER, no secrets in layers or ARGs
-- Docker Compose avoids privileged mode and Docker socket mounts
-- Kubernetes pods have securityContext, NetworkPolicy, least-privilege RBAC
-- Terraform resources not publicly accessible, storage encrypted
-
-### API Endpoints
-- Object-level authorization (BOLA) on all data-access endpoints
-- Function-level authorization on admin endpoints
-- Rate limiting and pagination enforced
-- GraphQL introspection disabled in production
-- API error responses don't leak internal details
-
-### Frontend
-- No sensitive data in localStorage/sessionStorage
-- SRI attributes on CDN-hosted scripts
-- CORS configured with specific origins (not wildcards)
-- postMessage handlers validate origin
-- No DOM XSS sinks with user-controlled input
-
-### AI Agent Security
-- Agent skills follow least-privilege for tool permissions
-- MCP server versions pinned (not "latest")
-- No secrets in system prompts or skill definitions
-- LLM output validated before shell execution or code generation
-- Safety hooks cover high-impact operations
-- External content treated as untrusted data
-
-## Related Skills
-
-- **enterprise-readiness-skill**: References this skill for security assessment
-- **php-modernization-skill**: Type safety enhances security
-- **typo3-testing-skill**: Security test patterns
+Tests run on push/PR to main:
+- `test_risky_patterns.py` — hook pattern tests
+- `validate_checkpoints.py` — checkpoint YAML + namespace validation
+- `test_eval_fixtures.py` — regex fixture tests (182 tests)
 
 ## License
 
