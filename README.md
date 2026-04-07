@@ -2,6 +2,9 @@
 
 Security vulnerability detection for AI agents and IDEs. 408 checkpoints across 9 languages, 18 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, with compliance mapping to 6 frameworks.
 
+## Original Owners 
+[Netsearch]https://github.com/netresearch/security-audit-skill
+
 ## Compatibility
 
 This is an **Agent Skill** following the [open standard](https://agentskills.io) originally developed by Anthropic and released for cross-platform use.
