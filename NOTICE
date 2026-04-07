@@ -1,0 +1,19 @@
+Security Audit Skill
+Copyright (c) 2025-2026 E van der Vecht
+
+This project is a fork of:
+  https://github.com/netresearch/security-audit-skill
+  Copyright (c) 2025-2026 Netresearch DTT GmbH (https://www.netresearch.de)
+
+The original work by Netresearch DTT GmbH is licensed under:
+  - Code: MIT License (LICENSE-MIT)
+  - Content: Creative Commons Attribution-ShareAlike 4.0 International (LICENSE-CC-BY-SA-4.0)
+
+This fork contains substantial modifications and additions including:
+multi-language support (9 languages, 18 frameworks), cloud/CMS/mobile
+security checkpoints, dependency sandbox with strace-based supply chain
+analysis, CycloneDX SBOM generation, CVE auditing, IDE integrations
+(MCP server, LSP server, VS Code extension, JetBrains plugin), runtime
+taint tracing, and compliance mapping to 6 frameworks.
+
+Modifications are indicated by the git history of this repository.
