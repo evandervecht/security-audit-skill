@@ -332,8 +332,15 @@ Tests run on push/PR to main:
 
 ## License
 
-[MIT](LICENSE-MIT)
+Dual-licensed:
+
+| Component | License |
+|---|---|
+| Code (scripts, workflows, TypeScript/Kotlin packages, configs) | [MIT](LICENSE-MIT) |
+| Content (skill definitions, checkpoints, references, docs, evals) | [CC-BY-SA-4.0](LICENSE-CC-BY-SA-4.0) |
 
 ## Credits
 
-Developed and maintained by [E van der Vecht](https://github.com/evandervecht).
+Forked from [netresearch/security-audit-skill](https://github.com/netresearch/security-audit-skill) by [Netresearch DTT GmbH](https://www.netresearch.de).
+
+Extended and maintained by [E van der Vecht](https://github.com/evandervecht).
