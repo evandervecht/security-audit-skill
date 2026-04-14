@@ -1,6 +1,6 @@
 # Security Audit Skill
 
-Security vulnerability detection for AI agents and IDEs. 408 checkpoints across 9 languages, 18 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, with compliance mapping to 6 frameworks.
+Security vulnerability detection for AI agents and IDEs. 408 checkpoints across 9 languages, 18 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, with compliance mapping to 7 frameworks.
 
 ## Compatibility
 
@@ -87,7 +87,7 @@ Correlates findings with real CVEs via NVD and OSV APIs. Maps checkpoint CWE IDs
 
 ### Compliance Mapping
 
-Checkpoints mapped to 6 compliance frameworks:
+Checkpoints mapped to 7 compliance frameworks:
 - SOC 2 Type II
 - ISO 27001:2022
 - PCI DSS v4.0
@@ -149,10 +149,10 @@ security-audit-skill/
 │   ├── SKILL.md                        # Skill entry point
 │   ├── checkpoints.yaml                # 408 checkpoints (372 mechanical + 36 LLM)
 │   ├── evals/                          # 154 eval fixture tests
-│   └── references/                     # 63 security reference files
+│   └── references/                     # 64 security reference files
 │       ├── owasp-top10.md
 │       ├── cwe-top25.md
-│       ├── compliance-soc2.md          # + 5 more compliance frameworks
+│       ├── compliance-soc2.md          # + 6 more compliance frameworks
 │       ├── aws-security.md             # + gcp, azure
 │       ├── wordpress-security.md       # + drupal, joomla
 │       ├── android-sdk-security.md     # + ios
@@ -185,7 +185,7 @@ security-audit-skill/
 | | |
 |---|---|
 | Checkpoints | 408 (372 mechanical + 36 LLM review) |
-| Reference files | 63 |
+| Reference files | 64 |
 | Scanner modules | 19 |
 | Eval fixtures | 154 |
 | Languages | 9 |
@@ -193,7 +193,7 @@ security-audit-skill/
 | Cloud providers | 3 (AWS, GCP, Azure) |
 | CMS platforms | 4 (WordPress, Drupal, Joomla, TYPO3) |
 | Mobile SDKs | 2 (Android, iOS) |
-| Compliance frameworks | 6 |
+| Compliance frameworks | 7 |
 | Sandbox ecosystems | 7 (npm/pnpm, pip/uv, Go, Rust, .NET) |
 | IDE integrations | 4 (VS Code, JetBrains, MCP, LSP) |
 
@@ -312,7 +312,7 @@ CSRF (missing tokens, SameSite cookie bypass), IDOR/BOLA (direct object referenc
 
 ### Compliance Mapping
 
-Each checkpoint is mapped to relevant controls across 6 frameworks:
+Each checkpoint is mapped to relevant controls across 7 frameworks:
 
 | Framework | Coverage |
 |---|---|
@@ -322,6 +322,7 @@ Each checkpoint is mapped to relevant controls across 6 frameworks:
 | **HIPAA** | Security Rule (Access Control, Audit Controls, Integrity, Transmission) |
 | **GDPR Article 32** | Security of processing (encryption, resilience, testing) |
 | **NIST CSF 2.0** | Identify, Protect, Detect, Respond, Recover functions |
+| **EU AI Act** | Article 15 (accuracy, robustness, cybersecurity), Article 9 (risk management) |
 
 ## CI
 

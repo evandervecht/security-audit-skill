@@ -98,26 +98,33 @@ def _check_args(sink_name: str, args):
 # === Monkey-patches ===
 
 def _patch_subprocess():
-    """Patch subprocess module to detect command injection."""
+    """Patch subprocess module to block tainted command injection."""
     import subprocess
 
     _orig_run = subprocess.run
     _orig_popen = subprocess.Popen.__init__
 
+    def _block_if_tainted(sink_name: str, cmd):
+        """Raise if command string is tainted."""
+        if isinstance(cmd, str):
+            source = is_tainted(cmd)
+            if source:
+                _report_finding(sink_name, cmd, source)
+                raise RuntimeError(
+                    f"[security-audit] BLOCKED: tainted value from {source['type']}.{source['key']} "
+                    f"reached {sink_name}. This is a command injection vulnerability."
+                )
+
     @functools.wraps(_orig_run)
     def patched_run(*args, **kwargs):
         cmd = args[0] if args else kwargs.get("args", "")
-        if isinstance(cmd, str):
-            _check_args("subprocess.run", [cmd])
-        elif isinstance(cmd, (list, tuple)) and cmd:
-            _check_args("subprocess.run", [str(cmd[0])])
+        _block_if_tainted("subprocess.run", cmd)
         return _orig_run(*args, **kwargs)
 
     @functools.wraps(_orig_popen)
     def patched_popen_init(self, *args, **kwargs):
         cmd = args[0] if args else kwargs.get("args", "")
-        if isinstance(cmd, str):
-            _check_args("subprocess.Popen", [cmd])
+        _block_if_tainted("subprocess.Popen", cmd)
         return _orig_popen(self, *args, **kwargs)
 
     subprocess.run = patched_run
@@ -125,18 +132,30 @@ def _patch_subprocess():
 
 
 def _patch_os():
-    """Patch os.system and os.popen."""
+    """Patch os.system and os.popen to block tainted input."""
     _orig_system = os.system
     _orig_popen = os.popen
 
     @functools.wraps(_orig_system)
     def patched_system(command):
-        _check_args("os.system", [command])
+        source = is_tainted(command)
+        if source:
+            _report_finding("os.system", command, source)
+            raise RuntimeError(
+                f"[security-audit] BLOCKED: tainted value from {source['type']}.{source['key']} "
+                f"reached os.system(). This is a command injection vulnerability."
+            )
         return _orig_system(command)
 
     @functools.wraps(_orig_popen)
     def patched_popen(cmd, *args, **kwargs):
-        _check_args("os.popen", [cmd])
+        source = is_tainted(cmd)
+        if source:
+            _report_finding("os.popen", cmd, source)
+            raise RuntimeError(
+                f"[security-audit] BLOCKED: tainted value from {source['type']}.{source['key']} "
+                f"reached os.popen(). This is a command injection vulnerability."
+            )
         return _orig_popen(cmd, *args, **kwargs)
 
     os.system = patched_system
@@ -166,7 +185,7 @@ def _patch_pickle():
 
 
 def _patch_builtins():
-    """Patch eval and exec."""
+    """Patch eval and exec to block tainted input."""
     import builtins
 
     _orig_eval = builtins.eval
@@ -175,13 +194,25 @@ def _patch_builtins():
     @functools.wraps(_orig_eval)
     def patched_eval(expression, *args, **kwargs):
         if isinstance(expression, str):
-            _check_args("eval", [expression])
+            source = is_tainted(expression)
+            if source:
+                _report_finding("eval", expression, source)
+                raise RuntimeError(
+                    f"[security-audit] BLOCKED: tainted value from {source['type']}.{source['key']} "
+                    f"reached eval(). This is a code injection vulnerability."
+                )
         return _orig_eval(expression, *args, **kwargs)
 
     @functools.wraps(_orig_exec)
     def patched_exec(code, *args, **kwargs):
         if isinstance(code, str):
-            _check_args("exec", [code])
+            source = is_tainted(code)
+            if source:
+                _report_finding("exec", code, source)
+                raise RuntimeError(
+                    f"[security-audit] BLOCKED: tainted value from {source['type']}.{source['key']} "
+                    f"reached exec(). This is a code injection vulnerability."
+                )
         return _orig_exec(code, *args, **kwargs)
 
     builtins.eval = patched_eval
@@ -300,17 +331,32 @@ install()
 # === CLI entry point ===
 
 def main():
-    """Run a Python script with taint tracing enabled."""
+    """Run a Python script with taint tracing enabled.
+
+    NOTE: This intentionally uses exec() to run the target script — this is by design,
+    as the purpose is to execute user code with taint tracing monkey-patches active.
+    The script path must be a local .py file that exists on disk.
+    """
     if len(sys.argv) < 2:
         print("Usage: python -m security_audit_runtime <script.py> [args...]", file=sys.stderr)
         sys.exit(1)
 
     script = sys.argv[1]
+
+    # Validate script path: must exist, must be a .py file, must be a regular file
+    script_path = os.path.realpath(script)
+    if not os.path.isfile(script_path):
+        print(f"ERROR: Script not found: {script}", file=sys.stderr)
+        sys.exit(1)
+    if not script_path.endswith(".py"):
+        print(f"ERROR: Only .py files can be traced: {script}", file=sys.stderr)
+        sys.exit(1)
+
     sys.argv = sys.argv[1:]  # Shift args so the target script sees correct sys.argv
 
-    with open(script) as f:
-        code = compile(f.read(), script, "exec")
-        exec(code, {"__name__": "__main__", "__file__": script})
+    with open(script_path) as f:
+        code = compile(f.read(), script_path, "exec")
+        exec(code, {"__name__": "__main__", "__file__": script_path})  # noqa: S102 — intentional exec for taint tracing
 
 
 if __name__ == "__main__":

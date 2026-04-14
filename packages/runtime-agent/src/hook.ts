@@ -13,7 +13,7 @@
  */
 
 import { Module } from "node:module";
-import { markTainted, reportSinkAccess, getFindings, setReportCallback } from "./taint-tracker.js";
+import { markTainted, isTainted, reportSinkAccess, getFindings, setReportCallback } from "./taint-tracker.js";
 import type { TaintFinding } from "./taint-tracker.js";
 
 const originalRequire = Module.prototype.require;
@@ -47,14 +47,28 @@ function wrapChildProcess(mod: any): any {
 
   if (origExec) {
     mod.exec = function wrappedExec(command: string, ...args: any[]) {
-      reportSinkAccess("child_process.exec", [command], getCallLocation());
+      const taintSource = isTainted(command);
+      if (taintSource) {
+        reportSinkAccess("child_process.exec", [command], getCallLocation());
+        throw new Error(
+          `[security-audit] BLOCKED: tainted value from ${taintSource.type}.${taintSource.key} reached child_process.exec(). ` +
+            `This is a command injection vulnerability.`,
+        );
+      }
       return origExec.call(this, command, ...args);
     };
   }
 
   if (origExecSync) {
     mod.execSync = function wrappedExecSync(command: string, ...args: any[]) {
-      reportSinkAccess("child_process.execSync", [command], getCallLocation());
+      const taintSource = isTainted(command);
+      if (taintSource) {
+        reportSinkAccess("child_process.execSync", [command], getCallLocation());
+        throw new Error(
+          `[security-audit] BLOCKED: tainted value from ${taintSource.type}.${taintSource.key} reached child_process.execSync(). ` +
+            `This is a command injection vulnerability.`,
+        );
+      }
       return origExecSync.call(this, command, ...args);
     };
   }
@@ -70,21 +84,42 @@ function wrapFs(mod: any): any {
 
   if (origReadFile) {
     mod.readFile = function wrappedReadFile(path: string, ...args: any[]) {
-      reportSinkAccess("fs.readFile", [path], getCallLocation());
+      const taintSource = isTainted(path);
+      if (taintSource) {
+        reportSinkAccess("fs.readFile", [path], getCallLocation());
+        throw new Error(
+          `[security-audit] BLOCKED: tainted value from ${taintSource.type}.${taintSource.key} reached fs.readFile(). ` +
+            `This is a path traversal vulnerability.`,
+        );
+      }
       return origReadFile.call(this, path, ...args);
     };
   }
 
   if (origReadFileSync) {
     mod.readFileSync = function wrappedReadFileSync(path: string, ...args: any[]) {
-      reportSinkAccess("fs.readFileSync", [path], getCallLocation());
+      const taintSource = isTainted(path);
+      if (taintSource) {
+        reportSinkAccess("fs.readFileSync", [path], getCallLocation());
+        throw new Error(
+          `[security-audit] BLOCKED: tainted value from ${taintSource.type}.${taintSource.key} reached fs.readFileSync(). ` +
+            `This is a path traversal vulnerability.`,
+        );
+      }
       return origReadFileSync.call(this, path, ...args);
     };
   }
 
   if (origWriteFile) {
     mod.writeFile = function wrappedWriteFile(path: string, ...args: any[]) {
-      reportSinkAccess("fs.writeFile", [path], getCallLocation());
+      const taintSource = isTainted(path);
+      if (taintSource) {
+        reportSinkAccess("fs.writeFile", [path], getCallLocation());
+        throw new Error(
+          `[security-audit] BLOCKED: tainted value from ${taintSource.type}.${taintSource.key} reached fs.writeFile(). ` +
+            `This is a path traversal vulnerability.`,
+        );
+      }
       return origWriteFile.call(this, path, ...args);
     };
   }
@@ -193,7 +228,14 @@ Module.prototype.require = function wrappedRequire(id: string) {
 // === Wrap global eval ===
 const originalEval = globalThis.eval;
 globalThis.eval = function wrappedEval(code: string) {
-  reportSinkAccess("eval", [code], getCallLocation());
+  const taintSource = isTainted(code);
+  if (taintSource) {
+    reportSinkAccess("eval", [code], getCallLocation());
+    throw new Error(
+      `[security-audit] BLOCKED: tainted value from ${taintSource.type}.${taintSource.key} reached eval(). ` +
+        `This is a code injection vulnerability.`,
+    );
+  }
   return originalEval(code);
 };
 
