@@ -1,35 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find /Users/evandervecht/workspaces/security-audit-skill -maxdepth 3 -not -path */.* -not -path */.git* -type d)",
-      "Bash(gh issue:*)",
-      "Bash(curl -sL \"https://genai.owasp.org\")",
-      "Bash(curl -sL \"https://llmtop10.com\")",
-      "Bash(curl -sL \"https://owasp.org/www-project-top-10-for-large-language-model-applications/\")",
-      "WebFetch(domain:genai.owasp.org)",
-      "WebFetch(domain:llmtop10.com)",
-      "WebFetch(domain:owasp.org)",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM01_PromptInjection.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM02_SensitiveInformationDisclosure.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM03_SupplyChain.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM04_DataModelPoisoning.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM05_ImproperOutputHandling.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM06_ExcessiveAgency.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM07_SystemPromptLeakage.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM08_VectorDBWeaknesses.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM09_Misinformation.md\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM10_UnboundedConsumption.md\")",
-      "Bash(curl -sL \"https://api.github.com/repos/OWASP/www-project-top-10-for-large-language-model-applications/contents/2_0_vulns\")",
-      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(d[''''name'''']\\) for d in data]\")",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/OWASP/www-project-top-10-for-large-language-model-applications/main/2_0_vulns/LLM08_VectorAndEmbeddingWeaknesses.md\")",
-      "Bash(git checkout:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(gh pr:*)",
-      "Bash(git add:*)",
-      "Bash(npm view:*)",
-      "Bash(wc:*)",
-      "Bash(python3:*)"
     ]
   }
 }

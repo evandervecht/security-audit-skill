@@ -83,6 +83,15 @@ fi
 MODE="$1"
 TARGET="$2"
 
+# Validate package name — reject shell metacharacters that enable injection
+# Allows: alphanumerics, @, ., _, -, /, =, :, ^, ~ (covers npm, pip, go, rust, dotnet)
+if [[ "$MODE" != *-project ]]; then
+    if [[ ! "$TARGET" =~ ^[a-zA-Z0-9@._/=:^~-]+$ ]]; then
+        echo "ERROR: Invalid package name '$TARGET' — contains disallowed characters"
+        exit 2
+    fi
+fi
+
 # Validate auth file if provided
 if [[ -n "$AUTH_FILE" ]]; then
     if [[ ! -f "$AUTH_FILE" ]]; then
@@ -265,20 +274,20 @@ case "$MODE" in
 
     go)
         build_image "$SANDBOX_DIR/Dockerfile.go" "$CONTAINER_PREFIX-go"
-        # Go needs a go.mod; create one for the target module
-        run_sandbox "$CONTAINER_PREFIX-go" sh -c "go mod init sandbox && go get $TARGET && go mod download"
+        # Go needs a go.mod; pass TARGET as positional arg to prevent sh -c injection
+        run_sandbox "$CONTAINER_PREFIX-go" sh -c 'go mod init sandbox && go get -- "$1" && go mod download' _ "$TARGET"
         ;;
 
     rust)
         build_image "$SANDBOX_DIR/Dockerfile.rust" "$CONTAINER_PREFIX-rust"
-        # Rust needs a Cargo.toml; create one and add the dep
-        run_sandbox "$CONTAINER_PREFIX-rust" sh -c "cargo init --name sandbox . && cargo add $TARGET && cargo fetch"
+        # Rust needs a Cargo.toml; pass TARGET as positional arg to prevent sh -c injection
+        run_sandbox "$CONTAINER_PREFIX-rust" sh -c 'cargo init --name sandbox . && cargo add -- "$1" && cargo fetch' _ "$TARGET"
         ;;
 
     dotnet)
         build_image "$SANDBOX_DIR/Dockerfile.dotnet" "$CONTAINER_PREFIX-dotnet"
-        # .NET needs a .csproj; create a console app and add the package
-        run_sandbox "$CONTAINER_PREFIX-dotnet" sh -c "dotnet new console -o . --no-restore && dotnet add package $TARGET && dotnet restore"
+        # .NET needs a .csproj; pass TARGET as positional arg to prevent sh -c injection
+        run_sandbox "$CONTAINER_PREFIX-dotnet" sh -c 'dotnet new console -o . --no-restore && dotnet add package "$1" && dotnet restore' _ "$TARGET"
         ;;
 
     go-project)

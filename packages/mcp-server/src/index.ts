@@ -153,11 +153,19 @@ server.tool(
     package: z.string().describe("Package name with optional version (e.g., lodash@4.17.21, requests==2.31.0, github.com/gin-gonic/gin, serde, Newtonsoft.Json)"),
   },
   async ({ ecosystem, package: pkg }) => {
-    const { execSync } = await import("node:child_process");
+    const { execFileSync } = await import("node:child_process");
     const scriptPath = resolve(SKILL_ROOT, "scripts/dependency-sandbox.sh");
 
+    // Validate package name — strict allowlist (no shell metacharacters)
+    if (!/^[a-zA-Z0-9@._\-/=:^~]+$/.test(pkg)) {
+      return {
+        content: [{ type: "text" as const, text: `Invalid package name: contains disallowed characters` }],
+      };
+    }
+
     try {
-      const output = execSync(`bash "${scriptPath}" "${ecosystem}" "${pkg}"`, {
+      // Use execFileSync with argument array to prevent shell injection
+      const output = execFileSync("bash", [scriptPath, ecosystem, pkg], {
         timeout: 120000,
         encoding: "utf-8",
         stdio: ["pipe", "pipe", "pipe"],

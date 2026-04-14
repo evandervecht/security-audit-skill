@@ -39,6 +39,7 @@ Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub pr
 - **API Security**: `api-security.md` (OWASP API Top 10, GraphQL, REST)
 - **Frontend**: `frontend-security.md` (DOM XSS, SRI, CORS, postMessage, client-side storage)
 - **AI/LLM Security**: `llm-security.md` (OWASP LLM Top 10 2025, agent/skill auditing)
+- **Compliance**: `compliance-gdpr.md`, `compliance-hipaa.md`, `compliance-iso27001.md`, `compliance-nist-csf.md`, `compliance-pci-dss.md`, `compliance-soc2.md`, `compliance-eu-ai-act.md`
 
 All files located in `references/`.
 
