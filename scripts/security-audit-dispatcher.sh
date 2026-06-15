@@ -71,6 +71,42 @@ if [[ -f "$PROJECT_DIR/Gemfile" ]]; then
     DETECTED_SCANNERS+=("ruby")
 fi
 
+
+# graphql (expansion)
+# GraphQL: *.graphql/*.gql schema files, or graphql/apollo-server dependency
+if ls "$PROJECT_DIR"/*.graphql "$PROJECT_DIR"/*.gql >/dev/null 2>&1 \
+    || [[ -f "$PROJECT_DIR/schema.graphql" ]] \
+    || find "$PROJECT_DIR" -maxdepth 3 \( -name '*.graphql' -o -name '*.gql' \) -print -quit 2>/dev/null | grep -q . \
+    || { [[ -f "$PROJECT_DIR/package.json" ]] && grep -Eq '"(graphql|apollo-server|@apollo/server|@apollo/server-[a-z-]+|graphql-yoga|type-graphql)"' "$PROJECT_DIR/package.json" 2>/dev/null; }; then
+    DETECTED_SCANNERS+=("graphql")
+fi
+
+# kube (expansion)
+# Kubernetes: manifests with apiVersion+kind, k8s/manifests dirs, kustomization.yaml, or Helm Chart.yaml
+if [[ -d "$PROJECT_DIR/k8s" ]] || [[ -d "$PROJECT_DIR/kubernetes" ]] || [[ -d "$PROJECT_DIR/manifests" ]] \
+    || [[ -f "$PROJECT_DIR/kustomization.yaml" ]] || [[ -f "$PROJECT_DIR/Chart.yaml" ]] \
+    || grep -rlE '^apiVersion:' "$PROJECT_DIR" --include='*.yaml' --include='*.yml' 2>/dev/null \
+         | xargs -I{} grep -lE '^kind:[[:space:]]*(Deployment|Pod|StatefulSet|DaemonSet|Job|CronJob|ReplicaSet|Secret|Service|Ingress)' {} 2>/dev/null \
+         | grep -q .; then
+    DETECTED_SCANNERS+=("kube")
+fi
+
+# svelte (expansion)
+# Svelte / SvelteKit: *.svelte files, svelte.config.js, or package.json referencing svelte/@sveltejs/kit
+if find "$PROJECT_DIR" -maxdepth 3 -name "*.svelte" -print -quit 2>/dev/null | grep -q . \
+    || [[ -f "$PROJECT_DIR/svelte.config.js" ]] || [[ -f "$PROJECT_DIR/svelte.config.ts" ]] \
+    || { [[ -f "$PROJECT_DIR/package.json" ]] && grep -q '"svelte"\|"@sveltejs/kit"' "$PROJECT_DIR/package.json" 2>/dev/null; }; then
+    DETECTED_SCANNERS+=("svelte")
+fi
+
+# elixir (expansion)
+
+# Elixir/Phoenix: mix.exs, *.ex/*.exs sources, or *.heex templates
+if [[ -f "$PROJECT_DIR/mix.exs" ]] || \
+   [[ -n "$(find "$PROJECT_DIR" -maxdepth 4 -name '*.ex' -o -name '*.exs' -o -name '*.heex' 2>/dev/null | head -1)" ]]; then
+    DETECTED_SCANNERS+=("elixir")
+fi
+
 if [[ ${#DETECTED_SCANNERS[@]} -eq 0 ]]; then
     echo "No supported languages/frameworks detected."
     echo "Looked for: composer.json, package.json, requirements.txt, pyproject.toml,"

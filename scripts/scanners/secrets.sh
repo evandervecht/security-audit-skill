@@ -113,6 +113,16 @@ if [[ -f "$PROJECT_DIR/.gitignore" ]]; then
     fi
 fi
 
+
+# === EXPANSION (harden-secrets) ===
+# === Allowlist: drop well-known documentation/placeholder secrets (reduce false positives) ===
+# AWS docs example key, common placeholder tokens, and clearly-fake test values are not real leaks.
+SECRET_ALLOWLIST='AKIAIOSFODNN7EXAMPLE|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY|EXAMPLE|PLACEHOLDER|YOUR[_-]?(API[_-]?)?KEY([_-]?HERE)?|CHANGE[_-]?ME|DUMMY|FAKE|TEST[_-]?(KEY|SECRET|TOKEN)|xxxxxxxx|0{8,}|<[^>]+>'
+
+# Apply allowlist inside the per-pattern match pipeline (insert after the existing filename excludes,
+# i.e. replace the tail of the MATCHES pipeline on the grep line):
+#   | grep -vE "\.(example|sample|template)" | grep -viE "$SECRET_ALLOWLIST" | head -5 || true
+
 # === Summary ===
 echo ""
 echo "--- Secrets Scanner Results ---"

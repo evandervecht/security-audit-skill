@@ -1,0 +1,11 @@
+# SAFE: every sensitive field is gated by an @auth directive
+type User {
+  id: ID!
+  email: String! @auth(requires: USER)
+  ssn: String! @auth(requires: ADMIN)
+  passwordHash: String! @auth(requires: ADMIN)
+}
+
+type Query {
+  users: [User!]! @auth(requires: ADMIN)
+}

@@ -1,0 +1,9 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+<f:section name="Main">
+    <div class="comment-body">
+        <f:format.html parseFuncTSPath="lib.parseFunc">{comment.body}</f:format.html>
+        {comment.body -> f:format.htmlspecialchars()}
+        <!-- Reminder: never render user data unescaped here -->
+    </div>
+</f:section>
+</html>

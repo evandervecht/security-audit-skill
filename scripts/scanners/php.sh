@@ -394,6 +394,158 @@ else
     echo "OK: No direct setcookie() calls"
 fi
 
+
+# === EXPANSION (symfony) ===
+
+# === Symfony framework checks (Twig/PHP/YAML) ===
+echo ""
+echo "=== Checking Symfony Templates & Config ==="
+
+# Helper: grep across the whole project for non-PHP source (Twig templates, YAML config)
+scan_sym() {
+    local pattern="$1"
+    local include="$2"
+    local limit="${3:-5}"
+    grep -rn -E "$pattern" "$PROJECT_DIR" --include="$include" 2>/dev/null | grep -v '/vendor/' | head -"$limit" || true
+}
+
+# SA-SYMFONY-01: Twig |raw filter on a variable disables auto-escaping (XSS)
+SYM_RAW=$(scan_sym '\{\{[^}]*\|\s*raw\b' '*.twig' 5)
+if [[ -n "$SYM_RAW" ]]; then
+    echo "WARNING: Twig |raw filter disables auto-escaping (XSS risk):"
+    echo "$SYM_RAW"
+    WARNINGS=$((WARNINGS + 1))
+else
+    echo "OK: No Twig |raw filters detected"
+fi
+
+# SA-SYMFONY-02: String concatenation in Doctrine DQL createQuery() (SQL/DQL injection)
+SYM_DQL=$(scan_php 'createQuery\s*\([^)]*["'\'']\s*\.\s*\$' 5)
+if [[ -n "$SYM_DQL" ]]; then
+    echo "ERROR: String concatenation in createQuery() DQL (injection risk):"
+    echo "$SYM_DQL"
+    ERRORS=$((ERRORS + 1))
+else
+    echo "OK: No concatenated DQL in createQuery()"
+fi
+
+# SA-SYMFONY-03: CSRF protection disabled in framework/security config
+SYM_CSRF=$(scan_sym '(csrf_protection|enable_csrf)\s*:\s*false' '*.yaml' 5; scan_sym '(csrf_protection|enable_csrf)\s*:\s*false' '*.yml' 5)
+if [[ -n "$SYM_CSRF" ]]; then
+    echo "ERROR: CSRF protection disabled in config:"
+    echo "$SYM_CSRF"
+    ERRORS=$((ERRORS + 1))
+else
+    echo "OK: CSRF protection not disabled"
+fi
+
+# SA-SYMFONY-04: unserialize() of request data (PHP object injection / RCE)
+SYM_UNSER=$(scan_php 'unserialize\s*\([^;]*\$(request|_GET|_POST|_REQUEST|_COOKIE)' 5)
+if [[ -n "$SYM_UNSER" ]]; then
+    echo "ERROR: unserialize() of request data (object injection risk):"
+    echo "$SYM_UNSER"
+    ERRORS=$((ERRORS + 1))
+else
+    echo "OK: No unserialize() of request data"
+fi
+
+# SA-SYMFONY-05: dump()/dd() debug calls left in code (info disclosure)
+SYM_DUMP=$(scan_php '(^|[^[:alnum:]_>$])(dump|dd)\s*\(' 5)
+if [[ -n "$SYM_DUMP" ]]; then
+    echo "WARNING: VarDumper dump()/dd() calls left in code (info disclosure):"
+    echo "$SYM_DUMP"
+    WARNINGS=$((WARNINGS + 1))
+else
+    echo "OK: No dump()/dd() debug calls detected"
+fi
+
+# SA-SYMFONY-06: Yaml::parse() on untrusted/request input
+SYM_YAML=$(scan_php 'Yaml::parse\s*\([^;]*(\$request|->getContent|->get\(|\$_(GET|POST|REQUEST))' 5)
+if [[ -n "$SYM_YAML" ]]; then
+    echo "ERROR: Yaml::parse() on untrusted input:"
+    echo "$SYM_YAML"
+    ERRORS=$((ERRORS + 1))
+else
+    echo "OK: No Yaml::parse() on untrusted input"
+fi
+
+# SA-SYMFONY-07: Firewall anonymous access / security disabled
+SYM_FW=$(scan_sym '(anonymous\s*:\s*true|security\s*:\s*false)' '*.yaml' 5; scan_sym '(anonymous\s*:\s*true|security\s*:\s*false)' '*.yml' 5)
+if [[ -n "$SYM_FW" ]]; then
+    echo "WARNING: Firewall allows anonymous access or security disabled:"
+    echo "$SYM_FW"
+    WARNINGS=$((WARNINGS + 1))
+else
+    echo "OK: No insecure firewall (anonymous/disabled) config"
+fi
+
+
+# === EXPANSION (typo3) ===
+
+# === Check for TYPO3-specific vulnerability patterns ===
+echo ""
+echo "=== Checking for TYPO3 Patterns ==="
+TYPO3_ISSUES=0
+
+# SA-TYPO3-01: Fluid f:format.raw on (likely user) data — scans .html templates
+for dir in "${SCAN_DIRS[@]}"; do
+    FLUID_RAW=$(grep -rn -E '<f:format\.raw\s*>|->\s*f:format\.raw\b' "$dir" --include="*.html" 2>/dev/null | head -5 || true)
+    if [[ -n "$FLUID_RAW" ]]; then
+        echo "ERROR (SA-TYPO3-01): Fluid <f:format.raw> bypasses output escaping — XSS risk:"
+        echo "$FLUID_RAW"
+        TYPO3_ISSUES=$((TYPO3_ISSUES + 1))
+    fi
+done
+
+# SA-TYPO3-02: Raw SQL via ->getConnection()->query()/executeQuery() with string concat
+QB_RAWSQL=$(scan_php '->getConnection\(\)->(query|executeQuery)\s*\(\s*[\x27"][^\x27"]*[\x27"]?\s*\.\s*\$')
+if [[ -n "$QB_RAWSQL" ]]; then
+    echo "ERROR (SA-TYPO3-02): Raw SQL with concatenation on TYPO3 Connection — SQL injection:"
+    echo "$QB_RAWSQL"
+    TYPO3_ISSUES=$((TYPO3_ISSUES + 1))
+fi
+
+# SA-TYPO3-03: GeneralUtility::_GP/_GET/_POST used unsanitized in concat/echo
+GU_GP=$(scan_php '(echo|\.|where\s*\(\s*[\x27"][^\x27"]*[\x27"]\s*\.)\s*GeneralUtility::_(GP|GET|POST)\s*\(|GeneralUtility::_(GP|GET|POST)\s*\([^)]*\)\s*\.')
+if [[ -n "$GU_GP" ]]; then
+    echo "ERROR (SA-TYPO3-03): GeneralUtility::_GP/_GET/_POST used unsanitized in SQL/HTML — injection risk:"
+    echo "$GU_GP"
+    TYPO3_ISSUES=$((TYPO3_ISSUES + 1))
+fi
+
+# SA-TYPO3-04: unserialize() of request/DB data without allowed_classes=false
+TYPO3_UNSER=$(scan_php 'unserialize\s*\(\s*(\$_(GET|POST|REQUEST|COOKIE|SESSION)|GeneralUtility::_(GP|GET|POST)|\$row|\$data)')
+if [[ -n "$TYPO3_UNSER" ]]; then
+    SAFE_UNSER=$(scan_php_count 'allowed_classes')
+    if [[ "$SAFE_UNSER" -eq 0 ]]; then
+        echo "ERROR (SA-TYPO3-04): unserialize() of untrusted/DB data — object injection risk:"
+        echo "$TYPO3_UNSER"
+        TYPO3_ISSUES=$((TYPO3_ISSUES + 1))
+    fi
+fi
+
+# SA-TYPO3-05: Install Tool exposed (empty password) or SSL lock disabled
+INSTALL_TOOL=$(scan_php 'TYPO3_CONF_VARS.\]\[.BE.\]\[.installToolPassword.\]\s*=\s*[\x27"]{2}|TYPO3_CONF_VARS.\]\[.BE.\]\[.lockSSL.\]\s*=\s*(false|0)')
+if [[ -n "$INSTALL_TOOL" ]]; then
+    echo "ERROR (SA-TYPO3-05): Install Tool exposed (empty password) or BE SSL lock disabled:"
+    echo "$INSTALL_TOOL"
+    TYPO3_ISSUES=$((TYPO3_ISSUES + 1))
+fi
+
+# SA-TYPO3-06: Weak login security level / deprecated password hashing
+TYPO3_HASH=$(scan_php '\[.(BE|FE).\]\[.loginSecurityLevel.\]\s*=\s*[\x27"]normal[\x27"]|passwordHashing.\]\[.className.\]\s*=\s*[^;]*(Md5|Phpass|Pbkdf2)PasswordHash')
+if [[ -n "$TYPO3_HASH" ]]; then
+    echo "WARNING (SA-TYPO3-06): Weak loginSecurityLevel or deprecated password hashing algorithm:"
+    echo "$TYPO3_HASH"
+    WARNINGS=$((WARNINGS + 1))
+fi
+
+if [[ "$TYPO3_ISSUES" -gt 0 ]]; then
+    ERRORS=$((ERRORS + TYPO3_ISSUES))
+else
+    echo "OK: No obvious TYPO3-specific vulnerability patterns detected"
+fi
+
 # === Output results for dispatcher ===
 echo ""
 echo "--- PHP Scanner Results ---"

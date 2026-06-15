@@ -1,0 +1,8 @@
+framework:
+    secret: '%env(APP_SECRET)%'
+    csrf_protection: true
+    session:
+        handler_id: null
+    form:
+        csrf_protection:
+            enabled: true

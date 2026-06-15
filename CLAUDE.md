@@ -2,13 +2,13 @@
 
 ## Project Overview
 
-Security vulnerability detection skill for AI agents and IDEs. 408 checkpoints across 9 languages, 18 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, with compliance mapping to 7 frameworks.
+Security vulnerability detection skill for AI agents and IDEs. 461 checkpoints across 10 languages, 20 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, plus GraphQL API and Kubernetes manifest scanning, with compliance mapping to 7 frameworks.
 
 ## Key Commands
 
 ```bash
-# Run all tests
-python3 scripts/test_risky_patterns.py && python3 scripts/validate_checkpoints.py && python3 scripts/test_eval_fixtures.py
+# Run all tests (scripts carry PEP 723 metadata; uv provisions Python 3.10+ and PyYAML)
+uv run scripts/test_risky_patterns.py && uv run scripts/validate_checkpoints.py && uv run scripts/test_eval_fixtures.py
 
 # Multi-language security scan (auto-detects stack)
 ./scripts/security-audit-dispatcher.sh /path/to/project
@@ -26,9 +26,9 @@ cd packages/lsp-server && npm run build
 ## Repository Structure
 
 - `skills/security-audit/` — Skill entry point, checkpoints, references, evals
-- `skills/security-audit/references/` — 64 security reference files
-- `skills/security-audit/checkpoints.yaml` — 408 checkpoints (372 mechanical + 36 LLM)
-- `skills/security-audit/evals/` — 182 eval fixture tests (vulnerable + safe pairs)
+- `skills/security-audit/references/` — 68 security reference files
+- `skills/security-audit/checkpoints.yaml` — 461 checkpoints (421 mechanical + 40 LLM)
+- `skills/security-audit/evals/` — 304 eval fixture tests (vulnerable + safe pairs)
 - `scripts/scanners/` — 18 per-language/framework scanner modules
 - `scripts/sandbox/` — Docker sandbox Dockerfiles and strace analyzer
 - `packages/core/` — TypeScript detection engine
@@ -64,7 +64,7 @@ See `docs/CONTRIBUTING-REFERENCES.md` for the full guide. Summary:
 Tests run on push/PR to main:
 - `test_risky_patterns.py` — hook pattern tests
 - `validate_checkpoints.py` — checkpoint YAML + namespace validation
-- `test_eval_fixtures.py` — regex fixture tests (182 tests)
+- `test_eval_fixtures.py` — regex fixture tests (304 tests)
 
 ## GitHub Issues
 

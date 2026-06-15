@@ -274,21 +274,21 @@ mechanical:
   - id: SA-SEC-01
     type: not_contains
     target: "**/*.php"
-    pattern: "AKIA"
+    pattern: "AKIA(?!IOSFODNN7EXAMPLE)[0-9A-Z]{16}"
     severity: error
     desc: "Possible AWS access key found in source code"
 
   - id: SA-SEC-02
     type: not_contains
     target: "**/*.php"
-    pattern: "sk-ant-"
+    pattern: "sk-ant-(?!.*(?:YOUR|EXAMPLE|PLACEHOLDER|xxxx))[A-Za-z0-9]{4,}-[A-Za-z0-9_-]{20,}"
     severity: error
     desc: "Possible Anthropic API key found in source code"
 
   - id: SA-SEC-03
     type: not_contains
     target: "**/*.php"
-    pattern: "sk-proj-"
+    pattern: "sk-proj-(?!.*(?:YOUR|EXAMPLE|PLACEHOLDER|xxxx))[A-Za-z0-9_-]{40,}"
     severity: error
     desc: "Possible OpenAI API key found in source code"
 
@@ -308,7 +308,7 @@ mechanical:
   - id: SA-SC-02
     type: not_contains
     target: "composer.json"
-    pattern: '"*"'
+    pattern: "\"[^\"]+/[^\"]+\"\\s*:\\s*\"\\*\""
     severity: error
     desc: "Wildcard (*) version constraints in composer.json are insecure"
 
@@ -609,14 +609,14 @@ mechanical:
   - id: SA-JS-02
     type: regex
     target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
-    pattern: "\\.innerHTML\\s*="
+    pattern: "(\\.innerHTML|\\.outerHTML)\\s*=\\s*(?!\\s*DOMPurify\\.sanitize)(?!\\s*\"[^\"]*\"\\s*;?\\s*(?:\\r?\\n|$))(?!\\s*'[^']*'\\s*;?\\s*(?:\\r?\\n|$))(?!\\s*`[^`$]*`\\s*;?\\s*(?:\\r?\\n|$))\\S|\\.insertAdjacentHTML\\s*\\(\\s*[^,]+,\\s*(?!\\s*DOMPurify\\.sanitize)(?!\\s*[\"'`])"
     severity: error
     desc: "innerHTML assignment detected - potential DOM XSS"
 
   - id: SA-JS-03
     type: regex
     target: "**/*.{js,ts,jsx,tsx,mjs,cjs}"
-    pattern: "document\\.write\\("
+    pattern: "document\\.write(ln)?\\s*\\(\\s*(?!\\s*\"[^\"]*\"\\s*\\)\\s*;?)(?!\\s*'[^']*'\\s*\\)\\s*;?)(?!\\s*`[^`$]*`\\s*\\)\\s*;?)"
     severity: error
     desc: "document.write() usage detected - potential DOM XSS"
 
@@ -722,7 +722,7 @@ mechanical:
   - id: SA-NODE-02
     type: regex
     target: "**/*.{js,ts,mjs,cjs}"
-    pattern: "fs\\.(readFile|writeFile|readdir|unlink).*req\\.(query|params|body)"
+    pattern: "fs\\.(readFile|writeFile|appendFile|readdir|unlink|rm|rmdir|rename|open|truncate|copyFile|createReadStream|createWriteStream)(Sync)?\\s*\\([^)]*req\\.(query|params|body)"
     severity: error
     desc: "fs operation with user input — validate and restrict paths with path.resolve + startsWith"
 
@@ -778,7 +778,7 @@ mechanical:
   - id: SA-NODE-10
     type: regex
     target: "**/*.{js,ts,mjs,cjs}"
-    pattern: "Object\\.assign\\s*\\([^,]+,\\s*req\\.(body|query|params)"
+    pattern: "(Object\\.assign|_\\.merge|_\\.defaultsDeep|_\\.mergeWith|lodash\\.merge)\\s*\\([^,]+,\\s*req\\.(body|query|params)"
     severity: error
     desc: "Object.assign with user input — risk of prototype pollution"
 
@@ -821,14 +821,14 @@ mechanical:
   - id: SA-PY-01
     type: regex
     target: "**/*.py"
-    pattern: "pickle\\.(loads|load)\\("
+    pattern: "(?:cP|_p|\\bp)ickle\\.(?:loads|load)\\(|\\bpickle\\.Unpickler\\(|\\.read_pickle\\("
     severity: error
     desc: "Insecure deserialization via pickle"
 
   - id: SA-PY-02
     type: regex
     target: "**/*.py"
-    pattern: "eval\\("
+    pattern: "(?<![\\w.])eval\\("
     severity: error
     desc: "Code injection via eval()"
 
@@ -842,7 +842,7 @@ mechanical:
   - id: SA-PY-04
     type: regex
     target: "**/*.py"
-    pattern: "subprocess\\.\\w+\\(.*shell\\s*=\\s*True"
+    pattern: "subprocess\\.\\w+\\((?:[^)]|\\n)*?shell\\s*=\\s*True"
     severity: error
     desc: "Command injection via subprocess with shell=True"
 
@@ -856,7 +856,7 @@ mechanical:
   - id: SA-PY-06
     type: regex
     target: "**/*.py"
-    pattern: "yaml\\.load\\("
+    pattern: "yaml\\.(?:load|full_load|unsafe_load)\\((?![^)\\n]*Safe(?:C)?Loader)"
     severity: error
     desc: "Unsafe YAML loading — use yaml.safe_load() instead"
 
@@ -2652,6 +2652,351 @@ mechanical:
     severity: warning
     desc: "Sensitive data in NSLog — use os_log with .private annotation"
 
+
+  # === EXPANSION: Laravel/Symfony/TYPO3/GraphQL/Kubernetes/Svelte/Elixir-Phoenix ===
+  - id: SA-LARAVEL-01
+    type: regex
+    target: "**/*.php"
+    pattern: "protected\\s+\\$guarded\\s*=\\s*\\[\\s*\\]|::unguard\\s*\\("
+    severity: error
+    desc: "Mass assignment protection disabled — empty $guarded array or ::unguard()"
+
+  - id: SA-LARAVEL-02
+    type: regex
+    target: "**/*.php"
+    pattern: "whereRaw\\s*\\(\\s*[\"'][^\"']*\\$|DB::raw\\s*\\(\\s*[\"'][^\"']*\\$"
+    severity: error
+    desc: "Variable interpolated into whereRaw()/DB::raw() string — SQL injection risk"
+
+  - id: SA-LARAVEL-03
+    type: regex
+    target: "**/*.blade.php"
+    pattern: "\\{!!.*\\$.*!!\\}"
+    severity: warning
+    desc: "Unescaped Blade output {!! $var !!} bypasses auto-escaping — XSS risk"
+
+  - id: SA-LARAVEL-04
+    type: regex
+    target: "**/*.php"
+    pattern: "(^|[^A-Za-z_])env\\s*\\(\\s*[\"']"
+    severity: warning
+    desc: "env() called outside config files — returns null once config is cached"
+
+  - id: SA-LARAVEL-05
+    type: regex
+    target: "**/.env*"
+    pattern: "APP_DEBUG\\s*=\\s*true"
+    severity: error
+    desc: "APP_DEBUG=true exposes stack traces and config in production"
+
+  - id: SA-LARAVEL-06
+    type: regex
+    target: "**/*.php"
+    pattern: "(md5|sha1)\\s*\\(\\s*\\$(request|user|data|input|_POST|_GET)?[->\\[]*['\"]?(password|passwd|pass|pwd)"
+    severity: error
+    desc: "md5/sha1 used for password hashing instead of Hash::make — weak hashing"
+
+  - id: SA-LARAVEL-07
+    type: regex
+    target: "**/*.php"
+    pattern: "Http::(get|post|put|patch|delete)\\s*\\(\\s*\\$(request|_GET|_POST|input)"
+    severity: error
+    desc: "User-controlled URL passed to Http facade — SSRF risk"
+
+  - id: SA-SYMFONY-01
+    type: regex
+    target: "**/*.twig"
+    pattern: "\\{\\{[^}]*\\|\\s*raw\\b"
+    severity: error
+    desc: "Twig |raw filter disables auto-escaping — XSS risk on user-controlled data"
+
+  - id: SA-SYMFONY-02
+    type: regex
+    target: "**/*.php"
+    pattern: "createQuery\\s*\\([^)]*[\"']\\s*\\.\\s*\\$"
+    severity: error
+    desc: "String concatenation in Doctrine createQuery() DQL — SQL/DQL injection risk"
+
+  - id: SA-SYMFONY-03
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "(?:csrf_protection|enable_csrf)\\s*:\\s*false"
+    severity: error
+    desc: "CSRF protection disabled in framework/security config — CSRF risk"
+
+  - id: SA-SYMFONY-04
+    type: regex
+    target: "**/*.php"
+    pattern: "unserialize\\s*\\([^;]*\\$(?:request|_GET|_POST|_REQUEST|_COOKIE)"
+    severity: error
+    desc: "unserialize() of request data — PHP object injection / RCE risk"
+
+  - id: SA-SYMFONY-05
+    type: regex
+    target: "**/*.php"
+    pattern: "(?<![\\w>$])(?:dump|dd)\\s*\\("
+    severity: warning
+    desc: "VarDumper dump()/dd() left in code — debug info disclosure in production"
+
+  - id: SA-SYMFONY-06
+    type: regex
+    target: "**/*.php"
+    pattern: "Yaml::parse\\s*\\([^;]*(?:\\$request|->getContent|->get\\(|\\$_(?:GET|POST|REQUEST))"
+    severity: error
+    desc: "Yaml::parse() on untrusted/request input — code execution via YAML tags / DoS"
+
+  - id: SA-SYMFONY-07
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "(?:anonymous\\s*:\\s*true|security\\s*:\\s*false)"
+    severity: warning
+    desc: "Firewall allows anonymous access or has security disabled — broken access control"
+
+  - id: SA-TYPO3-01
+    type: regex
+    target: "**/*.html"
+    pattern: "<f:format\\.raw\\s*>|->\\s*f:format\\.raw\\b"
+    severity: error
+    desc: "Fluid <f:format.raw> outputs unescaped data — XSS risk when rendering user input"
+
+  - id: SA-TYPO3-02
+    type: regex
+    target: "**/*.php"
+    pattern: "->getConnection\\(\\)->(?:query|executeQuery)\\s*\\(\\s*[\\x27\"][^\\x27\"]*[\\x27\"]?\\s*\\.\\s*\\$"
+    severity: error
+    desc: "Raw SQL with string concatenation on TYPO3 Connection (getConnection()->query) — SQL injection"
+
+  - id: SA-TYPO3-03
+    type: regex
+    target: "**/*.php"
+    pattern: "(?:echo|\\.|where\\s*\\(\\s*[\\x27\"][^\\x27\"]*[\\x27\"]\\s*\\.)\\s*GeneralUtility::_(?:GP|GET|POST)\\s*\\(|GeneralUtility::_(?:GP|GET|POST)\\s*\\([^)]*\\)\\s*\\."
+    severity: error
+    desc: "GeneralUtility::_GP/_GET/_POST used unsanitized in SQL or HTML output — injection/XSS"
+
+  - id: SA-TYPO3-04
+    type: regex
+    target: "**/*.php"
+    pattern: "unserialize\\s*\\(\\s*(?:\\$_(?:GET|POST|REQUEST|COOKIE|SESSION)|GeneralUtility::_(?:GP|GET|POST)|\\$row|\\$data)(?:(?!allowed_classes)[^);])*\\)"
+    severity: error
+    desc: "unserialize() of request or DB data without allowed_classes — PHP object injection"
+
+  - id: SA-TYPO3-05
+    type: regex
+    target: "**/*.php"
+    pattern: "TYPO3_CONF_VARS.\\]\\[.BE.\\]\\[.installToolPassword.\\]\\s*=\\s*[\\x27\"]{2}|TYPO3_CONF_VARS.\\]\\[.BE.\\]\\[.lockSSL.\\]\\s*=\\s*(?:false|0)\\b"
+    severity: error
+    desc: "Install Tool exposed via empty installToolPassword or BE lockSSL disabled"
+
+  - id: SA-TYPO3-06
+    type: regex
+    target: "**/*.php"
+    pattern: "\\[.(?:BE|FE).\\]\\[.loginSecurityLevel.\\]\\s*=\\s*[\\x27\"]normal[\\x27\"]|passwordHashing.\\]\\[.className.\\]\\s*=\\s*[^;]*(?:Md5|Phpass|Pbkdf2)PasswordHash"
+    severity: warning
+    desc: "Weak loginSecurityLevel ('normal') or deprecated password hashing algorithm configured"
+
+  - id: SA-GRAPHQL-01
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "introspection\\s*:\\s*true\\b"
+    severity: error
+    desc: "GraphQL introspection enabled (introspection: true) — exposes full schema in production"
+
+  - id: SA-GRAPHQL-02
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "(?:debug|includeStacktraceInErrorResponses)\\s*:\\s*true\\b"
+    severity: error
+    desc: "GraphQL debug/stacktrace enabled — verbose errors leak internal paths, queries, and versions"
+
+  - id: SA-GRAPHQL-03
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "validationRules\\s*:\\s*\\[\\s*\\]"
+    severity: error
+    desc: "Empty GraphQL validationRules — no query depth/complexity limit, enabling DoS via nested queries"
+
+  - id: SA-GRAPHQL-04
+    type: regex
+    target: "**/*.{graphql,gql}"
+    pattern: "(?im)^\\s*(?:ssn|password|passwordHash|token|secret|apiKey|creditCard)\\s*:\\s*\\w+!?(?![^\\n]*@(?:auth|hasRole|requireAuth|authz))"
+    severity: warning
+    desc: "Sensitive GraphQL field declared without an @auth/@hasRole authorization directive"
+
+  - id: SA-GRAPHQL-05
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "allowBatchedHttpRequests\\s*:\\s*true\\b"
+    severity: warning
+    desc: "GraphQL HTTP batching enabled — abused to bypass per-request rate limiting (brute force)"
+
+  - id: SA-GRAPHQL-06
+    type: regex
+    target: "**/*.{js,ts}"
+    pattern: "csrfPrevention\\s*:\\s*false\\b"
+    severity: error
+    desc: "GraphQL CSRF prevention disabled — allows CSRF and GET-based mutations"
+
+  - id: SA-GRAPHQL-07
+    type: regex
+    target: "**/*.{graphql,gql}"
+    pattern: "(?m)^\\s*\\w+(?:\\((?![^)]*\\b(?:first|last|limit|after|before|offset|page)\\b)[^)]*\\))?\\s*:\\s*\\[\\w+!?\\]!?"
+    severity: warning
+    desc: "GraphQL list field without pagination args — unbounded result set / resource exhaustion"
+
+  - id: SA-KUBE-01
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "privileged:\\s*true"
+    severity: error
+    desc: "Kubernetes container running in privileged mode — full host access / container escape"
+
+  - id: SA-KUBE-02
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "hostPath:\\s*\\n\\s*path:"
+    severity: error
+    desc: "hostPath volume mounts host filesystem into the pod — node compromise / container escape"
+
+  - id: SA-KUBE-03
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "allowPrivilegeEscalation:\\s*true"
+    severity: error
+    desc: "allowPrivilegeEscalation: true lets a process gain more privileges than its parent"
+
+  - id: SA-KUBE-04
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "runAsUser:\\s*0\\b"
+    severity: error
+    desc: "Pod/container running as root (runAsUser: 0) — set runAsNonRoot: true and a non-zero UID"
+
+  - id: SA-KUBE-05
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "host(Network|PID|IPC):\\s*true"
+    severity: error
+    desc: "Host namespace sharing (hostNetwork/hostPID/hostIPC: true) breaks container isolation"
+
+  - id: SA-KUBE-06
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "add:\\s*(?:\\[[^]]*\\b(SYS_ADMIN|NET_ADMIN|SYS_PTRACE|ALL)\\b|(?:\\n\\s*-\\s*\\w+)*\\n\\s*-\\s*(SYS_ADMIN|NET_ADMIN|SYS_PTRACE|ALL)\\b)"
+    severity: error
+    desc: "Dangerous Linux capability added (SYS_ADMIN/NET_ADMIN/SYS_PTRACE/ALL) — drop ALL and add only what is needed"
+
+  - id: SA-KUBE-07
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "image:\\s*\\S+:latest\\b"
+    severity: warning
+    desc: "Container image pinned to :latest — non-deterministic deploys; pin a version tag or digest"
+
+  - id: SA-KUBE-08
+    type: regex
+    target: "**/*.{yaml,yml}"
+    pattern: "name:\\s*\\w*(PASSWORD|SECRET|TOKEN|API_?KEY)\\w*\\s*\\n\\s*value:\\s*[\"']?\\S"
+    severity: error
+    desc: "Secret hardcoded as plaintext env value — use valueFrom.secretKeyRef instead"
+
+  - id: SA-SVELTE-01
+    type: regex
+    target: "**/*.svelte"
+    pattern: "\\{@html\\s"
+    severity: error
+    desc: "{@html} renders raw HTML and bypasses Svelte auto-escaping — XSS if value is user-controlled; sanitize with DOMPurify first"
+
+  - id: SA-SVELTE-02
+    type: regex
+    target: "**/*.{svelte,ts,js}"
+    pattern: "from\\s+['\"]\\$env/(?:static|dynamic)/private['\"]"
+    severity: error
+    desc: "Importing $env/static/private or $env/dynamic/private outside a server-only module risks leaking secrets to the client bundle — use $env/static/public or keep usage in *.server files"
+
+  - id: SA-SVELTE-03
+    type: regex
+    target: "**/*.svelte"
+    pattern: "<svelte:element\\b[^>]*\\bthis=\\{[^}]*\\b(?:tag|tagName|type|element|el|node|props|data|params|input|userTag|component|block|blockType|kind|variant|name)\\b"
+    severity: error
+    desc: "<svelte:element this={...}> with a user-controlled tag name lets attackers render arbitrary elements (e.g. script/iframe) — allowlist the tag against known-safe values"
+
+  - id: SA-SVELTE-04
+    type: regex
+    target: "**/*.svelte"
+    pattern: "\\beval\\s*\\(|new\\s+Function\\s*\\("
+    severity: error
+    desc: "eval() or new Function() inside a component — code injection if the evaluated string reaches user input; use a dedicated parser (e.g. mathjs) or a lookup table instead"
+
+  - id: SA-SVELTE-05
+    type: regex
+    target: "**/svelte.config.{js,ts}"
+    pattern: "checkOrigin\\s*:\\s*false"
+    severity: error
+    desc: "csrf.checkOrigin disabled in SvelteKit config — removes built-in cross-origin protection for form actions and POST endpoints, enabling CSRF; keep checkOrigin true"
+
+  - id: SA-SVELTE-06
+    type: regex
+    target: "**/*.server.{ts,js}"
+    pattern: "load[^=]*=\\s*async[\\s\\S]*?return\\s*\\{[^}]*\\b(?:passwordHash|password|apiToken|refreshToken|accessToken|secret|ssn|creditCard|privateKey)\\b"
+    severity: error
+    desc: "Server load() returns sensitive fields — the return value is serialized and shipped to the client; select only display-safe fields or build a DTO"
+
+  - id: SA-EX-01
+    type: regex
+    target: "**/*.{ex,exs}"
+    pattern: "String\\.to_atom\\s*\\(|:erlang\\.binary_to_atom\\s*\\(|List\\.to_atom\\s*\\("
+    severity: error
+    desc: "String.to_atom/binary_to_atom on user input — atom table exhaustion DoS; use String.to_existing_atom"
+
+  - id: SA-EX-02
+    type: regex
+    target: "**/*.{ex,exs}"
+    pattern: "Code\\.eval_string\\s*\\(|Code\\.eval_quoted\\s*\\(|EEx\\.eval_string\\s*\\("
+    severity: error
+    desc: "Code.eval_string/eval_quoted/EEx.eval_string on user data — arbitrary Elixir code execution"
+
+  - id: SA-EX-03
+    type: regex
+    target: "**/*.{ex,exs}"
+    pattern: "(?:System\\.cmd|:os\\.cmd)\\s*\\([^)]*#\\{"
+    severity: error
+    desc: "System.cmd/:os.cmd with interpolated user input — OS command injection; pass args as a list"
+
+  - id: SA-EX-04
+    type: regex
+    target: "**/*.{ex,exs}"
+    pattern: "(?i)Logger\\.\\w+\\([^)]*(?:password|secret|token|api[_-]?key|private[_-]?key|credential)[^)]*inspect|inspect\\([^)]*(?:password|secret_key|api_key|private_key|credential)"
+    severity: warning
+    desc: "Secrets (password/token/key) passed to Logger or inspect — sensitive data disclosure in logs"
+
+  - id: SA-PHOENIX-01
+    type: regex
+    target: "**/*.{ex,exs}"
+    pattern: "fragment\\(\\s*\"[^\"]*#\\{|where:\\s*\"[^\"]*#\\{"
+    severity: error
+    desc: "Ecto fragment/where with string interpolation — SQL injection; use ? placeholders and ^pinned values"
+
+  - id: SA-PHOENIX-02
+    type: regex
+    target: "**/*.heex"
+    pattern: "<%=\\s*raw\\s*\\(|\\{\\{\\s*raw\\s*\\(|\\bPhoenix\\.HTML\\.raw\\s*\\("
+    severity: error
+    desc: "raw() in HEEx/~H template bypasses auto-escaping — stored/reflected XSS when fed user input"
+
+  - id: SA-PHOENIX-03
+    type: regex
+    target: "**/*.{ex,exs}"
+    pattern: "#\\s*plug\\s+:protect_from_forgery|csrf_token:\\s*false|with_csrf_token:\\s*false"
+    severity: error
+    desc: "CSRF protection disabled in router pipeline / form helper — cross-site request forgery risk"
+
+  - id: SA-PY-19
+    type: regex
+    target: "**/*.py"
+    pattern: "render_template_string\\(\\s*(?:f[\"\\']|[A-Za-z_]\\w*\\s*(?:[+%)]|\\.format\\b)|[\"\\'][^\"\\']*[\"\\']\\s*(?:[+%]|\\.format\\b))"
+    severity: error
+    desc: "SSTI: Flask render_template_string() with a dynamic template (f-string, variable, concatenation, .format(), or %-formatting) instead of a static literal"
+
 llm_reviews:
   # === HARDCODED CREDENTIALS REVIEW ===
   - id: SA-16
@@ -3270,3 +3615,56 @@ llm_reviews:
       Look in: SKILL.md, AGENTS.md, CLAUDE.md, .claude/, mcp.json
     severity: warning
     desc: "Verify system prompts don't leak secrets and AI supply chain is secured (OWASP LLM03/07:2025)"
+
+  # === EXPANSION: OWASP LLM Top 10 (2025) gaps LLM04/08/09/10 ===
+  - id: SA-AI-LLM-06
+    domain: security
+    prompt: |
+      Audit AI agent configurations for data and model poisoning risks (OWASP LLM04:2025):
+      1. Check if training, fine-tuning, or RAG ingestion data comes from untrusted or unverified sources
+      2. Look for skills that ingest external documents (web pages, user uploads, third-party APIs) into a knowledge base without validation or sanitization
+      3. Verify provenance and integrity of external knowledge sources (signed/checksummed data, trusted feeds, version pinning)
+      4. Check whether fine-tune or embedding datasets are reviewed for adversarial/backdoor content before use
+      5. Verify there is a vetting or approval gate before new documents are added to the agent's retrievable corpus
+      Look in: SKILL.md, AGENTS.md, CLAUDE.md, .claude/, ingestion/scripts/, mcp.json
+    severity: error
+    desc: "Verify training, fine-tune, and RAG ingestion data is validated and provenance-checked (OWASP LLM04:2025)"
+
+  - id: SA-AI-LLM-07
+    domain: security
+    prompt: |
+      Audit AI agent RAG and vector store configurations for embedding weaknesses (OWASP LLM08:2025):
+      1. Check if the vector store enforces access control so retrieval is scoped to the requesting user/tenant
+      2. Look for cross-tenant retrieval leakage - shared indexes or queries without tenant/permission filters
+      3. Verify that document-level permissions from the source system are preserved and enforced at retrieval time
+      4. Check for embedding inversion risks - storing embeddings of sensitive data without restricting raw-vector access
+      5. Verify retrieved context is filtered for the caller's authorization before being passed to the model
+      Look in: SKILL.md, .claude/, mcp.json, retrieval/scripts/, vector store / RAG configs
+    severity: error
+    desc: "Verify vector store access control and RAG retrieval respect tenant and document permissions (OWASP LLM08:2025)"
+
+  - id: SA-AI-LLM-08
+    domain: security
+    prompt: |
+      Audit AI agent configurations for misinformation and overreliance risks (OWASP LLM09:2025):
+      1. Check if model output used for high-stakes actions is grounded in retrieved/verified sources rather than ungrounded generation
+      2. Look for missing citations or provenance on factual claims surfaced to users
+      3. Verify high-impact or irreversible actions require human-in-the-loop review before execution
+      4. Check for overreliance on unverified model output (e.g., auto-acting on hallucinated facts, fabricated APIs, or invented file paths)
+      5. Verify the agent communicates uncertainty/confidence and avoids presenting unverified output as authoritative
+      Look in: SKILL.md, AGENTS.md, CLAUDE.md, .claude/, hooks/, scripts/
+    severity: warning
+    desc: "Verify outputs are grounded and high-stakes actions avoid overreliance on unverified model output (OWASP LLM09:2025)"
+
+  - id: SA-AI-LLM-09
+    domain: security
+    prompt: |
+      Audit AI agent configurations for unbounded consumption risks (OWASP LLM10:2025):
+      1. Check for token, request, or concurrency rate limits on model and tool invocations
+      2. Look for missing cost caps or budgets on LLM API usage (per-request, per-user, per-session)
+      3. Verify agent loops have a max-iterations / recursion bound to prevent unbounded recursive or self-invoking loops
+      4. Check for missing timeouts on model calls, tool execution, and long-running agent tasks
+      5. Verify resource-intensive operations (large context loads, fan-out subagents) are bounded and monitored
+      Look in: SKILL.md, .claude/settings*, hooks/, mcp.json, scripts/
+    severity: warning
+    desc: "Verify rate limits, cost caps, loop bounds, and timeouts prevent unbounded consumption (OWASP LLM10:2025)"

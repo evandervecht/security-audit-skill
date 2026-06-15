@@ -1,0 +1,11 @@
+# VULNERABLE: sensitive fields exposed with no authorization directive
+type User {
+  id: ID!
+  email: String!
+  ssn: String!
+  passwordHash: String!
+}
+
+type Query {
+  users: [User!]!
+}

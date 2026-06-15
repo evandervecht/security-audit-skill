@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["pyyaml"]
+# ///
 """Validate detection regex patterns against eval fixtures.
 
 For each language/framework directory under evals/:
@@ -34,8 +38,12 @@ def load_checkpoint_patterns() -> dict[str, str]:
 
 
 def extract_checkpoint_id(filename: str) -> str | None:
-    """Extract checkpoint ID from fixture filename like SA-04_hardcoded_password.php."""
-    match = re.match(r"(SA-[A-Z]*-?\d+)", filename)
+    """Extract checkpoint ID from fixture filename like SA-04_hardcoded_password.php.
+
+    Namespace segments may contain digits (e.g. SA-TYPO3-01), so segments are
+    matched as [A-Z0-9]+ with the trailing numeric component as the checkpoint number.
+    """
+    match = re.match(r"(SA-(?:[A-Z0-9]+-)*\d+[a-z]?)", filename)
     return match.group(1) if match else None
 
 
