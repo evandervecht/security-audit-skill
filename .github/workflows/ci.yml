@@ -6,13 +6,31 @@ on:
   pull_request:
     branches: [main]
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
-  ci:
-    uses: evandervecht/skill-repo-skill/.github/workflows/ci-python.yml@main
-    permissions:
-      contents: read
-    with:
-      python-versions: '["3.12", "3.13", "3.14"]'
-      test-command: 'uv run --python "$PYTHON_VERSION" scripts/test_risky_patterns.py && uv run --python "$PYTHON_VERSION" scripts/validate_checkpoints.py && uv run --python "$PYTHON_VERSION" scripts/test_eval_fixtures.py'
+  tests:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Scripts carry PEP 723 metadata, so `uv run` provisions the interpreter
+      # and PyYAML automatically — no separate dependency install needed.
+      - name: Run test suite
+        env:
+          PY: ${{ matrix.python-version }}
+        run: |
+          uv run --python "$PY" scripts/test_risky_patterns.py
+          uv run --python "$PY" scripts/validate_checkpoints.py
+          uv run --python "$PY" scripts/test_eval_fixtures.py
