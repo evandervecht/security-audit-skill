@@ -12,7 +12,7 @@ allowed-tools: Bash(grep:*) Bash(jq:*) Bash(gh:*) Read Glob Grep
 
 # Security Audit Skill
 
-Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated PHP/TYPO3 code scanning, Infrastructure-as-Code and Kubernetes scanning, API and GraphQL security, frontend security, and AI/LLM agent security with 461+ checkpoints and 68 reference guides.
+Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated PHP/TYPO3 code scanning, Infrastructure-as-Code and Kubernetes scanning, API and GraphQL security, frontend security, and AI/LLM agent security with 461+ checkpoints and 70 reference guides.
 
 ## Expertise Areas
 
