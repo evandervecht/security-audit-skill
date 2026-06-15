@@ -7,8 +7,8 @@ Security vulnerability detection skill for AI agents and IDEs. 461 checkpoints a
 ## Key Commands
 
 ```bash
-# Run all tests
-python3 scripts/test_risky_patterns.py && python3 scripts/validate_checkpoints.py && python3 scripts/test_eval_fixtures.py
+# Run all tests (scripts carry PEP 723 metadata; uv provisions Python 3.10+ and PyYAML)
+uv run scripts/test_risky_patterns.py && uv run scripts/validate_checkpoints.py && uv run scripts/test_eval_fixtures.py
 
 # Multi-language security scan (auto-detects stack)
 ./scripts/security-audit-dispatcher.sh /path/to/project

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["pyyaml"]
+# ///
 """Validate detection regex patterns against eval fixtures.
 
 For each language/framework directory under evals/:
