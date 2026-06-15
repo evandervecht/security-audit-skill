@@ -1,0 +1,5 @@
+# VULNERABLE: list fields with no pagination — client can request the whole dataset
+type Query {
+  allUsers: [User!]!
+  searchPosts(term: String!): [Post!]!
+}

@@ -1,0 +1,5 @@
+# SAFE: every collection field uses cursor pagination and connection types
+type Query {
+  allUsers(first: Int!, after: String): UserConnection!
+  searchPosts(term: String!, first: Int = 20, after: String): PostConnection!
+}

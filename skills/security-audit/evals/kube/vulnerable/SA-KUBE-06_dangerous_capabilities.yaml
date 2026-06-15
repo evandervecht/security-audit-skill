@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+spec:
+  containers:
+    - name: app
+      image: myapp:1.2.3
+      securityContext:
+        capabilities:
+          add:
+            - SYS_ADMIN
+            - NET_RAW

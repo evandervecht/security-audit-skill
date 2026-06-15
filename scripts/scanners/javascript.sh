@@ -243,6 +243,24 @@ else
     echo "INFO: No tsconfig.json found (not a TypeScript project)"
 fi
 
+
+# === EXPANSION (harden-js) ===
+# === Check for insertAdjacentHTML DOM-XSS sink (SA-JS-02 broadened) ===
+# Companion to the innerHTML/outerHTML checks above: insertAdjacentHTML has no
+# '=' assignment so it was previously invisible to the scanner. Flag only when
+# the HTML argument is NOT a static string literal and NOT DOMPurify-sanitized.
+echo ""
+echo "=== Checking for insertAdjacentHTML DOM XSS ==="
+IAH_HITS=$(scan_js "insertAdjacentHTML\s*\(\s*[^,]+,\s*(DOMPurify\.sanitize)?" 20)
+IAH_UNSAFE=$(echo "$IAH_HITS" | grep -vE "insertAdjacentHTML\s*\(\s*[^,]+,\s*(DOMPurify\.sanitize|['\"\`])" || true)
+if [[ -n "$IAH_UNSAFE" ]]; then
+    echo "ERROR: insertAdjacentHTML with dynamic, unsanitized HTML (potential DOM XSS):"
+    echo "$IAH_UNSAFE" | head -5
+    ERRORS=$((ERRORS + 1))
+else
+    echo "OK: No unsafe insertAdjacentHTML usage detected"
+fi
+
 # === Output results for dispatcher ===
 echo ""
 echo "--- JavaScript/TypeScript Scanner Results ---"

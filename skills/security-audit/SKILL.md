@@ -1,18 +1,18 @@
 ---
 name: security-audit
-description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel projects for XSS/SQLi/XXE/CSRF, checking for leaked secrets, scanning dependencies for CVEs, reviewing code for any security concern, auditing Infrastructure-as-Code (Dockerfile/K8s/Terraform), API security (OWASP API Top 10), frontend/client-side security (DOM XSS/CORS/SRI), or auditing AI agent skills and configurations against the OWASP LLM Top 10 (2025)."
+description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel or Elixir/Phoenix projects for XSS/SQLi/XXE/CSRF, checking for leaked secrets, scanning dependencies for CVEs, reviewing code for any security concern, auditing Infrastructure-as-Code (Dockerfile/Terraform) and Kubernetes manifests, API security (OWASP API Top 10) including GraphQL, frontend/client-side security (DOM XSS/CORS/SRI) including React/Vue/Svelte, or auditing AI agent skills and configurations against the OWASP LLM Top 10 (2025)."
 license: "MIT. See LICENSE-MIT"
 compatibility: "Requires grep, jq, gh CLI."
 metadata:
   author: E van der Vecht
-  version: "3.0.0"
+  version: "3.1.0"
   repository: https://github.com/evandervecht/security-audit-skill
 allowed-tools: Bash(grep:*) Bash(jq:*) Bash(gh:*) Read Glob Grep
 ---
 
 # Security Audit Skill
 
-Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated PHP/TYPO3 code scanning, Infrastructure-as-Code scanning, API security, frontend security, and AI/LLM agent security with 119+ checkpoints and 23 reference guides.
+Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated PHP/TYPO3 code scanning, Infrastructure-as-Code and Kubernetes scanning, API and GraphQL security, frontend security, and AI/LLM agent security with 461+ checkpoints and 68 reference guides.
 
 ## Expertise Areas
 
@@ -75,6 +75,10 @@ When auditing a project, load only the references relevant to the detected stack
 | Ruby with `rails` | Rails | `rails-security.md` |
 | `Dockerfile`, `docker-compose.yml` | Docker | `iac-security.md` |
 | `*.tf` | Terraform | `iac-security.md` |
+| `*.graphql`/`*.gql`, `apollo-server` | graphql | `graphql-security.md` |
+| `*.yaml` with `apiVersion:`+`kind:`, `kustomization.yaml`, `Chart.yaml` | kube | `kubernetes-security.md` |
+| `package.json` with `svelte`/`@sveltejs/kit`, `*.svelte`, `svelte.config.js` | Svelte | `svelte-security.md` |
+| `mix.exs`, `*.ex`/`*.exs`, `*.heex` | elixir | `elixir-phoenix-security.md` |
 
 Always load core references (`owasp-top10.md`, `cwe-top25.md`) regardless of stack.
 

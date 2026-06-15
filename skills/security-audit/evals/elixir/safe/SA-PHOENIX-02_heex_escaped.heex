@@ -1,0 +1,8 @@
+<div class="comment">
+  <p>Posted by <%= @comment.author %></p>
+  <%# SAFE: HEEx auto-escapes interpolated expressions by default. %>
+  <div class="body">
+    <%= @comment.body %>
+  </div>
+  <p class="raw-note">User content is auto-escaped (raw mode disabled)</p>
+</div>

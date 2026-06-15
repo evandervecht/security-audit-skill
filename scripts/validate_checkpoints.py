@@ -61,10 +61,18 @@ VALID_PREFIXES = [
     "SA-WP-",      # WordPress
     "SA-DRUPAL-",  # Drupal
     "SA-JOOMLA-",  # Joomla
+    "SA-LARAVEL-",  # expansion
+    "SA-SYMFONY-",  # expansion
+    "SA-TYPO3-",  # expansion
+    "SA-GRAPHQL-",  # expansion
+    "SA-KUBE-",  # expansion
+    "SA-SVELTE-",  # expansion
 ]
 
-# Pattern: SA-{PREFIX}-{NN}, SA-{NN}, or legacy formats like SA-08b, SA-FE-LLM-01
-CHECKPOINT_ID_PATTERN = re.compile(r"^SA-([A-Z]+-)*(\d+[a-z]?)$")
+# Pattern: SA-{PREFIX}-{NN}, SA-{NN}, or legacy formats like SA-08b, SA-FE-LLM-01.
+# Namespace segments may contain digits (e.g. SA-TYPO3-01) to support framework
+# names like TYPO3; the trailing numeric component is the checkpoint number.
+CHECKPOINT_ID_PATTERN = re.compile(r"^SA-([A-Z0-9]+-)*(\d+[a-z]?)$")
 
 
 def validate_checkpoint_id(checkpoint_id: str) -> str | None:

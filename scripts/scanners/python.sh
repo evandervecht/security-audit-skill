@@ -261,6 +261,30 @@ fi
 
 # === Summary ===
 echo ""
+
+# === EXPANSION (harden-python) ===
+# === SA-PY-19: SSTI via Flask render_template_string with dynamic input ===
+echo ""
+echo "=== Checking for SSTI (render_template_string with dynamic input) ==="
+RTS_HITS=$(scan_py 'render_template_string\(\s*(f["'\'']|[A-Za-z_][A-Za-z0-9_]*\s*([+%)]|\.format)|["'\''][^"'\'']*["'\'']\s*([+%]|\.format))' 10)
+if [[ -n "$RTS_HITS" ]]; then
+    echo "ERROR [SA-PY-19]: render_template_string() with a variable/f-string/concatenated/.format()/%-formatted template found -- risk of SSTI:"
+    echo "$RTS_HITS"
+    ERRORS=$((ERRORS + 1))
+else
+    echo "OK: No render_template_string() with dynamic input detected"
+fi
+
+# --- Updated detection blocks (replace existing patterns) ---
+# SA-PY-01: broaden pickle detection (cPickle/_pickle/Unpickler/read_pickle)
+#   scan_py '(cP|_p|\bp)ickle\.(loads|load)\(|\bpickle\.Unpickler\(|\.read_pickle\('
+# SA-PY-02: avoid ast.literal_eval and *.eval method false positives
+#   scan_py '(^|[^A-Za-z0-9_.])eval\('   (grep -E lacks lookbehind; anchor on a non-word/non-dot char instead)
+# SA-PY-04: catch multiline shell=True
+#   scan_py is line-oriented; consider grep -Pzo or an AST pass for multiline. The YAML checkpoint regex below covers whole-file scans.
+# SA-PY-06: exclude explicit SafeLoader and add full_load/unsafe_load
+#   scan_py 'yaml\.(load|full_load|unsafe_load)\(([^)]*Safe(C)?Loader)?'  then post-filter lines containing SafeLoader
+
 echo "=========================================="
 echo "Python Security Scan Summary"
 echo "=========================================="

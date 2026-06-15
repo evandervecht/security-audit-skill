@@ -1,0 +1,8 @@
+<div class="comment">
+  <p>Posted by <%= @comment.author %></p>
+  <%# VULNERABLE: raw/1 marks the value as safe and skips HTML escaping. %>
+  <%# If @comment.body contains <script>...</script> it executes (XSS). %>
+  <div class="body">
+    <%= raw(@comment.body) %>
+  </div>
+</div>

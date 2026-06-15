@@ -1,0 +1,7 @@
+security:
+    firewalls:
+        main:
+            anonymous: true
+            lazy: true
+        admin:
+            security: false
