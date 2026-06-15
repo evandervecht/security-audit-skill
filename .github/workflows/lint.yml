@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -11,4 +12,15 @@ permissions:
 jobs:
   validate:
     name: Skill Validation
-    uses: evandervecht/skill-repo-skill/.github/workflows/validate.yml@main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # validate_skill.py carries PEP 723 metadata, so uv provisions Python + PyYAML.
+      - name: Validate skill manifests
+        run: uv run scripts/validate_skill.py
