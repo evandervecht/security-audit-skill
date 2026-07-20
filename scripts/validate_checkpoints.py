@@ -141,6 +141,11 @@ def main() -> int:
         "wordpress-security.md", "drupal-security.md", "joomla-security.md",
         "android-sdk-security.md", "ios-sdk-security.md",
         "cve-database.md",
+        "kotlin-security-features.md", "swift-security-features.md",
+        "scala-security-features.md", "dart-security-features.md",
+        "shell-security-features.md", "flutter-security.md",
+        "ktor-security.md", "actix-security.md", "axum-security.md",
+        "vapor-security.md", "play-security.md",
     ]
     missing = [ref for ref in expected_refs if ref not in ref_files]
     if missing:

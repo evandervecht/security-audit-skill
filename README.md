@@ -1,6 +1,6 @@
 # Security Audit Skill
 
-Security vulnerability detection for AI agents and IDEs. 408 checkpoints across 9 languages, 18 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, with compliance mapping to 7 frameworks.
+Security vulnerability detection for AI agents and IDEs. 557 checkpoints across 15 languages, 26 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, plus GraphQL API and Kubernetes manifest scanning, with compliance mapping to 7 frameworks.
 
 ## Original Owners 
 [Netsearch]https://github.com/netresearch/security-audit-skill
@@ -19,16 +19,17 @@ This is an **Agent Skill** following the [open standard](https://agentskills.io)
 
 ## What It Does
 
-### Static Analysis (408 Checkpoints)
+### Static Analysis (557 Checkpoints)
 
 | Category | Checkpoints | Languages/Frameworks |
 |---|---|---|
-| **Languages** | SA-PY, SA-JS, SA-NODE, SA-JAVA, SA-CS, SA-GO, SA-RS, SA-RB, SA-PHP | Python, JavaScript, Node.js, Java, C#, Go, Rust, Ruby, PHP |
-| **Frameworks** | SA-REACT, SA-NEXT, SA-VUE, SA-ANG, SA-DJANGO, SA-FLASK, SA-SPRING, SA-LARAVEL, SA-SYMFONY | React, Next.js, Vue, Angular, Django, Flask, Spring, Laravel, Symfony |
+| **Languages** | SA-PY, SA-JS, SA-NODE, SA-JAVA, SA-CS, SA-GO, SA-RS, SA-RB, SA-PHP, SA-EX, SA-KT, SA-SWIFT, SA-SCALA, SA-DART, SA-SH | Python, JavaScript, Node.js, Java, C#, Go, Rust, Ruby, PHP, Elixir, Kotlin, Swift, Scala, Dart, Shell |
+| **Frameworks** | SA-REACT, SA-NEXT, SA-VUE, SA-ANG, SA-NUXT, SA-SVELTE, SA-DJANGO, SA-FLASK, SA-FASTAPI, SA-SPRING, SA-DOTNET, SA-BLAZOR, SA-GIN, SA-RAILS, SA-EXPRESS, SA-NEST, SA-LARAVEL, SA-SYMFONY, SA-PHOENIX, SA-KTOR, SA-VAPOR, SA-PLAY, SA-ACTIX, SA-AXUM, SA-FLUTTER | React, Next.js, Vue, Angular, Nuxt, Svelte, Django, Flask, FastAPI, Spring, .NET, Blazor, Gin, Rails, Express, NestJS, Laravel, Symfony, Phoenix, Ktor, Vapor, Play, Actix, Axum, Flutter |
 | **Cloud** | SA-AWS, SA-GCP, SA-AZURE | AWS, GCP, Azure |
 | **CMS** | SA-WP, SA-DRUPAL, SA-JOOMLA, SA-TYPO3 | WordPress, Drupal, Joomla, TYPO3 |
 | **Mobile** | SA-ANDROID, SA-IOS | Android SDK, iOS SDK |
-| **Infrastructure** | SA-01..SA-20 | Dockerfile, Kubernetes, Terraform, Compose |
+| **API** | SA-GRAPHQL, SA-API | GraphQL, REST (OWASP API Top 10) |
+| **Infrastructure** | SA-01..SA-20, SA-IAC, SA-KUBE | Dockerfile, Kubernetes, Terraform, Compose |
 | **Runtime** | LIVE-HDR, LIVE-TLS, LIVE-CORS | Headers, TLS, CORS |
 
 ### Dependency Sandbox
@@ -71,7 +72,7 @@ Auto-detects project stack and runs language-specific scanners:
 ./scripts/security-audit-dispatcher.sh /path/to/project
 ```
 
-19 scanner modules: Python, JavaScript, Node.js, Java, C#, Go, Rust, Ruby, PHP, React, Django, Flask, Spring, WordPress, Drupal, Joomla, AWS, GCP, Azure.
+31 scanner modules: Python, JavaScript, Node.js, Java, C#, Go, Rust, Ruby, PHP, Kotlin, Swift, Scala, Dart/Flutter, Shell, Elixir, Ktor, Vapor, Play, Actix/Axum, GraphQL, Kubernetes, Svelte, WordPress, Drupal, Joomla, Android, iOS, AWS, GCP, Azure, plus a cross-cutting secrets scanner.
 
 ### IDE Integration
 
@@ -150,20 +151,20 @@ git clone https://github.com/evandervecht/security-audit-skill.git
 security-audit-skill/
 ├── skills/security-audit/
 │   ├── SKILL.md                        # Skill entry point
-│   ├── checkpoints.yaml                # 408 checkpoints (372 mechanical + 36 LLM)
-│   ├── evals/                          # 154 eval fixture tests
-│   └── references/                     # 64 security reference files
+│   ├── checkpoints.yaml                # 557 checkpoints (517 mechanical + 40 LLM)
+│   ├── evals/                          # 536 eval fixture tests
+│   └── references/                     # 81 security reference files
 │       ├── owasp-top10.md
 │       ├── cwe-top25.md
 │       ├── compliance-soc2.md          # + 6 more compliance frameworks
 │       ├── aws-security.md             # + gcp, azure
 │       ├── wordpress-security.md       # + drupal, joomla
 │       ├── android-sdk-security.md     # + ios
-│       └── ...                         # 63 files total
+│       └── ...                         # 81 files total
 ├── scripts/
 │   ├── security-audit-dispatcher.sh    # Multi-language scanner
 │   ├── dependency-sandbox.sh           # Sandboxed dependency audit
-│   ├── scanners/                       # 19 language/framework scanner modules
+│   ├── scanners/                       # 31 language/framework scanner modules
 │   └── sandbox/                        # Docker sandbox (7 ecosystems)
 │       ├── Dockerfile.pnpm             # + npm, pip, uv, go, rust, dotnet
 │       ├── entrypoint-pnpm.sh          # Install + audit + SBOM generation
@@ -187,12 +188,12 @@ security-audit-skill/
 
 | | |
 |---|---|
-| Checkpoints | 408 (372 mechanical + 36 LLM review) |
-| Reference files | 64 |
-| Scanner modules | 19 |
-| Eval fixtures | 154 |
-| Languages | 9 |
-| Frameworks | 18 |
+| Checkpoints | 557 (517 mechanical + 40 LLM review) |
+| Reference files | 81 |
+| Scanner modules | 31 |
+| Eval fixtures | 536 |
+| Languages | 15 |
+| Frameworks | 26 |
 | Cloud providers | 3 (AWS, GCP, Azure) |
 | CMS platforms | 4 (WordPress, Drupal, Joomla, TYPO3) |
 | Mobile SDKs | 2 (Android, iOS) |
@@ -229,6 +230,11 @@ CSRF (missing tokens, SameSite cookie bypass), IDOR/BOLA (direct object referenc
 | **Rust** | Unsafe blocks (memory safety bypass), unchecked unwrap on user input, SQL format strings, command injection via std::process |
 | **Ruby** | Marshal.load/YAML.load deserialization, ERB injection, send/public_send with user input, open() command injection |
 | **PHP** | unserialize() with user input, extract() variable overwrite, preg_e modifier code execution, type juggling in auth, include with user path |
+| **Kotlin** | Runtime.exec/ProcessBuilder injection, SQL string templates, java.util.Random tokens, trust-all TrustManager, ObjectInputStream deserialization, ECB mode |
+| **Swift** | NSKeyedUnarchiver without secure coding, Process /bin/sh -c, ATS bypass, blanket URLCredential trust, UserDefaults secrets, kSecAttrAccessibleAlways |
+| **Scala** | ObjectInputStream deserialization, sys.process interpolation, anorm SQL interpolation, scala.util.Random tokens, XXE via factory defaults, Class.forName reflection |
+| **Dart** | Process.run shell injection, badCertificateCallback bypass, Random() secrets, sqflite rawQuery interpolation, Isolate.spawnUri remote code, http:// endpoints |
+| **Shell** | eval on variables, curl-pipe-to-shell, curl -k/--insecure, StrictHostKeyChecking=no, predictable temp files, chmod 777, unquoted rm -rf, secrets in ps/logs |
 
 ### Framework Security
 
@@ -242,6 +248,12 @@ CSRF (missing tokens, SameSite cookie bypass), IDOR/BOLA (direct object referenc
 | **Flask** | Jinja2 SSTI via user templates, secret_key hardcoding, missing CSRF protection, debug mode |
 | **Spring** | SpEL injection, actuator exposure, CSRF disabled on state-changing endpoints, mass assignment via ModelAttribute |
 | **Laravel** | Blade {!! !!} unescaped output, DB::raw injection, mass assignment ($guarded vs $fillable), APP_DEBUG=true |
+| **Ktor** | CORS anyHost() (esp. with credentials), JWT Algorithm.none / hardcoded HMAC secrets, HTML respondText XSS, path traversal from call.parameters, insecure session cookies |
+| **Vapor** | CORSMiddleware .all origin, raw SQL interpolation, certificateVerification: .none, hardcoded Environment fallbacks, streamFile traversal, isSecure: false cookies |
+| **Play** | CSRF filter disabled, @Html() raw output, anorm interpolation, wildcard CORS/hosts config, session secure=false |
+| **Actix** | Cors::permissive(), allow_any_origin + credentials, NamedFile traversal, format! SQL, HTML body XSS, insecure cookies |
+| **Axum** | CorsLayer::permissive(), Html(format!()) XSS, sqlx format! queries, Command from extractors, fs reads from extractors, insecure cookies |
+| **Flutter** | Unrestricted WebView JavaScript, SharedPreferences secrets, global HttpOverrides cert bypass, unvalidated launchUrl/deep links, hardcoded API keys, secret logging |
 
 ### Cloud Provider Security
 
@@ -332,7 +344,7 @@ Each checkpoint is mapped to relevant controls across 7 frameworks:
 Tests run on push/PR to main:
 - `test_risky_patterns.py` — hook pattern tests
 - `validate_checkpoints.py` — checkpoint YAML + namespace validation
-- `test_eval_fixtures.py` — regex fixture tests (182 tests)
+- `test_eval_fixtures.py` — regex fixture tests (536 tests)
 
 ## License
 
