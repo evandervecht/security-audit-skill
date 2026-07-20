@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Security vulnerability detection skill for AI agents and IDEs. 461 checkpoints across 10 languages, 20 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, plus GraphQL API and Kubernetes manifest scanning, with compliance mapping to 7 frameworks.
+Security vulnerability detection skill for AI agents and IDEs. 557 checkpoints across 15 languages, 26 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, plus GraphQL API and Kubernetes manifest scanning, with compliance mapping to 7 frameworks.
 
 ## Key Commands
 
@@ -26,10 +26,10 @@ cd packages/lsp-server && npm run build
 ## Repository Structure
 
 - `skills/security-audit/` — Skill entry point, checkpoints, references, evals
-- `skills/security-audit/references/` — 70 security reference files
-- `skills/security-audit/checkpoints.yaml` — 461 checkpoints (421 mechanical + 40 LLM)
-- `skills/security-audit/evals/` — 304 eval fixture tests (vulnerable + safe pairs)
-- `scripts/scanners/` — 18 per-language/framework scanner modules
+- `skills/security-audit/references/` — 81 security reference files
+- `skills/security-audit/checkpoints.yaml` — 557 checkpoints (517 mechanical + 40 LLM)
+- `skills/security-audit/evals/` — 536 eval fixture tests (vulnerable + safe pairs)
+- `scripts/scanners/` — 31 per-language/framework scanner modules
 - `scripts/sandbox/` — Docker sandbox Dockerfiles and strace analyzer
 - `packages/core/` — TypeScript detection engine
 - `packages/mcp-server/` — MCP server (7 tools) for AI IDEs
@@ -64,7 +64,7 @@ See `docs/CONTRIBUTING-REFERENCES.md` for the full guide. Summary:
 Tests run on push/PR to main:
 - `test_risky_patterns.py` — hook pattern tests
 - `validate_checkpoints.py` — checkpoint YAML + namespace validation
-- `test_eval_fixtures.py` — regex fixture tests (304 tests)
+- `test_eval_fixtures.py` — regex fixture tests (536 tests)
 
 ## GitHub Issues
 

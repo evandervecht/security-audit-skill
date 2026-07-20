@@ -87,6 +87,34 @@ const LANGUAGE_MAPPINGS: LanguageMapping[] = [
     checkpointPrefixes: ["SA-IOS-"],
     fileGlobs: ["**/Info.plist", "**/*.swift", "**/*.m"],
   },
+  {
+    indicators: ["build.gradle.kts", "settings.gradle.kts"],
+    language: "kotlin",
+    references: ["kotlin-security-features.md"],
+    checkpointPrefixes: ["SA-KT-"],
+    fileGlobs: ["**/*.kt", "**/*.kts"],
+  },
+  {
+    indicators: ["Package.swift"],
+    language: "swift",
+    references: ["swift-security-features.md"],
+    checkpointPrefixes: ["SA-SWIFT-"],
+    fileGlobs: ["**/*.swift"],
+  },
+  {
+    indicators: ["build.sbt"],
+    language: "scala",
+    references: ["scala-security-features.md"],
+    checkpointPrefixes: ["SA-SCALA-"],
+    fileGlobs: ["**/*.scala"],
+  },
+  {
+    indicators: ["pubspec.yaml"],
+    language: "dart",
+    references: ["dart-security-features.md"],
+    checkpointPrefixes: ["SA-DART-"],
+    fileGlobs: ["**/*.dart"],
+  },
 ];
 
 // Framework detection requires reading package.json/composer.json content
@@ -180,7 +208,58 @@ const FRAMEWORK_DETECTORS: Array<{
     references: ["wordpress-security.md"],
     checkpointPrefixes: ["SA-WP-"],
   },
+  {
+    check: (p) =>
+      ["build.gradle", "build.gradle.kts", "pom.xml"].some((f) => fileContains(p, f, "io.ktor")),
+    language: "ktor",
+    references: ["ktor-security.md"],
+    checkpointPrefixes: ["SA-KTOR-"],
+  },
+  {
+    check: (p) => fileContains(p, "Cargo.toml", "actix-web"),
+    language: "actix",
+    references: ["actix-security.md"],
+    checkpointPrefixes: ["SA-ACTIX-"],
+  },
+  {
+    check: (p) => fileContains(p, "Cargo.toml", "axum"),
+    language: "axum",
+    references: ["axum-security.md"],
+    checkpointPrefixes: ["SA-AXUM-"],
+  },
+  {
+    check: (p) => fileContains(p, "Package.swift", "vapor"),
+    language: "vapor",
+    references: ["vapor-security.md"],
+    checkpointPrefixes: ["SA-VAPOR-"],
+  },
+  {
+    check: (p) =>
+      fileContains(p, "build.sbt", "playscala") ||
+      fileContains(p, "build.sbt", "playjava") ||
+      fileContains(p, "build.sbt", "com.typesafe.play") ||
+      fileContains(p, "build.sbt", "org.playframework") ||
+      fileContains(p, join("project", "plugins.sbt"), "play"),
+    language: "play",
+    references: ["play-security.md"],
+    checkpointPrefixes: ["SA-PLAY-"],
+  },
+  {
+    check: (p) => fileContains(p, "pubspec.yaml", "flutter"),
+    language: "flutter",
+    references: ["flutter-security.md"],
+    checkpointPrefixes: ["SA-FLUTTER-"],
+  },
 ];
+
+function fileContains(projectPath: string, file: string, needle: string): boolean {
+  try {
+    const content = readFileSync(join(projectPath, file), "utf-8").toLowerCase();
+    return content.includes(needle.toLowerCase());
+  } catch {
+    return false;
+  }
+}
 
 function packageJsonContains(projectPath: string, dep: string): boolean {
   try {
@@ -261,6 +340,19 @@ export function detectLanguages(projectPath: string): DetectedStack {
       references.push(...detector.references);
       checkpointPrefixes.push(...detector.checkpointPrefixes);
     }
+  }
+
+  // Check for shell scripts (special case — need directory listing)
+  try {
+    const rootFiles = readdirSync(projectPath);
+    if (rootFiles.some((f) => f.endsWith(".sh") || f.endsWith(".bash"))) {
+      languages.push("shell");
+      references.push("shell-security-features.md");
+      checkpointPrefixes.push("SA-SH-");
+      fileGlobs.push("**/*.sh", "**/*.bash");
+    }
+  } catch {
+    // ignore
   }
 
   // Check for Terraform files

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.example.shopping</string>
+    <key>CFBundleShortVersionString</key>
+    <string>2.4.0</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <!-- safe: global arbitrary loads stay off; one legacy host keeps
+             HTTPS with a pinned minimum TLS version -->
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <!-- safe: scoped to WKWebView content only; a deliberate,
+             reviewable exception distinct from the blanket opt-out -->
+        <key>NSAllowsArbitraryLoadsInWebContent</key>
+        <true/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>legacy-metrics.example.com</key>
+            <dict>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.2</string>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+</dict>
+</plist>

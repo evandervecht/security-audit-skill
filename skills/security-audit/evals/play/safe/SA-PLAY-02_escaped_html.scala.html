@@ -1,0 +1,16 @@
+@(comment: models.Comment, replies: Seq[models.Comment])
+
+<article class="comment">
+  <header>
+    <span class="author">@comment.author</span>
+    <time>@comment.postedAt</time>
+  </header>
+  <div class="body">
+    @comment.body
+  </div>
+  <section class="replies">
+    @for(reply <- replies) {
+      <div class="reply">@reply.body</div>
+    }
+  </section>
+</article>

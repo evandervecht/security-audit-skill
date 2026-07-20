@@ -1,18 +1,18 @@
 ---
 name: security-audit
-description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel projects for XSS/SQLi/XXE/CSRF, checking for leaked secrets, scanning dependencies for CVEs, reviewing code for any security concern, auditing Infrastructure-as-Code (Dockerfile/K8s/Terraform), API security (OWASP API Top 10), frontend/client-side security (DOM XSS/CORS/SRI), or auditing AI agent skills and configurations against the OWASP LLM Top 10 (2025)."
+description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel, Elixir/Phoenix, Kotlin/Ktor, Swift/Vapor, Scala/Play, Dart/Flutter, or Rust Actix/Axum projects for XSS/SQLi/XXE/CSRF, auditing shell scripts for injection and TLS bypass, checking for leaked secrets, scanning dependencies for CVEs, reviewing code for any security concern, auditing Infrastructure-as-Code (Dockerfile/Terraform) and Kubernetes manifests, API security (OWASP API Top 10) including GraphQL, frontend/client-side security (DOM XSS/CORS/SRI) including React/Vue/Svelte, or auditing AI agent skills and configurations against the OWASP LLM Top 10 (2025)."
 license: "MIT. See LICENSE-MIT"
 compatibility: "Requires grep, jq, gh CLI."
 metadata:
   author: E van der Vecht
-  version: "3.0.0"
+  version: "3.2.0"
   repository: https://github.com/evandervecht/security-audit-skill
 allowed-tools: Bash(grep:*) Bash(jq:*) Bash(gh:*) Read Glob Grep
 ---
 
 # Security Audit Skill
 
-Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated PHP/TYPO3 code scanning, Infrastructure-as-Code scanning, API security, frontend security, and AI/LLM agent security with 119+ checkpoints and 23 reference guides.
+Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated code scanning across 15 languages and 26 frameworks, Infrastructure-as-Code and Kubernetes scanning, API and GraphQL security, frontend security, and AI/LLM agent security with 557+ checkpoints and 81 reference guides.
 
 ## Expertise Areas
 
@@ -30,16 +30,68 @@ Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub pr
 - **Core**: `owasp-top10.md`, `cwe-top25.md`, `xxe-prevention.md`, `cvss-scoring.md`, `api-key-encryption.md`
 - **Vulnerability Prevention**: `deserialization-prevention.md`, `path-traversal-prevention.md`, `file-upload-security.md`, `input-validation.md`
 - **Secure Architecture**: `authentication-patterns.md`, `security-headers.md`, `security-logging.md`, `cryptography-guide.md`
-- **Framework Security**: `typo3-security.md`, `symfony-security.md`, `laravel-security.md`
-- **Modern Threats**: `modern-attacks.md`, `cve-patterns.md`, `php-security-features.md`
+- **Framework Security**: `typo3-security.md`, `symfony-security.md`, `laravel-security.md`, `ktor-security.md`, `vapor-security.md`, `play-security.md`, `actix-security.md`, `axum-security.md`, `flutter-security.md`
+- **Language Security**: `php-security-features.md` (PHP 8.0-8.4), `kotlin-security-features.md`, `swift-security-features.md`, `scala-security-features.md`, `dart-security-features.md`, `shell-security-features.md`
+- **Modern Threats**: `modern-attacks.md`, `cve-patterns.md`
 - **DevSecOps**: `ci-security-pipeline.md`, `supply-chain-security.md`, `automated-scanning.md`
 - **Incident Response**: `supply-chain-incident-response.md` (detection, triage, remediation playbooks for GitHub Actions supply chain compromises)
 - **Infrastructure**: `iac-security.md` (Dockerfile, Docker Compose, Kubernetes, Terraform)
 - **API Security**: `api-security.md` (OWASP API Top 10, GraphQL, REST)
 - **Frontend**: `frontend-security.md` (DOM XSS, SRI, CORS, postMessage, client-side storage)
 - **AI/LLM Security**: `llm-security.md` (OWASP LLM Top 10 2025, agent/skill auditing)
+- **Compliance**: `compliance-gdpr.md`, `compliance-hipaa.md`, `compliance-iso27001.md`, `compliance-nist-csf.md`, `compliance-pci-dss.md`, `compliance-soc2.md`, `compliance-eu-ai-act.md`
 
 All files located in `references/`.
+
+## Language/Framework Detection
+
+When auditing a project, load only the references relevant to the detected stack. Check for these indicator files:
+
+| Indicator | Language/Framework | References to Load |
+|-----------|-------------------|-------------------|
+| `composer.json`, `*.php` | PHP | `php-security-features.md` |
+| `composer.json` with `typo3/*` | TYPO3 | `typo3-security.md` |
+| `composer.json` with `symfony/*` | Symfony | `symfony-security.md` |
+| `composer.json` with `laravel/*` | Laravel | `laravel-security.md` |
+| `package.json` | JavaScript/TypeScript | `javascript-typescript-security-features.md`, `frontend-security.md` |
+| `package.json` with `express`/`fastify`/`koa`/`nestjs` | Node.js | `nodejs-security-features.md` |
+| `package.json` with `react` | React | `react-security.md` |
+| `package.json` with `next` | Next.js | `nextjs-security.md` |
+| `package.json` with `vue` | Vue | `vue-security.md` |
+| `package.json` with `@angular/core` | Angular | `angular-security.md` |
+| `package.json` with `nuxt` | Nuxt | `nuxt-security.md` |
+| `requirements.txt`, `pyproject.toml`, `setup.py`, `Pipfile` | Python | `python-security-features.md` |
+| Python with `django` | Django | `django-security.md` |
+| Python with `flask` | Flask | `flask-security.md` |
+| Python with `fastapi` | FastAPI | `fastapi-security.md` |
+| `pom.xml`, `build.gradle` | Java | `java-security-features.md` |
+| Java with `spring` | Spring | `spring-security.md` |
+| `*.csproj`, `*.sln` | C#/.NET | `csharp-security-features.md`, `dotnet-security.md` |
+| .NET with `Blazor` | Blazor | `blazor-security.md` |
+| `go.mod` | Go | `go-security-features.md` |
+| Go with `gin-gonic` | Gin | `gin-security.md` |
+| `Cargo.toml` | Rust | `rust-security-features.md` |
+| `Gemfile` | Ruby | `ruby-security-features.md` |
+| Ruby with `rails` | Rails | `rails-security.md` |
+| `Dockerfile`, `docker-compose.yml` | Docker | `iac-security.md` |
+| `*.tf` | Terraform | `iac-security.md` |
+| `*.graphql`/`*.gql`, `apollo-server` | graphql | `graphql-security.md` |
+| `*.yaml` with `apiVersion:`+`kind:`, `kustomization.yaml`, `Chart.yaml` | kube | `kubernetes-security.md` |
+| `package.json` with `svelte`/`@sveltejs/kit`, `*.svelte`, `svelte.config.js` | Svelte | `svelte-security.md` |
+| `mix.exs`, `*.ex`/`*.exs`, `*.heex` | elixir | `elixir-phoenix-security.md` |
+| `build.gradle.kts`, `settings.gradle.kts`, `*.kt` | Kotlin | `kotlin-security-features.md` |
+| Gradle/Maven build with `io.ktor` | Ktor | `ktor-security.md` |
+| `Package.swift`, `*.xcodeproj`, `*.swift` | Swift | `swift-security-features.md` |
+| `Package.swift` with `vapor` | Vapor | `vapor-security.md` |
+| `build.sbt`, `*.scala` | Scala | `scala-security-features.md` |
+| `build.sbt` with `PlayScala`/`org.playframework` | Play | `play-security.md` |
+| `pubspec.yaml`, `*.dart` | Dart | `dart-security-features.md` |
+| `pubspec.yaml` with `flutter` | Flutter | `flutter-security.md` |
+| `*.sh`, `*.bash` | Shell | `shell-security-features.md` |
+| `Cargo.toml` with `actix-web` | Actix | `actix-security.md` |
+| `Cargo.toml` with `axum` | Axum | `axum-security.md` |
+
+Always load core references (`owasp-top10.md`, `cwe-top25.md`) regardless of stack.
 
 ## Quick Patterns
 
@@ -103,11 +155,14 @@ For automated scanning tools (semgrep, trivy, gitleaks), see `references/automat
 ## Verification
 
 ```bash
-# PHP project security audit
-./scripts/security-audit.sh /path/to/project
+# Multi-language security audit (auto-detects stack)
+./scripts/security-audit-dispatcher.sh /path/to/project
+
+# PHP-only project security audit (legacy)
+./skills/security-audit/scripts/security-audit.sh /path/to/project
 
 # GitHub repository security audit
-./scripts/github-security-audit.sh owner/repo
+./skills/security-audit/scripts/github-security-audit.sh owner/repo
 ```
 
 ---

@@ -82,6 +82,12 @@ Same as above, but:
 | Rails | `SA-RAILS-` | `SA-RAILS-01` |
 | Express | `SA-EXPRESS-` | `SA-EXPRESS-01` |
 | NestJS | `SA-NEST-` | `SA-NEST-01` |
+| Ktor | `SA-KTOR-` | `SA-KTOR-01` |
+| Vapor | `SA-VAPOR-` | `SA-VAPOR-01` |
+| Flutter | `SA-FLUTTER-` | `SA-FLUTTER-01` |
+| Play | `SA-PLAY-` | `SA-PLAY-01` |
+| Actix | `SA-ACTIX-` | `SA-ACTIX-01` |
+| Axum | `SA-AXUM-` | `SA-AXUM-01` |
 
 Existing (non-namespaced) checkpoints use `SA-{NN}` for backward compatibility.
 

@@ -2997,6 +2997,686 @@ mechanical:
     severity: error
     desc: "SSTI: Flask render_template_string() with a dynamic template (f-string, variable, concatenation, .format(), or %-formatting) instead of a static literal"
 
+  # === KOTLIN LANGUAGE SECURITY (SA-KT) ===
+  - id: SA-KT-01
+    type: regex
+    target: "**/*.kt"
+    pattern: "Runtime\\.getRuntime\\s*\\(\\s*\\)\\s*\\.exec\\s*\\(\\s*\"[^\"]*(\\$[a-z_{]|\"\\s*\\+\\s*[A-Za-z_])|ProcessBuilder\\s*\\(\\s*\"[^\"]*\\$[a-z_{]|ProcessBuilder\\s*\\(\\s*\"(sh|bash|zsh|/bin/sh|cmd|cmd\\.exe|powershell)\"\\s*,\\s*\"[-/][A-Za-z]+\"\\s*,\\s*([a-z_][A-Za-z0-9_.]*\\s*[,)]|\"[^\"]*(\\$[a-z_{]|\"\\s*\\+\\s*[A-Za-z_]))"
+    severity: error
+    desc: "Command injection via Runtime.exec/ProcessBuilder built from string templates or a shell \u2014 pass a fixed argument list instead"
+
+  - id: SA-KT-02
+    type: regex
+    target: "**/*.kt"
+    pattern: "(rawQuery|execSQL|createNativeQuery|createQuery)\\s*\\(\\s*\"[^\"]*(\\$[a-z_{]|\"\\s*\\+\\s*[A-Za-z_])"
+    severity: error
+    desc: "SQL injection via string template/concat in rawQuery/execSQL/createQuery \u2014 use ? placeholders or named bind parameters"
+
+  - id: SA-KT-03
+    type: regex
+    target: "**/*.kt"
+    pattern: "java\\.util\\.Random|\\bRandom\\s*\\(|\\bRandom\\.next|Math\\.random\\s*\\("
+    severity: warning
+    desc: "java.util.Random/Math.random is predictable \u2014 use java.security.SecureRandom for tokens, OTPs, and session ids"
+
+  - id: SA-KT-04
+    type: regex
+    target: "**/*.kt"
+    pattern: "object\\s*:\\s*X509(Extended)?TrustManager|checkServerTrusted\\s*\\([^)]*\\)\\s*\\{\\s*\\}"
+    severity: error
+    desc: "Trust-all X509TrustManager disables certificate validation \u2014 use platform TrustManagerFactory or pin the private CA"
+
+  - id: SA-KT-05
+    type: regex
+    target: "**/*.kt"
+    pattern: "[Hh]ostnameVerifier\\s*\\{[^}]*->\\s*true\\s*\\}|[Hh]ostnameVerifier\\s*\\(\\s*\\{[^}]*->\\s*true\\s*\\}|fun\\s+verify\\s*\\([^)]*SSLSession[^)]*\\)\\s*=\\s*true"
+    severity: error
+    desc: "HostnameVerifier that always returns true disables hostname checks \u2014 use or delegate to the default verifier"
+
+  - id: SA-KT-06
+    type: regex
+    target: "**/*.kt"
+    pattern: "MessageDigest\\.getInstance\\s*\\(\\s*\"(MD5|SHA-1|SHA1)\""
+    severity: warning
+    desc: "Weak hash (MD5/SHA-1) via MessageDigest \u2014 use SHA-256 for integrity and PBKDF2/bcrypt/Argon2 for credentials"
+
+  - id: SA-KT-07
+    type: regex
+    target: "**/*.kt"
+    pattern: "\\bObjectInputStream\\s*\\("
+    severity: error
+    desc: "Java deserialization via ObjectInputStream \u2014 RCE gadget-chain risk, decode JSON into concrete @Serializable types"
+
+  - id: SA-KT-08
+    type: regex
+    target: "**/*.kt"
+    pattern: "Cipher\\.getInstance\\s*\\(\\s*\"AES\"|Cipher\\.getInstance\\s*\\(\\s*\"AES/ECB|Cipher\\.getInstance\\s*\\(\\s*\"(DES|DESede|RC4|ARCFOUR|Blowfish)"
+    severity: error
+    desc: "AES in ECB mode, bare AES (ECB by default), or legacy cipher (DES/RC4/Blowfish) \u2014 use AES/GCM/NoPadding with a fresh random IV"
+
+  - id: SA-KT-09
+    type: regex
+    target: "**/*.kt"
+    pattern: "\\b(val|var)\\s+[A-Za-z_]*([Pp]assword|PASSWORD|[Ss]ecret([Kk]ey)?|SECRET(_KEY)?|[Aa]pi[Kk]ey|API_KEY|[Tt]oken|TOKEN)(\\s*:\\s*String)?\\s*=\\s*\"[^\"]{8,}\""
+    severity: error
+    desc: "Hardcoded credential in val/var/const val string literal \u2014 load secrets from environment variables or a secrets manager"
+
+  - id: SA-KT-10
+    type: regex
+    target: "**/*.kt"
+    pattern: "addJavascriptInterface\\s*\\("
+    severity: warning
+    desc: "addJavascriptInterface exposes native methods to JS-enabled WebView content \u2014 use WebMessageListener with origin allowlists"
+
+  - id: SA-KT-11
+    type: regex
+    target: "**/*.kt"
+    pattern: "\\bFile\\s*\\(([^)\"]|\"[^\"]*\")*(request\\.|req\\.|params\\[|getParameter\\s*\\(|queryParam|call\\.parameters)"
+    severity: error
+    desc: "Path traversal via File() built from request parameters \u2014 canonicalize and verify the path stays inside the base directory"
+
+  - id: SA-KT-12
+    type: regex
+    target: "**/*.kt"
+    pattern: "decodeFromString\\s*<\\s*Any[?]?\\s*>|PolymorphicSerializer\\s*\\(\\s*Any::class|polymorphic\\s*\\(\\s*Any::class"
+    severity: error
+    desc: "kotlinx.serialization polymorphic/Any decoding of untrusted input \u2014 decode into concrete sealed @Serializable hierarchies"
+
+  # === SWIFT LANGUAGE SECURITY (SA-SWIFT) ===
+  - id: SA-SWIFT-01
+    type: regex
+    target: "**/*.swift"
+    pattern: "NSKeyedUnarchiver\\.unarchive(Object|TopLevelObjectWithData)\\s*\\("
+    severity: error
+    desc: "Insecure deserialization via legacy NSKeyedUnarchiver API \u2014 use unarchivedObject(ofClass:from:) with secure coding required"
+
+  - id: SA-SWIFT-02
+    type: regex
+    target: "**/*.swift"
+    pattern: "launchPath\\s*=\\s*\"/bin/(sh|bash|zsh)\"|executableURL\\s*=\\s*URL\\(fileURLWithPath:\\s*\"/bin/(sh|bash|zsh)\""
+    severity: error
+    desc: "Process/NSTask launches /bin/sh -c with interpolated input (command injection) \u2014 run the target binary with an argument array"
+
+  - id: SA-SWIFT-03
+    type: regex
+    target: "**/*.swift"
+    pattern: "\"(SELECT|DELETE)\\s[^\"]*FROM\\s[^\"]*[\\\\][(]|\"INSERT\\s+INTO\\s[^\"]*[\\\\][(]|\"UPDATE\\s[^\"]*SET\\s[^\"]*[\\\\][(]|\"SELECT\\s[^\"]*[\\\\][(][^\"]*\\sFROM\\s"
+    severity: error
+    desc: "SQL built with Swift string interpolation (SQL injection) \u2014 use sqlite3_prepare_v2 with ? placeholders and sqlite3_bind_*"
+
+  - id: SA-SWIFT-04
+    type: regex
+    target: "**/*.swift"
+    pattern: "\\b(drand48|srand48)\\s*\\(|(^|[^.A-Za-z0-9_])(rand|random)\\s*\\(\\s*\\)"
+    severity: warning
+    desc: "drand48/srand48/random()/rand() are predictable \u2014 use SecRandomCopyBytes or SystemRandomNumberGenerator for security tokens"
+
+  - id: SA-SWIFT-05
+    type: regex
+    target: "**/Info.plist"
+    pattern: "NSAllowsArbitraryLoads</key>\\s*<true"
+    severity: error
+    desc: "App Transport Security disabled (NSAllowsArbitraryLoads=true) \u2014 remove it or scope exceptions via NSExceptionDomains"
+
+  - id: SA-SWIFT-06
+    type: regex
+    target: "**/*.swift"
+    pattern: "URLCredential\\(trust:\\s*challenge\\.protectionSpace\\.serverTrust"
+    severity: error
+    desc: "Blanket URLCredential(trust:) accepts any server certificate (TLS bypass) \u2014 call SecTrustEvaluateWithError before trusting"
+
+  - id: SA-SWIFT-07
+    type: regex
+    target: "**/*.swift"
+    pattern: "Insecure\\.(MD5|SHA1)|CC_MD5\\s*\\(|CC_SHA1\\s*\\("
+    severity: warning
+    desc: "Insecure.MD5/SHA1/CC_MD5 are broken hashes \u2014 hash passwords with PBKDF2/scrypt/Argon2, use SHA-256+ for integrity checks"
+
+  - id: SA-SWIFT-08
+    type: regex
+    target: "**/*.swift"
+    pattern: "\\b(let|var)\\s+\\w*([pP]assword|[sS]ecret|[aA]pi[Kk]ey|[tT]oken)(\\s*:\\s*String)?\\s*=\\s*\"[^\"]{8,}\""
+    severity: error
+    desc: "Hardcoded secret in let/var string literal \u2014 load credentials from the Keychain, environment, or a secrets manager at runtime"
+
+  - id: SA-SWIFT-09
+    type: regex
+    target: "**/*.swift"
+    pattern: "UserDefaults\\.standard\\.set\\([^,)]*([pP]assword|[tT]oken|[aA]pi[Kk]ey|[sS]ecret)[^A-Za-z0-9_]"
+    severity: error
+    desc: "Password/token/apiKey stored in UserDefaults (plaintext plist) \u2014 store secrets in the Keychain via SecItemAdd"
+
+  - id: SA-SWIFT-10
+    type: regex
+    target: "**/*.swift"
+    pattern: "evaluateJavaScript\\s*\\(\\s*\"[^\"]*[\\\\][(]"
+    severity: error
+    desc: "WKWebView evaluateJavaScript with interpolated string (JS injection) \u2014 use callAsyncJavaScript with an arguments dictionary"
+
+  - id: SA-SWIFT-11
+    type: regex
+    target: "**/*.swift"
+    pattern: "kSecAttrAccessibleAlways"
+    severity: error
+    desc: "kSecAttrAccessibleAlways exposes Keychain items on locked devices \u2014 use kSecAttrAccessibleWhenUnlockedThisDeviceOnly"
+
+  - id: SA-SWIFT-12
+    type: regex
+    target: "**/*.swift"
+    pattern: "(fileURLWithPath|atPath|contentsOfFile):\\s*\"[^\"]*[\\\\][(]|(fileURLWithPath|atPath|contentsOfFile):\\s*[A-Za-z_][A-Za-z0-9_.]*\\s*\\+\\s*(\"[^\"]*\"\\s*\\+\\s*)*[A-Za-z_]"
+    severity: error
+    desc: "File path built by concatenating/interpolating user input (path traversal) \u2014 validate names and resolve against a base directory"
+
+  # === SCALA LANGUAGE SECURITY (SA-SCALA) ===
+  - id: SA-SCALA-01
+    type: regex
+    target: "**/*.scala"
+    pattern: "new\\s+ObjectInputStream\\s*\\("
+    severity: error
+    desc: "Java deserialization via ObjectInputStream.readObject enables RCE \u2014 deserialize with JSON (circe) or an ObjectInputFilter allowlist"
+
+  - id: SA-SCALA-02
+    type: regex
+    target: "**/*.scala"
+    pattern: "s\"[^\"]*\\$[^\"]*\"\\s*\\.(!!|!)|Seq\\s*\\(\\s*\"(sh|bash|/bin/sh|/bin/bash)\"\\s*,\\s*\"-c\"\\s*,\\s*(s\"|[A-Za-z_]|\"[^\"]*\"\\s*\\+)"
+    severity: error
+    desc: "Command injection via sys.process: interpolated command string or Seq(sh,-c) with a dynamic script \u2014 use a fixed-argv Seq, no shell"
+
+  - id: SA-SCALA-03
+    type: regex
+    target: "**/*.scala"
+    pattern: "\\b(executeQuery|executeUpdate)\\s*\\(\\s*s\"[^\"]*\\$"
+    severity: error
+    desc: "SQL injection: s-interpolated query passed to JDBC executeQuery/executeUpdate \u2014 use PreparedStatement bind parameters (anorm/Slick splicing is SA-PLAY-03)"
+
+  - id: SA-SCALA-04
+    type: regex
+    target: "**/*.scala"
+    pattern: "scala\\.util\\.Random|\\bRandom\\.(alphanumeric|nextInt|nextLong|nextBytes|nextString)|new\\s+Random\\s*\\("
+    severity: warning
+    desc: "scala.util.Random is predictable \u2014 generate tokens, session ids, and reset codes with java.security.SecureRandom"
+
+  - id: SA-SCALA-05
+    type: regex
+    target: "**/*.scala"
+    pattern: "Runtime\\.getRuntime(\\(\\))?\\.exec\\s*\\(\\s*(s\"[^\"]*\\$|s?\"[^\"]*\"\\s*\\+)"
+    severity: error
+    desc: "Command injection: Runtime.getRuntime.exec with concatenated/interpolated string \u2014 use the Array argv overload with validated input"
+
+  - id: SA-SCALA-06
+    type: regex
+    target: "**/*.scala"
+    pattern: "MessageDigest\\.getInstance\\s*\\(\\s*\"(MD5|SHA-1|SHA1)\""
+    severity: warning
+    desc: "Weak hash: MD5/SHA-1 MessageDigest is broken for credentials \u2014 use bcrypt/scrypt/Argon2 for passwords, SHA-256 for integrity digests"
+
+  - id: SA-SCALA-07
+    type: regex
+    target: "**/*.scala"
+    pattern: "def\\s+check(Client|Server)Trusted[^{}]*\\{\\s*\\}|def\\s+check(Client|Server)Trusted\\([^)]*\\)\\s*:\\s*Unit\\s*=\\s*\\(\\s*\\)"
+    severity: error
+    desc: "Trust-all X509TrustManager with empty trust checks disables TLS validation (MITM) \u2014 use TrustManagerFactory with a real trust store"
+
+  - id: SA-SCALA-08
+    type: regex
+    target: "**/*.scala"
+    pattern: "val\\s+\\w*(password|Password|PASSWORD|passwd|secret|Secret|SECRET|apiKey|ApiKey|api_key|API_KEY|token|Token|TOKEN|credential|Credential|CREDENTIAL)[sS]?\\s*(:\\s*String\\s*)?=\\s*\"[^\"]{8,}\""
+    severity: error
+    desc: "Hardcoded credential in val declaration \u2014 load secrets from environment variables or a secret manager at runtime"
+
+  - id: SA-SCALA-09
+    type: regex
+    target: "**/*.scala"
+    pattern: "(SUPPORT_DTD|IS_SUPPORTING_EXTERNAL_ENTITIES)\\s*,\\s*true|isSupportingExternalEntities\"\\s*,\\s*true|setExpandEntityReferences\\s*\\(\\s*true|disallow-doctype-decl\"\\s*,\\s*false|external-(general|parameter)-entities\"\\s*,\\s*true"
+    severity: error
+    desc: "XXE: XML parser enables DTD/external entities \u2014 set SUPPORT_DTD and external-entity features to false, disallow-doctype-decl to true"
+
+  - id: SA-SCALA-10
+    type: regex
+    target: "**/*.scala"
+    pattern: "Class\\.forName\\s*\\(\\s*[A-Za-z_]|Class\\.forName\\s*\\(\\s*\"[^\"]*\"\\s*\\+"
+    severity: warning
+    desc: "Unsafe reflection: Class.forName on dynamic input allows attacker-chosen class loading \u2014 resolve through an allowlist of literal class names"
+
+  # === DART LANGUAGE + FLUTTER FRAMEWORK SECURITY (SA-DART, SA-FLUTTER) ===
+  - id: SA-DART-01
+    type: regex
+    target: "**/*.dart"
+    pattern: "Process\\.(run|runSync|start)\\s*\\([^)]*runInShell\\s*:\\s*true|Process\\.(run|runSync|start)\\s*\\(\\s*['\"](sh|bash|/bin/sh|/bin/bash|cmd|cmd\\.exe|powershell)['\"]\\s*,\\s*\\[\\s*['\"](-c|/c|/C)['\"]"
+    severity: error
+    desc: "Command injection via Process.run/start with runInShell:true or a shell -c string \u2014 use a fixed executable and argument list"
+
+  - id: SA-DART-02
+    type: regex
+    target: "**/*.dart"
+    pattern: "badCertificateCallback\\s*=[^;{]*=>\\s*true\\b|badCertificateCallback\\s*=[^;]*\\{\\s*return\\s+true\\b"
+    severity: error
+    desc: "TLS bypass: badCertificateCallback returning true accepts any certificate \u2014 validate or pin the expected certificate instead"
+
+  - id: SA-DART-03
+    type: regex
+    target: "**/*.dart"
+    pattern: "\\bRandom\\s*\\("
+    severity: warning
+    desc: "math.Random is predictable \u2014 use Random.secure() for tokens, nonces, and any security-sensitive values"
+
+  - id: SA-DART-04
+    type: regex
+    target: "**/*.dart"
+    pattern: "\\b(rawQuery|rawInsert|rawUpdate|rawDelete)\\s*\\(\\s*(\"[^\"]*(=|>|<|\\bLIKE\\b|\\bIN\\b|\\bVALUES\\b)[^\"]*\\$|'[^']*(=|>|<|\\bLIKE\\b|\\bIN\\b|\\bVALUES\\b)[^']*\\$|\"[^\"]*\"\\s*\\+\\s*[A-Za-z_(]|'[^']*'\\s*\\+\\s*[A-Za-z_(])"
+    severity: error
+    desc: "SQL injection: sqflite raw query interpolates after =/LIKE/IN/VALUES or concatenates strings \u2014 use ? placeholders with bind arguments"
+
+  - id: SA-DART-05
+    type: regex
+    target: "**/*.dart"
+    pattern: "(const|final)\\s+(String\\s+)?[a-zA-Z_]*([Pp]assword|[Ss]ecret|[Tt]oken|[Pp]asswd|[Pp]wd)[a-zA-Z0-9_]*\\s*=\\s*['\"][A-Za-z0-9_=-]*([A-Za-z0-9=-]*[0-9][A-Za-z0-9=-]{7,}|[A-Za-z0-9=-]{7,}[0-9][A-Za-z0-9=-]*)[A-Za-z0-9_=-]*['\"]"
+    severity: error
+    desc: "Hardcoded credential in const/final declaration \u2014 load secrets from the environment or platform secure storage"
+
+  - id: SA-DART-06
+    type: regex
+    target: "**/*.dart"
+    pattern: "(Uri\\.parse\\s*\\(\\s*|[a-zA-Z0-9_]*([Uu]rl|[Uu]ri|[Ee]ndpoint|[Hh]ost|[Bb]ase)[a-zA-Z0-9_]*\\s*[:=]\\s*)['\"]http://[a-zA-Z0-9.-]+\\.(com|net|org|io|dev|co|app|cloud|ai)|\\bUri\\.http\\s*\\("
+    severity: warning
+    desc: "Plaintext http:// endpoint (Uri.parse/Uri.http or URL-named assignment) \u2014 use https:// for all non-localhost traffic to prevent interception"
+
+  - id: SA-DART-07
+    type: regex
+    target: "**/*.dart"
+    pattern: "\\b(md5|sha1)\\s*\\.\\s*convert\\s*\\(|\\bHmac\\s*\\(\\s*(md5|sha1)\\s*,"
+    severity: warning
+    desc: "Weak hash (md5/sha1) from package:crypto \u2014 use sha256 for integrity and a KDF (bcrypt/PBKDF2/Argon2) for passwords"
+
+  - id: SA-DART-08
+    type: regex
+    target: "**/*.dart"
+    pattern: "Isolate\\.spawnUri\\s*\\("
+    severity: error
+    desc: "Isolate.spawnUri executes code loaded from a URI \u2014 remote code execution risk; use Isolate.spawn with a local entry point"
+
+  - id: SA-DART-09
+    type: regex
+    target: "**/*.dart"
+    pattern: "\\bFile\\s*\\(\\s*['\"][^'\"]*\\$\\{?(request|params|query|input|user(Input|Name|File|Path|Id)?\\b)|\\bFile\\s*\\([^)]*\\+\\s*(request|params|query|input|user(Input|Name|File|Path|Id)?\\b)"
+    severity: error
+    desc: "Path traversal: File() path built from request/user input \u2014 sanitize with basename and validate against the base directory"
+
+  - id: SA-DART-10
+    type: regex
+    target: "**/*.dart"
+    pattern: "\\b(print|log|debugPrint)\\s*\\(\\s*jsonEncode\\s*\\(\\s*[a-zA-Z_]*([Cc]redential|[Aa]uth|[Tt]oken|[Ss]ecret|[Uu]ser)s?\\b|\\bprint\\s*\\([^)]*\\$\\{?[a-zA-Z_.]*([Pp]assword|[Tt]oken|[Ss]ecret|[Aa]pi[Kk]ey)s?\\b"
+    severity: warning
+    desc: "Sensitive data logged via print/jsonEncode \u2014 redact credentials and log only non-sensitive identifiers"
+
+  - id: SA-FLUTTER-01
+    type: regex
+    target: "**/*.dart"
+    pattern: "Java[Ss]criptMode\\.unrestricted"
+    severity: warning
+    desc: "WebView JavaScript unrestricted \u2014 enable only for trusted content; use JavaScriptMode.disabled otherwise"
+
+  - id: SA-FLUTTER-02
+    type: regex
+    target: "**/*.dart"
+    pattern: "\\.setString\\s*\\(\\s*['\"]([a-zA-Z_.-]*([Aa]uth|[Aa]ccess|[Rr]efresh|[Ss]ession|[Ii]d|[Aa]pi|[Bb]earer|[Uu]ser)[_.-]?[Tt]oken|[Tt]oken['\"]|[a-zA-Z_.-]*([Pp]assword|[Ss]ecret|[Cc]redential|[Aa]pi[Kk]ey|[Jj]wt))"
+    severity: error
+    desc: "Auth secrets stored in SharedPreferences are plaintext on disk \u2014 use flutter_secure_storage (Keychain/Keystore) instead"
+
+  - id: SA-FLUTTER-03
+    type: regex
+    target: "**/*.dart"
+    pattern: "createHttpClient[^}]*badCertificateCallback\\s*=[^;{]*=>\\s*true\\b|createHttpClient[^}]*badCertificateCallback\\s*=[^;]*\\{\\s*return\\s+true\\b"
+    severity: error
+    desc: "HttpOverrides.createHttpClient sets badCertificateCallback returning true \u2014 app-wide TLS bypass; remove it or pin certificates"
+
+  - id: SA-FLUTTER-04
+    type: regex
+    target: "**/*.dart"
+    pattern: "\\blaunchUrl\\s*\\(\\s*Uri\\.parse\\s*\\(\\s*[a-zA-Z_]|\\blaunchUrlString\\s*\\(\\s*[a-zA-Z_]"
+    severity: warning
+    desc: "launchUrl/launchUrlString on an unvalidated variable \u2014 validate scheme and host against an allowlist before launching"
+
+  - id: SA-FLUTTER-05
+    type: regex
+    target: "**/*.dart"
+    pattern: "(const|final)\\s+(String\\s+)?[a-zA-Z_]*[Aa]pi[Kk]ey\\s*=\\s*['\"][A-Za-z0-9_-]*([A-Za-z0-9-]*[0-9][A-Za-z0-9-]{15,}|[A-Za-z0-9-]{15,}[0-9][A-Za-z0-9-]*)[A-Za-z0-9_-]*['\"]|['\"]AIza[0-9A-Za-z_-]{30,}['\"]|['\"]sk_live_[0-9A-Za-z]{16,}['\"]"
+    severity: error
+    desc: "Hardcoded API key ships in every app binary \u2014 inject via --dart-define/String.fromEnvironment or proxy through a backend"
+
+  - id: SA-FLUTTER-06
+    type: regex
+    target: "**/*.dart"
+    pattern: "\\bdebugPrint\\s*\\([^)]*\\$\\{?[a-zA-Z_.]*([Tt]oken|[Pp]assword|[Ss]ecret|[Bb]earer)s?\\b"
+    severity: warning
+    desc: "debugPrint of tokens or passwords leaks to shared device logs \u2014 remove or redact before logging (plain print is covered by SA-DART-10)"
+
+  - id: SA-FLUTTER-07
+    type: regex
+    target: "**/*.dart"
+    pattern: "(uriLinkStream|linkStream)\\s*\\.\\s*listen[^}]*(loadRequest|launchUrl|loadUrl|pushNamed)\\s*\\(\\s*[a-zA-Z_.]*([Uu]ri|[Ll]ink)\\b|getInitial(Uri|Link)\\s*\\(\\s*\\)[^}]*(loadRequest|launchUrl|loadUrl|pushNamed)\\s*\\(\\s*[a-zA-Z_.]*([Uu]ri|[Ll]ink)\\b"
+    severity: warning
+    desc: "Deep-link URI passed straight to navigation/WebView/launch \u2014 validate scheme, host, and path before use"
+
+  - id: SA-FLUTTER-08
+    type: regex
+    target: "**/*.dart"
+    pattern: "loadRequest\\s*\\(\\s*Uri\\.parse\\s*\\(\\s*[a-zA-Z_]|\\.loadUrl\\s*\\(\\s*[a-zA-Z_][a-zA-Z0-9_.]*\\s*[),]"
+    severity: warning
+    desc: "WebView loads a user-supplied URL \u2014 restrict to an allowlist or build the URI with Uri.https and a fixed host"
+
+  # === SHELL SCRIPT SECURITY (SA-SH) ===
+  - id: SA-SH-01
+    type: regex
+    target: "**/*.sh"
+    pattern: "\\beval\\s+[\"']?\\$\\{?[A-Za-z_0-9]|\\beval\\s+[\"']?\\$\\((curl|wget)\\b"
+    severity: error
+    desc: "Command injection: eval on a variable or on curl/wget output executes attacker-controlled text \u2014 drop eval; build arrays and execute directly"
+
+  - id: SA-SH-02
+    type: regex
+    target: "**/*.sh"
+    pattern: "\\b(curl|wget)\\s[A-Za-z0-9_ =\"'@:.,%?#~$+/-]*\\|\\s*(sudo\\s+)?(bash|sh|zsh)\\b"
+    severity: error
+    desc: "Remote code execution: curl/wget piped straight into a shell \u2014 download to a file, verify checksum or signature, then execute"
+
+  - id: SA-SH-03
+    type: regex
+    target: "**/*.sh"
+    pattern: "curl\\s[A-Za-z0-9_ =\"'@:.,%?#~$+/-]*\\s-[A-Za-z]*k[A-Za-z]*\\b|curl\\s+-[A-Za-z]*k[A-Za-z]*\\b|curl\\s[A-Za-z0-9_ =\"'@:.,%?#~$+/-]*--insecure\\b|wget\\s[A-Za-z0-9_ =\"'@:.,%?#~$+/-]*--no-check-certificate\\b"
+    severity: error
+    desc: "TLS verification disabled (curl -k/--insecure, wget --no-check-certificate) enables MITM \u2014 fix the trust chain with --cacert instead"
+
+  - id: SA-SH-04
+    type: regex
+    target: "**/*.sh"
+    pattern: "StrictHostKeyChecking[ =]+no\\b|UserKnownHostsFile[ =]+/dev/null"
+    severity: error
+    desc: "SSH/SCP MITM: StrictHostKeyChecking=no or UserKnownHostsFile=/dev/null disables host key checks \u2014 provision known_hosts entries instead"
+
+  - id: SA-SH-05
+    type: regex
+    target: "**/*.sh"
+    pattern: "/(tmp|var/tmp)/[A-Za-z0-9._-]*\\$\\$"
+    severity: warning
+    desc: "Predictable temp file like /tmp/name.$$ enables symlink attacks (CWE-377) \u2014 create temp files and directories with mktemp"
+
+  - id: SA-SH-06
+    type: regex
+    target: "**/*.sh"
+    pattern: "chmod\\s+(-[A-Za-z]+\\s+)*(0?777|a\\+rwx)\\b"
+    severity: warning
+    desc: "chmod 777/a+rwx grants world write so any local user can tamper \u2014 use least-privilege modes such as 750/640 with explicit ownership"
+
+  - id: SA-SH-07
+    type: regex
+    target: "**/*.sh"
+    pattern: "[A-Za-z_]*(PASSWORD|PASSWD|SECRET(_KEY)?|TOKEN|API_KEY|APIKEY|ACCESS_KEY)=[\"']?[A-Za-z0-9+_.-]{8,}"
+    severity: error
+    desc: "Hardcoded credential assigned to a PASSWORD/TOKEN/API_KEY/SECRET variable \u2014 load secrets from the environment, a secrets file, or a vault"
+
+  - id: SA-SH-08
+    type: regex
+    target: "**/*.sh"
+    pattern: "(echo|printf)\\s[A-Za-z0-9_ =\"'@:.,%?!#~()+{}$/-]*\\$\\{?[A-Za-z_]*(PASSWORD|PASSWD|SECRET|TOKEN|API_KEY|APIKEY)\\b"
+    severity: error
+    desc: "Secret variable echoed to stdout or logs leaks credentials (CWE-532) \u2014 print a redacted placeholder, never the secret value"
+
+  - id: SA-SH-09
+    type: regex
+    target: "**/*.sh"
+    pattern: "\\brm\\s+-[A-Za-z]*r[A-Za-z]*\\s+(-[A-Za-z]+\\s+)*[A-Za-z0-9_./-]*\\$"
+    severity: warning
+    desc: "Unquoted rm -rf with a variable path word-splits and globs; an empty var can wipe the filesystem \u2014 quote it and guard with ${VAR:?}"
+
+  - id: SA-SH-10
+    type: regex
+    target: "**/*.sh"
+    pattern: "(^|[^A-Za-z0-9_.])(source|bash|zsh|sh|\\.)\\s+<\\(\\s*(curl|wget)\\b"
+    severity: error
+    desc: "Remote code execution: sourcing or running process substitution of curl/wget executes unverified code \u2014 download, verify, then source"
+
+  - id: SA-SH-11
+    type: regex
+    target: "**/*.sh"
+    pattern: "mysql[A-Za-z0-9_ =\"'@:.,%+/-]*\\s(-p[A-Za-z0-9_.!@#%^*+=]|--password=)|psql[A-Za-z0-9_ =\"'@:.,%+/-]*://[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+@|curl\\s[A-Za-z0-9_ =\"'@:.,%?#~+/-]*-u\\s+[\"']?[A-Za-z0-9_.-]+:[A-Za-z0-9]"
+    severity: error
+    desc: "Credentials on the command line (mysql -p..., user:pass URLs, curl -u) are visible in ps and shell history \u2014 use option files or netrc"
+
+  - id: SA-SH-12
+    type: regex
+    target: "**/*.sh"
+    pattern: "\\bfind\\s[A-Za-z0-9_ =\"'@:.,%!*()+{}$\\\\/-]*\\|\\s*xargs\\s+(-[A-Za-z]+\\s+)*[A-Za-z/]"
+    severity: warning
+    desc: "find piped to xargs without -print0/-0 breaks on crafted filenames and enables argument injection \u2014 use find -print0 | xargs -0"
+
+  # === KTOR FRAMEWORK SECURITY (SA-KTOR) ===
+  - id: SA-KTOR-01
+    type: regex
+    target: "**/*.kt"
+    pattern: "\\banyHost\\s*\\(\\s*\\)"
+    severity: warning
+    desc: "Wildcard CORS via anyHost() lets any origin call the API \u2014 replace with explicit allowHost() entries for known origins"
+
+  - id: SA-KTOR-02
+    type: regex
+    target: "**/*.kt"
+    pattern: "anyHost\\s*\\(\\s*\\)[^}]*allowCredentials\\s*=\\s*true|allowCredentials\\s*=\\s*true[^}]*anyHost\\s*\\(\\s*\\)"
+    severity: error
+    desc: "Credentialed wildcard CORS: anyHost() with allowCredentials=true lets any site ride user cookies \u2014 allowlist HTTPS origins"
+
+  - id: SA-KTOR-03
+    type: regex
+    target: "**/*.kt"
+    pattern: "Algorithm\\.none\\s*\\(\\s*\\)|\\bJWT\\.decode\\s*\\("
+    severity: error
+    desc: "JWT trusted without signature check (Algorithm.none/JWT.decode) \u2014 verify via JWT.require(algorithm).build() and validate claims"
+
+  - id: SA-KTOR-04
+    type: regex
+    target: "**/*.kt"
+    pattern: "Algorithm\\.HMAC(256|384|512)\\s*\\(\\s*\"[^\"$]+\""
+    severity: error
+    desc: "Hardcoded JWT/HMAC signing secret as string literal in Algorithm.HMAC256 \u2014 load the key from config/env or a secrets manager"
+
+  - id: SA-KTOR-05
+    type: regex
+    target: "**/*.kt"
+    pattern: "respondText\\s*\\(\\s*(text\\s*=\\s*)?\"[^\"]*\\$[A-Za-z_{].*ContentType\\.Text\\.Html|respondText\\s*\\(\\s*contentType\\s*=\\s*ContentType\\.Text\\.Html\\s*,\\s*text\\s*=\\s*\"[^\"]*\\$[A-Za-z_{]"
+    severity: error
+    desc: "Reflected XSS: respondText with ContentType.Text.Html interpolating request input \u2014 use the auto-escaping respondHtml DSL"
+
+  - id: SA-KTOR-06
+    type: regex
+    target: "**/*.kt"
+    pattern: "respondFile\\s*\\(\\s*([A-Za-z_.]*\\.)?File\\s*\\([^()\"]*call\\.(parameters|request|receive)"
+    severity: error
+    desc: "Path traversal: respondFile(File(...)) built from call.parameters/call.request \u2014 jail-check the path or use the combineSafe-protected respondFile(baseDir, fileName) overload"
+
+  - id: SA-KTOR-07
+    type: regex
+    target: "**/*.kt"
+    pattern: "trustManager\\s*=\\s*object\\s*:\\s*X509TrustManager|trustManager\\s*=\\s*[A-Za-z_.]*(([Tt]rustAll|[Aa]cceptAll)([A-Z]|\\b)|[Ii]nsecure|[Uu]nsafe|[Nn]oVerify)"
+    severity: error
+    desc: "Trust-all TrustManager in HttpClient https block disables TLS validation \u2014 use a TrustManagerFactory-backed store or pin the CA"
+
+  - id: SA-KTOR-08
+    type: regex
+    target: "**/*.kt"
+    pattern: "cookie\\.secure\\s*=\\s*false|cookie\\.httpOnly\\s*=\\s*false"
+    severity: warning
+    desc: "Session cookie with secure=false or httpOnly=false enables theft over HTTP or via XSS \u2014 set both true and add SameSite"
+
+  # === RUST WEB FRAMEWORKS: ACTIX + AXUM (SA-ACTIX, SA-AXUM) ===
+  - id: SA-ACTIX-01
+    type: regex
+    target: "**/*.rs"
+    pattern: "Cors::permissive\\s*\\("
+    severity: warning
+    desc: "Cors::permissive() disables all CORS restrictions \u2014 use Cors::default() with an explicit allowed_origin allowlist"
+
+  - id: SA-ACTIX-02
+    type: regex
+    target: "**/*.rs"
+    pattern: "allow_any_origin\\s*\\(\\s*\\)[^;]*supports_credentials|supports_credentials\\s*\\(\\s*\\)[^;]*allow_any_origin"
+    severity: error
+    desc: "CORS with allow_any_origin + supports_credentials lets any site read authenticated responses \u2014 pin allowed_origin instead"
+
+  - id: SA-ACTIX-03
+    type: regex
+    target: "**/*.rs"
+    pattern: "NamedFile::open(_async)?\\s*\\(\\s*(format!|&?req\\.)"
+    severity: error
+    desc: "Path traversal: NamedFile::open on a path built from request input \u2014 validate file_name() and join under a fixed root"
+
+  - id: SA-ACTIX-04
+    type: regex
+    target: "**/*.rs"
+    pattern: "sqlx::query(_as|_scalar)?\\s*\\(\\s*&\\s*format!|sql_query\\s*\\(\\s*&?\\s*format!"
+    severity: error
+    desc: "SQL injection: sqlx::query/diesel sql_query with format! string \u2014 use $1/? placeholders with .bind() instead"
+
+  - id: SA-ACTIX-05
+    type: regex
+    target: "**/*.rs"
+    pattern: "\\.body\\s*\\(\\s*format!\\s*\\(\\s*\"[^\"]*<[a-zA-Z!/]"
+    severity: error
+    desc: "Reflected XSS: HttpResponse .body(format!(\"<...\")) interpolates input into HTML \u2014 render via an escaping template engine"
+
+  - id: SA-ACTIX-06
+    type: regex
+    target: "**/*.rs"
+    pattern: "\\.secure\\s*\\(\\s*false\\s*\\)|cookie_secure\\s*\\(\\s*false\\s*\\)"
+    severity: warning
+    desc: "Cookie/session built with .secure(false) is sent over plaintext HTTP \u2014 set .secure(true) plus http_only and SameSite"
+
+  - id: SA-AXUM-01
+    type: regex
+    target: "**/*.rs"
+    pattern: "CorsLayer::(very_)?permissive\\s*\\("
+    severity: warning
+    desc: "CorsLayer::permissive()/very_permissive() opens the API to all origins \u2014 use CorsLayer::new() with explicit allow_origin"
+
+  - id: SA-AXUM-02
+    type: regex
+    target: "**/*.rs"
+    pattern: "\\bHtml\\s*\\(\\s*format!\\s*\\("
+    severity: error
+    desc: "Reflected XSS: Html(format!(...)) interpolates extractor input into markup \u2014 render through askama or another escaping engine"
+
+  - id: SA-AXUM-03
+    type: regex
+    target: "**/*.rs"
+    pattern: "sqlx::query(_as|_scalar)?\\s*\\(\\s*&\\s*format!"
+    severity: error
+    desc: "SQL injection: sqlx::query(&format!(...)) concatenates input into SQL \u2014 use $1 placeholders with .bind() instead"
+
+  - id: SA-AXUM-04
+    type: regex
+    target: "**/*.rs"
+    pattern: "\\.arg\\s*\\(\\s*\"-l?c\"\\s*\\)\\s*\\.arg\\s*\\(\\s*&?format!\\s*\\(\\s*\"[^\"]* [^\"]*\\{|Command::new\\s*\\(\\s*&?(params|query|body|payload|form|req)\\."
+    severity: error
+    desc: "Command injection: extractor value spliced into sh -c / Command::new \u2014 validate input and pass fixed argv entries, no shell"
+
+  - id: SA-AXUM-05
+    type: regex
+    target: "**/*.rs"
+    pattern: "fs::read(_to_string)?\\s*\\(\\s*&?\\s*format!\\s*\\(\\s*\"[^\"]*/\\{|\\bFile::open\\s*\\(\\s*&?\\s*format!\\s*\\(\\s*\"[^\"]*/\\{"
+    severity: error
+    desc: "Path traversal: fs read/File::open on format!-built path from extractor \u2014 reject separators and join under a fixed root"
+
+  - id: SA-AXUM-06
+    type: regex
+    target: "**/*.rs"
+    pattern: "\\.secure\\s*\\(\\s*false\\s*\\)"
+    severity: warning
+    desc: "Cookie built with .secure(false) is sent over plaintext HTTP \u2014 set .secure(true) plus http_only and SameSite::Strict"
+
+  # === SERVER FRAMEWORKS: VAPOR + PLAY (SA-VAPOR, SA-PLAY) ===
+  - id: SA-PLAY-01
+    type: regex
+    target: "**/*.conf"
+    pattern: "play\\.filters\\.disabled\\s*(\\+=|=).*\"play\\.filters\\.csrf\\.CSRFFilter\""
+    severity: error
+    desc: "CSRF protection disabled by adding CSRFFilter to play.filters.disabled \u2014 keep the filter and exempt individual routes instead"
+
+  - id: SA-PLAY-02
+    type: regex
+    target: "**/*.scala.html"
+    pattern: "@Html\\s*\\("
+    severity: error
+    desc: "XSS: @Html(...) bypasses Twirl auto-escaping for user data \u2014 use plain @value interpolation or HtmlFormat.escape, sanitize rich text"
+
+  - id: SA-PLAY-03
+    type: regex
+    target: "**/*.scala"
+    pattern: "\\bSQL\\s*\\(\\s*s\"+[^\"]*\\$|\\bsqlu?\"+[^\"]*#\\$"
+    severity: error
+    desc: "SQL injection: Anorm SQL(s-interpolator) or Slick sql/sqlu #$ splicing embeds user input \u2014 use {name} placeholders with on() or bound $values"
+
+  - id: SA-PLAY-04
+    type: regex
+    target: "**/*.conf"
+    pattern: "allowedOrigins\\s*=\\s*(null|\\[\\s*\"\\*\"\\s*\\])"
+    severity: warning
+    desc: "CORS misconfig: allowedOrigins = null or [\"*\"] allows any origin and Play sends credentials by default \u2014 list explicit HTTPS origins"
+
+  - id: SA-PLAY-05
+    type: regex
+    target: "**/*.conf"
+    pattern: "session\\.secure\\s*=\\s*false|session\\s*\\{[^}]*secure\\s*=\\s*false"
+    severity: warning
+    desc: "Session cookie sent over HTTP: play.http.session secure = false \u2014 set true (with httpOnly and sameSite) so it only travels on HTTPS"
+
+  - id: SA-PLAY-06
+    type: regex
+    target: "**/*.conf"
+    pattern: "allowed\\s*=\\s*\\[[^]]*\"\\.\""
+    severity: warning
+    desc: "AllowedHostsFilter wildcard: allowed entry \".\" accepts any Host header enabling reset-link and cache poisoning \u2014 pin explicit domains"
+
+  - id: SA-VAPOR-01
+    type: regex
+    target: "**/*.swift"
+    pattern: "allowedOrigin:\\s*\\.(all|originBased)\\b"
+    severity: warning
+    desc: "Wildcard CORS: CORSMiddleware allowedOrigin: .all or .originBased opens the API to any site (.originBased reflects any Origin, exploitable with credentials) \u2014 allowlist via .any([...])"
+
+  - id: SA-VAPOR-02
+    type: regex
+    target: "**/*.swift"
+    pattern: "(\\.raw|SQLQueryString)\\s*\\(\\s*\"[^\"]*\\\\\\(([A-Za-z_][A-Za-z0-9_.]*\\)|(unsafeRaw|raw)\\s*:)"
+    severity: error
+    desc: "SQL injection: unbound or raw-labeled Swift interpolation in SQLKit .raw()/SQLQueryString \u2014 use bind: interpolation or the Fluent query builder"
+
+  - id: SA-VAPOR-03
+    type: regex
+    target: "**/*.swift"
+    pattern: "certificateVerification\\s*[:=]\\s*\\.none"
+    severity: error
+    desc: "TLS bypass: certificateVerification = .none accepts any certificate \u2014 use .fullVerification with trustRoots for internal CAs"
+
+  - id: SA-VAPOR-04
+    type: regex
+    target: "**/*.swift"
+    pattern: "Environment\\.get\\s*\\(\\s*\"[A-Z0-9_]*(SECRET|KEY|TOKEN|PASSWORD|PASS)\"\\s*\\)\\s*\\?\\?\\s*\""
+    severity: error
+    desc: "Hardcoded fallback secret: Environment.get(...) ?? string literal ships committed secrets to prod \u2014 fail fast when the env var is missing"
+
+  - id: SA-VAPOR-05
+    type: regex
+    target: "**/*.swift"
+    pattern: "streamFile\\s*\\(\\s*at:\\s*\"[^\"]*\\\\\\([^)\"]*req\\.|streamFile\\s*\\(\\s*at:[^)]*req\\.parameters"
+    severity: error
+    desc: "Path traversal: req.fileio.streamFile path built from request input \u2014 validate names and resolve inside a fixed base directory"
+
+  - id: SA-VAPOR-06
+    type: regex
+    target: "**/*.swift"
+    pattern: "isSecure\\s*:\\s*false|isHTTPOnly\\s*:\\s*false"
+    severity: warning
+    desc: "Session cookie with isSecure: false or isHTTPOnly: false enables theft over HTTP or via XSS \u2014 set both true in the cookie factory"
+
 llm_reviews:
   # === HARDCODED CREDENTIALS REVIEW ===
   - id: SA-16
