@@ -82,6 +82,10 @@ SECRET_PATTERNS=(
 EXCLUDE_DIRS="node_modules|vendor|dist|build|\.git|target|\.next|coverage|__pycache__|\.cargo|\.nuget"
 EXCLUDE_FILES="\.(lock|sum|min\.js|min\.css|map|woff|woff2|ttf|eot|png|jpg|jpeg|gif|ico|svg|pdf)$"
 
+# Allowlist: drop well-known documentation/placeholder secrets (reduce false positives).
+# AWS docs example key, common placeholder tokens, and clearly-fake test values are not real leaks.
+SECRET_ALLOWLIST='AKIAIOSFODNN7EXAMPLE|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY|EXAMPLE|PLACEHOLDER|YOUR[_-]?(API[_-]?)?KEY([_-]?HERE)?|CHANGE[_-]?ME|DUMMY|FAKE|TEST[_-]?(KEY|SECRET|TOKEN)|xxxxxxxx|0{8,}|<[^>]+>'
+
 for name in "${!SECRET_PATTERNS[@]}"; do
     pattern="${SECRET_PATTERNS[$name]}"
     MATCHES=$(grep -rn -E "$pattern" "$PROJECT_DIR" \
@@ -90,7 +94,7 @@ for name in "${!SECRET_PATTERNS[@]}"; do
         --include="*.php" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.xml" \
         --include="*.env" --include="*.cfg" --include="*.conf" --include="*.ini" --include="*.toml" \
         --include="*.properties" --include="*.sh" --include="*.bash" --include="*.zsh" \
-        2>/dev/null | grep -vE "$EXCLUDE_DIRS" | grep -vE "$EXCLUDE_FILES" | grep -vE "\.(example|sample|template)" | head -5 || true)
+        2>/dev/null | grep -vE "$EXCLUDE_DIRS" | grep -vE "$EXCLUDE_FILES" | grep -vE "\.(example|sample|template)" | grep -viE "$SECRET_ALLOWLIST" | head -5 || true)
 
     if [[ -n "$MATCHES" ]]; then
         echo "WARNING: Potential $name found:"
@@ -116,16 +120,6 @@ if [[ -f "$PROJECT_DIR/.gitignore" ]]; then
         WARNINGS=$((WARNINGS + 1))
     fi
 fi
-
-
-# === EXPANSION (harden-secrets) ===
-# === Allowlist: drop well-known documentation/placeholder secrets (reduce false positives) ===
-# AWS docs example key, common placeholder tokens, and clearly-fake test values are not real leaks.
-SECRET_ALLOWLIST='AKIAIOSFODNN7EXAMPLE|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY|EXAMPLE|PLACEHOLDER|YOUR[_-]?(API[_-]?)?KEY([_-]?HERE)?|CHANGE[_-]?ME|DUMMY|FAKE|TEST[_-]?(KEY|SECRET|TOKEN)|xxxxxxxx|0{8,}|<[^>]+>'
-
-# Apply allowlist inside the per-pattern match pipeline (insert after the existing filename excludes,
-# i.e. replace the tail of the MATCHES pipeline on the grep line):
-#   | grep -vE "\.(example|sample|template)" | grep -viE "$SECRET_ALLOWLIST" | head -5 || true
 
 # === Summary ===
 echo ""
