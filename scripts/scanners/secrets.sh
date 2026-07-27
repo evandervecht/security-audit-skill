@@ -85,7 +85,11 @@ EXCLUDE_FILES="\.(lock|sum|min\.js|min\.css|map|woff|woff2|ttf|eot|png|jpg|jpeg|
 for name in "${!SECRET_PATTERNS[@]}"; do
     pattern="${SECRET_PATTERNS[$name]}"
     MATCHES=$(grep -rn -E "$pattern" "$PROJECT_DIR" \
-        --include="*.{js,ts,jsx,tsx,py,java,cs,go,rs,rb,php,yaml,yml,json,xml,env,cfg,conf,ini,toml,properties,sh,bash,zsh}" \
+        --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" --include="*.py" \
+        --include="*.java" --include="*.cs" --include="*.go" --include="*.rs" --include="*.rb" \
+        --include="*.php" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.xml" \
+        --include="*.env" --include="*.cfg" --include="*.conf" --include="*.ini" --include="*.toml" \
+        --include="*.properties" --include="*.sh" --include="*.bash" --include="*.zsh" \
         2>/dev/null | grep -vE "$EXCLUDE_DIRS" | grep -vE "$EXCLUDE_FILES" | grep -vE "\.(example|sample|template)" | head -5 || true)
 
     if [[ -n "$MATCHES" ]]; then
