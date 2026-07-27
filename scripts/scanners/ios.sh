@@ -81,7 +81,7 @@ echo ""
 echo "=== Checking for ATS Configuration ==="
 ATS=$(scan_plist 'NSAllowsArbitraryLoads')
 if [[ -n "$ATS" ]]; then
-    ATS_TRUE=$(scan_plist 'NSAllowsArbitraryLoads' | grep -A1 'NSAllowsArbitraryLoads' | grep -i 'true' || true)
+    ATS_TRUE=$(grep -A1 -E 'NSAllowsArbitraryLoads' "$INFO_PLIST" 2>/dev/null | grep -i 'true' || true)
     if [[ -n "$ATS_TRUE" ]]; then
         echo "ERROR: NSAllowsArbitraryLoads is true (SA-IOS-02):"
         echo "$ATS"
