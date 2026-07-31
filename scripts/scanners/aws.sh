@@ -13,7 +13,7 @@ WARNINGS=0
 scan_iac() {
     local pattern="$1"
     local limit="${2:-5}"
-    grep -rn -E "$pattern" "$PROJECT_DIR" \
+    grep -rn -E -e "$pattern" "$PROJECT_DIR" \
         --include="*.tf" --include="*.json" --include="*.yaml" --include="*.yml" \
         2>/dev/null | head -"$limit" || true
 }
@@ -21,7 +21,7 @@ scan_iac() {
 # Helper: count matches
 scan_iac_count() {
     local pattern="$1"
-    grep -rc -E "$pattern" "$PROJECT_DIR" \
+    grep -rc -E -e "$pattern" "$PROJECT_DIR" \
         --include="*.tf" --include="*.json" --include="*.yaml" --include="*.yml" \
         2>/dev/null | awk -F: '{s+=$2} END {print s+0}' || echo "0"
 }
@@ -76,10 +76,10 @@ if [[ "$count" -gt 0 ]]; then
 fi
 
 # SA-AWS-09: Open security groups (0.0.0.0/0)
-count=$(scan_iac_count 'cidr_blocks\s*=\s*\[\s*"0\.0\.0\.0/0"\s*\]|CidrIp:\s*["\x27]?0\.0\.0\.0/0')
+count=$(scan_iac_count 'cidr_blocks\s*=\s*\[\s*"0\.0\.0\.0/0"\s*\]|CidrIp:\s*["'\'']?0\.0\.0\.0/0')
 if [[ "$count" -gt 0 ]]; then
     echo "[ERROR] SA-AWS-09: Found $count security group rule(s) open to 0.0.0.0/0"
-    scan_iac 'cidr_blocks\s*=\s*\[\s*"0\.0\.0\.0/0"\s*\]|CidrIp:\s*["\x27]?0\.0\.0\.0/0'
+    scan_iac 'cidr_blocks\s*=\s*\[\s*"0\.0\.0\.0/0"\s*\]|CidrIp:\s*["'\'']?0\.0\.0\.0/0'
     ERRORS=$((ERRORS + count))
     echo ""
 fi

@@ -24,7 +24,7 @@ scan_php() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.php" 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.php" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -38,7 +38,7 @@ scan_php_count() {
     local total=0
     for dir in "${SCAN_DIRS[@]}"; do
         local count
-        count=$(grep -rn -E "$pattern" "$dir" --include="*.php" 2>/dev/null | wc -l || echo "0")
+        count=$(grep -rn -E -e "$pattern" "$dir" --include="*.php" 2>/dev/null | wc -l || echo "0")
         total=$((total + count))
     done
     echo "$total"
@@ -406,7 +406,7 @@ scan_sym() {
     local pattern="$1"
     local include="$2"
     local limit="${3:-5}"
-    grep -rn -E "$pattern" "$PROJECT_DIR" --include="$include" 2>/dev/null | grep -v '/vendor/' | head -"$limit" || true
+    grep -rn -E -e "$pattern" "$PROJECT_DIR" --include="$include" 2>/dev/null | grep -v '/vendor/' | head -"$limit" || true
 }
 
 # SA-SYMFONY-01: Twig |raw filter on a variable disables auto-escaping (XSS)
@@ -498,7 +498,7 @@ for dir in "${SCAN_DIRS[@]}"; do
 done
 
 # SA-TYPO3-02: Raw SQL via ->getConnection()->query()/executeQuery() with string concat
-QB_RAWSQL=$(scan_php '->getConnection\(\)->(query|executeQuery)\s*\(\s*[\x27"][^\x27"]*[\x27"]?\s*\.\s*\$')
+QB_RAWSQL=$(scan_php '->getConnection\(\)->(query|executeQuery)\s*\(\s*['\''"][^'\''"]*['\''"]?\s*\.\s*\$')
 if [[ -n "$QB_RAWSQL" ]]; then
     echo "ERROR (SA-TYPO3-02): Raw SQL with concatenation on TYPO3 Connection — SQL injection:"
     echo "$QB_RAWSQL"
@@ -506,7 +506,7 @@ if [[ -n "$QB_RAWSQL" ]]; then
 fi
 
 # SA-TYPO3-03: GeneralUtility::_GP/_GET/_POST used unsanitized in concat/echo
-GU_GP=$(scan_php '(echo|\.|where\s*\(\s*[\x27"][^\x27"]*[\x27"]\s*\.)\s*GeneralUtility::_(GP|GET|POST)\s*\(|GeneralUtility::_(GP|GET|POST)\s*\([^)]*\)\s*\.')
+GU_GP=$(scan_php '(echo|\.|where\s*\(\s*['\''"][^'\''"]*['\''"]\s*\.)\s*GeneralUtility::_(GP|GET|POST)\s*\(|GeneralUtility::_(GP|GET|POST)\s*\([^)]*\)\s*\.')
 if [[ -n "$GU_GP" ]]; then
     echo "ERROR (SA-TYPO3-03): GeneralUtility::_GP/_GET/_POST used unsanitized in SQL/HTML — injection risk:"
     echo "$GU_GP"
@@ -525,7 +525,7 @@ if [[ -n "$TYPO3_UNSER" ]]; then
 fi
 
 # SA-TYPO3-05: Install Tool exposed (empty password) or SSL lock disabled
-INSTALL_TOOL=$(scan_php 'TYPO3_CONF_VARS.\]\[.BE.\]\[.installToolPassword.\]\s*=\s*[\x27"]{2}|TYPO3_CONF_VARS.\]\[.BE.\]\[.lockSSL.\]\s*=\s*(false|0)')
+INSTALL_TOOL=$(scan_php 'TYPO3_CONF_VARS.\]\[.BE.\]\[.installToolPassword.\]\s*=\s*['\''"]{2}|TYPO3_CONF_VARS.\]\[.BE.\]\[.lockSSL.\]\s*=\s*(false|0)')
 if [[ -n "$INSTALL_TOOL" ]]; then
     echo "ERROR (SA-TYPO3-05): Install Tool exposed (empty password) or BE SSL lock disabled:"
     echo "$INSTALL_TOOL"
@@ -533,7 +533,7 @@ if [[ -n "$INSTALL_TOOL" ]]; then
 fi
 
 # SA-TYPO3-06: Weak login security level / deprecated password hashing
-TYPO3_HASH=$(scan_php '\[.(BE|FE).\]\[.loginSecurityLevel.\]\s*=\s*[\x27"]normal[\x27"]|passwordHashing.\]\[.className.\]\s*=\s*[^;]*(Md5|Phpass|Pbkdf2)PasswordHash')
+TYPO3_HASH=$(scan_php '\[.(BE|FE).\]\[.loginSecurityLevel.\]\s*=\s*['\''"]normal['\''"]|passwordHashing.\]\[.className.\]\s*=\s*[^;]*(Md5|Phpass|Pbkdf2)PasswordHash')
 if [[ -n "$TYPO3_HASH" ]]; then
     echo "WARNING (SA-TYPO3-06): Weak loginSecurityLevel or deprecated password hashing algorithm:"
     echo "$TYPO3_HASH"

@@ -22,13 +22,19 @@ if [[ ${#SCAN_DIRS[@]} -eq 0 ]] && [[ -d "$PROJECT_DIR" ]]; then
 fi
 
 # Helper: grep across all Elixir source directories
+# Usage: scan_ex [-i] PATTERN [LIMIT]
 scan_ex() {
+    local case_flag=""
+    if [[ "$1" == "-i" ]]; then
+        case_flag="-i"
+        shift
+    fi
     local pattern="$1"
     local limit="${2:-5}"
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.ex" --include="*.exs" --include="*.heex" --include="*.eex" 2>/dev/null || true)
+        matches=$(grep -rn -E $case_flag -e "$pattern" "$dir" --include="*.ex" --include="*.exs" --include="*.heex" --include="*.eex" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -37,12 +43,18 @@ scan_ex() {
 }
 
 # Helper: count matches across all Elixir source directories
+# Usage: scan_ex_count [-i] PATTERN
 scan_ex_count() {
+    local case_flag=""
+    if [[ "$1" == "-i" ]]; then
+        case_flag="-i"
+        shift
+    fi
     local pattern="$1"
     local total=0
     for dir in "${SCAN_DIRS[@]}"; do
         local count
-        count=$(grep -rn -E "$pattern" "$dir" --include="*.ex" --include="*.exs" --include="*.heex" --include="*.eex" 2>/dev/null | wc -l || echo "0")
+        count=$(grep -rn -E $case_flag -e "$pattern" "$dir" --include="*.ex" --include="*.exs" --include="*.heex" --include="*.eex" 2>/dev/null | wc -l || echo "0")
         total=$((total + count))
     done
     echo "$total"

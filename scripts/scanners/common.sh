@@ -12,7 +12,7 @@ scan_files() {
     local results=""
     for dir in "${dirs[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="$include" 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="$include" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -29,7 +29,7 @@ scan_files_count() {
     local total=0
     for dir in "${dirs[@]}"; do
         local count
-        count=$(grep -rn -E "$pattern" "$dir" --include="$include" 2>/dev/null | wc -l || echo "0")
+        count=$(grep -rn -E -e "$pattern" "$dir" --include="$include" 2>/dev/null | wc -l || echo "0")
         total=$((total + count))
     done
     echo "$total"

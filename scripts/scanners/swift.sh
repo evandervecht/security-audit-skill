@@ -28,7 +28,7 @@ scan_swift() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.swift" \
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.swift" \
             --exclude-dir=.build --exclude-dir=Pods --exclude-dir=Carthage \
             --exclude-dir=DerivedData --exclude-dir=.git 2>/dev/null || true)
         if [[ -n "$matches" ]]; then

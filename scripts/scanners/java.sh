@@ -24,7 +24,7 @@ scan_java() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.java" 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.java" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -38,7 +38,7 @@ scan_java_count() {
     local total=0
     for dir in "${SCAN_DIRS[@]}"; do
         local count
-        count=$(grep -rn -E "$pattern" "$dir" --include="*.java" 2>/dev/null | wc -l || echo "0")
+        count=$(grep -rn -E -e "$pattern" "$dir" --include="*.java" 2>/dev/null | wc -l || echo "0")
         total=$((total + count))
     done
     echo "$total"

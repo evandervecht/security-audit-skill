@@ -39,7 +39,7 @@ scan_joomla() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.php" 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.php" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -54,7 +54,7 @@ echo ""
 # === SA-JOOMLA-01: SQL injection ===
 echo "=== Checking for SQL Injection ==="
 # shellcheck disable=SC2016
-SQLI=$(scan_joomla '->where\s*\(.*["\x27].*\.\s*\$|setQuery\s*\(\s*["\x27].*\$' 10)
+SQLI=$(scan_joomla '->where\s*\(.*["'\''].*\.\s*\$|setQuery\s*\(\s*["'\''].*\$' 10)
 if [[ -n "$SQLI" ]]; then
     echo "ERROR: Database queries with string concatenation found:"
     echo "$SQLI" | head -5

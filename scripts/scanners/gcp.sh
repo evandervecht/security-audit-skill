@@ -13,7 +13,7 @@ WARNINGS=0
 scan_iac() {
     local pattern="$1"
     local limit="${2:-5}"
-    grep -rn -E "$pattern" "$PROJECT_DIR" \
+    grep -rn -E -e "$pattern" "$PROJECT_DIR" \
         --include="*.tf" --include="*.json" --include="*.yaml" --include="*.yml" \
         2>/dev/null | head -"$limit" || true
 }
@@ -21,7 +21,7 @@ scan_iac() {
 # Helper: count matches
 scan_iac_count() {
     local pattern="$1"
-    grep -rc -E "$pattern" "$PROJECT_DIR" \
+    grep -rc -E -e "$pattern" "$PROJECT_DIR" \
         --include="*.tf" --include="*.json" --include="*.yaml" --include="*.yml" \
         2>/dev/null | awk -F: '{s+=$2} END {print s+0}' || echo "0"
 }

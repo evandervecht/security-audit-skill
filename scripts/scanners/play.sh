@@ -28,7 +28,7 @@ scan_play() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="$include" --exclude-dir=target --exclude-dir=.git 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="$include" --exclude-dir=target --exclude-dir=.git 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi

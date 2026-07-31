@@ -29,9 +29,6 @@ for dir in wp-content/plugins wp-content/themes wp-content/mu-plugins; do
     fi
 done
 
-# Also scan root for wp-config.php checks
-SCAN_DIRS+=("$PROJECT_DIR")
-
 # Helper: grep across all WordPress source directories
 scan_wp() {
     local pattern="$1"
@@ -39,7 +36,7 @@ scan_wp() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.php" 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.php" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -53,7 +50,7 @@ scan_wp_count() {
     local total=0
     for dir in "${SCAN_DIRS[@]}"; do
         local count
-        count=$(grep -rn -E "$pattern" "$dir" --include="*.php" 2>/dev/null | wc -l || echo "0")
+        count=$(grep -rn -E -e "$pattern" "$dir" --include="*.php" 2>/dev/null | wc -l || echo "0")
         total=$((total + count))
     done
     echo "$total"
@@ -66,7 +63,7 @@ echo ""
 # === SA-WP-01: SQL injection — $wpdb without prepare() ===
 echo "=== Checking for SQL Injection (\$wpdb without prepare) ==="
 # shellcheck disable=SC2016
-SQLI=$(scan_wp '\$wpdb\s*->\s*(query|get_results|get_row|get_var|get_col)\s*\(\s*["\x27]' 10)
+SQLI=$(scan_wp '\$wpdb\s*->\s*(query|get_results|get_row|get_var|get_col)\s*\(\s*["'\'']' 10)
 if [[ -n "$SQLI" ]]; then
     echo "ERROR: \$wpdb queries without \$wpdb->prepare() found:"
     echo "$SQLI" | head -5
