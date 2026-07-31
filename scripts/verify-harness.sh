@@ -164,8 +164,10 @@ check_refs() {
         return
     fi
     local has_broken=false
+    local ref_count=0
     # Extract markdown links: [text](path) — skip http(s):// and #anchors
     while IFS= read -r ref; do
+        ref_count=$((ref_count + 1))
         # Strip anchor (#...) and query string (?...)
         local clean
         clean="${ref%%#*}"
@@ -181,7 +183,7 @@ check_refs() {
         fi
     done < <(grep -oP '\]\(\K[^)]+' "AGENTS.md" 2>/dev/null || true)
 
-    if [[ "$has_broken" == false ]]; then
+    if [[ "$has_broken" == false && "$ref_count" -gt 0 ]]; then
         pass 2 "All references resolve"
     fi
 }
