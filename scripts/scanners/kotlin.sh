@@ -29,7 +29,7 @@ scan_kt() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.kt" --include="*.kts" --exclude-dir=build --exclude-dir=.gradle --exclude-dir=.git 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.kt" --include="*.kts" --exclude-dir=build --exclude-dir=.gradle --exclude-dir=.git 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -43,7 +43,7 @@ scan_kt_count() {
     local total=0
     for dir in "${SCAN_DIRS[@]}"; do
         local count
-        count=$(grep -rn -E "$pattern" "$dir" --include="*.kt" --include="*.kts" --exclude-dir=build --exclude-dir=.gradle --exclude-dir=.git 2>/dev/null | wc -l || echo "0")
+        count=$(grep -rn -E -e "$pattern" "$dir" --include="*.kt" --include="*.kts" --exclude-dir=build --exclude-dir=.gradle --exclude-dir=.git 2>/dev/null | wc -l || echo "0")
         total=$((total + count))
     done
     echo "$total"

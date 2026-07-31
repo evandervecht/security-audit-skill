@@ -28,10 +28,12 @@ AUTH_FILE=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --registry)
+            [[ $# -ge 2 ]] || { echo "ERROR: --registry requires a value" >&2; exit 2; }
             PRIVATE_REGISTRIES+=("$2")
             shift 2
             ;;
         --auth-file)
+            [[ $# -ge 2 ]] || { echo "ERROR: --auth-file requires a value" >&2; exit 2; }
             AUTH_FILE="$2"
             shift 2
             ;;

@@ -46,7 +46,7 @@ scan_drupal() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.php" --include="*.module" --include="*.install" 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.php" --include="*.module" --include="*.install" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -59,7 +59,7 @@ scan_drupal_count() {
     local total=0
     for dir in "${SCAN_DIRS[@]}"; do
         local count
-        count=$(grep -rn -E "$pattern" "$dir" --include="*.php" --include="*.module" --include="*.install" 2>/dev/null | wc -l || echo "0")
+        count=$(grep -rn -E -e "$pattern" "$dir" --include="*.php" --include="*.module" --include="*.install" 2>/dev/null | wc -l || echo "0")
         total=$((total + count))
     done
     echo "$total"
@@ -72,7 +72,7 @@ echo ""
 # === SA-DRUPAL-01: SQL injection ===
 echo "=== Checking for SQL Injection ==="
 # shellcheck disable=SC2016
-SQLI=$(scan_drupal 'db_query\s*\(\s*["\x27].*\$|->query\s*\(\s*["\x27].*\$' 10)
+SQLI=$(scan_drupal 'db_query\s*\(\s*["'\''].*\$|->query\s*\(\s*["'\''].*\$' 10)
 if [[ -n "$SQLI" ]]; then
     echo "ERROR: Database queries with string interpolation found:"
     echo "$SQLI" | head -5

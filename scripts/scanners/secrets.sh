@@ -19,7 +19,7 @@ echo ""
 if command -v trufflehog &>/dev/null; then
     echo "=== TruffleHog Filesystem Scan ==="
     TRUFFLEHOG_OUTPUT=$(trufflehog filesystem "$PROJECT_DIR" --no-update --json 2>/dev/null || true)
-    TRUFFLEHOG_COUNT=$(echo "$TRUFFLEHOG_OUTPUT" | grep -c '"SourceMetadata"' 2>/dev/null || echo "0")
+    TRUFFLEHOG_COUNT=$(echo "$TRUFFLEHOG_OUTPUT" | grep -c '"SourceMetadata"' 2>/dev/null || true)
 
     if [[ "$TRUFFLEHOG_COUNT" -gt 0 ]]; then
         echo "ERROR: TruffleHog found $TRUFFLEHOG_COUNT secret(s):"
@@ -34,7 +34,7 @@ if command -v trufflehog &>/dev/null; then
         echo ""
         echo "=== TruffleHog Git History Scan ==="
         GIT_OUTPUT=$(trufflehog git "file://$PROJECT_DIR" --no-update --json 2>/dev/null || true)
-        GIT_COUNT=$(echo "$GIT_OUTPUT" | grep -c '"SourceMetadata"' 2>/dev/null || echo "0")
+        GIT_COUNT=$(echo "$GIT_OUTPUT" | grep -c '"SourceMetadata"' 2>/dev/null || true)
 
         if [[ "$GIT_COUNT" -gt 0 ]]; then
             echo "ERROR: TruffleHog found $GIT_COUNT secret(s) in git history:"
@@ -88,7 +88,7 @@ SECRET_ALLOWLIST='AKIAIOSFODNN7EXAMPLE|wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY|
 
 for name in "${!SECRET_PATTERNS[@]}"; do
     pattern="${SECRET_PATTERNS[$name]}"
-    MATCHES=$(grep -rn -E "$pattern" "$PROJECT_DIR" \
+    MATCHES=$(grep -rn -E -e "$pattern" "$PROJECT_DIR" \
         --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" --include="*.py" \
         --include="*.java" --include="*.cs" --include="*.go" --include="*.rs" --include="*.rb" \
         --include="*.php" --include="*.yaml" --include="*.yml" --include="*.json" --include="*.xml" \

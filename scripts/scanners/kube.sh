@@ -11,7 +11,7 @@ WARNINGS=0
 
 # Auto-detect Kubernetes manifest directories
 SCAN_DIRS=()
-for dir in k8s kubernetes deploy deployment manifests charts helm templates .; do
+for dir in k8s kubernetes deploy deployment manifests charts helm templates; do
     if [[ -d "$PROJECT_DIR/$dir" ]]; then
         SCAN_DIRS+=("$PROJECT_DIR/$dir")
     fi
@@ -28,7 +28,7 @@ scan_kube() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.yaml" --include="*.yml" 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.yaml" --include="*.yml" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -42,7 +42,7 @@ scan_kube_count() {
     local total=0
     for dir in "${SCAN_DIRS[@]}"; do
         local count
-        count=$(grep -rn -E "$pattern" "$dir" --include="*.yaml" --include="*.yml" 2>/dev/null | wc -l || echo "0")
+        count=$(grep -rn -E -e "$pattern" "$dir" --include="*.yaml" --include="*.yml" 2>/dev/null | wc -l || echo "0")
         total=$((total + count))
     done
     echo "$total"

@@ -16,6 +16,7 @@ AUTH_CREDENTIAL_PATH=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --registry)
+            [[ $# -ge 2 ]] || { echo "ERROR: --registry requires a value" >&2; exit 1; }
             ESCAPED=$(echo "$2" | sed 's/\./\\./g')
             if [[ -n "$EXTRA_SAFE_HOSTS" ]]; then
                 EXTRA_SAFE_HOSTS="${EXTRA_SAFE_HOSTS}|${ESCAPED}"
@@ -25,6 +26,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --monitor-auth)
+            [[ $# -ge 2 ]] || { echo "ERROR: --monitor-auth requires a value" >&2; exit 1; }
             AUTH_CREDENTIAL_PATH="$2"
             shift 2
             ;;

@@ -29,7 +29,7 @@ scan_sh() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.sh" --include="*.bash" \
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.sh" --include="*.bash" \
             --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=vendor 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
@@ -192,7 +192,7 @@ if command -v shellcheck &> /dev/null; then
     SC_OUT=""
     for dir in "${SCAN_DIRS[@]}"; do
         while IFS= read -r -d '' script; do
-            SC_OUT+=$(shellcheck -S warning "$script" 2>/dev/null || true)
+            SC_OUT+="$(shellcheck -S warning "$script" 2>/dev/null || true)"$'\n'
         done < <(find "$dir" -name "*.sh" -not -path "*/.git/*" -not -path "*/node_modules/*" -not -path "*/vendor/*" -print0 2>/dev/null)
     done
     if [[ -n "$SC_OUT" ]]; then

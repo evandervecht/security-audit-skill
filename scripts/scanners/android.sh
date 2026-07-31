@@ -36,7 +36,7 @@ scan_android() {
     local results=""
     for dir in "${SCAN_DIRS[@]}"; do
         local matches
-        matches=$(grep -rn -E "$pattern" "$dir" --include="*.kt" --include="*.java" 2>/dev/null || true)
+        matches=$(grep -rn -E -e "$pattern" "$dir" --include="*.kt" --include="*.java" 2>/dev/null || true)
         if [[ -n "$matches" ]]; then
             results+="$matches"$'\n'
         fi
@@ -54,7 +54,7 @@ scan_manifest() {
 scan_gradle() {
     local pattern="$1"
     local limit="${2:-5}"
-    grep -rn -E "$pattern" "$PROJECT_DIR" --include="*.gradle" --include="*.gradle.kts" 2>/dev/null | head -"$limit" || true
+    grep -rn -E -e "$pattern" "$PROJECT_DIR" --include="*.gradle" --include="*.gradle.kts" 2>/dev/null | head -"$limit" || true
 }
 
 echo "--- Android Security Scanner ---"
