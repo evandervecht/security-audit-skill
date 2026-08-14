@@ -60,9 +60,11 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Auth file format (scoped — never mount your full ~/.npmrc):"
             echo "  npm:    //npm.mycompany.com/:_authToken=<token>"
-            echo "  pip:    [global]\\n  index-url = https://user:token@pypi.mycompany.com/simple/"
+            echo "  pip:    [global]"
+            echo "          index-url = https://user:token@pypi.mycompany.com/simple/"
             echo "  go:     GONOSUMCHECK=mycompany.com/* in env file"
-            echo "  rust:   [registries.mycompany]\\n  token = \"<token>\""
+            echo "  rust:   [registries.mycompany]"
+            echo "          token = \"<token>\""
             echo "  dotnet: <packageSourceCredentials> in nuget.config"
             exit 0
             ;;
