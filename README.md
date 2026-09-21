@@ -1,6 +1,6 @@
 # Security Audit Skill
 
-Security vulnerability detection for AI agents and IDEs. 557 checkpoints across 15 languages, 26 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, plus GraphQL API and Kubernetes manifest scanning, with compliance mapping to 7 frameworks.
+Security vulnerability detection for AI agents and IDEs. 565 checkpoints across 15 languages, 26 frameworks, 3 cloud providers, 4 CMS platforms, 2 mobile SDKs, plus GraphQL API, Kubernetes manifest and GitHub Actions workflow scanning, with compliance mapping to 7 frameworks.
 
 ## Original Owners 
 [Netsearch]https://github.com/netresearch/security-audit-skill
@@ -29,7 +29,7 @@ This is an **Agent Skill** following the [open standard](https://agentskills.io)
 | **CMS** | SA-WP, SA-DRUPAL, SA-JOOMLA, SA-TYPO3 | WordPress, Drupal, Joomla, TYPO3 |
 | **Mobile** | SA-ANDROID, SA-IOS | Android SDK, iOS SDK |
 | **API** | SA-GRAPHQL, SA-API | GraphQL, REST (OWASP API Top 10) |
-| **Infrastructure** | SA-01..SA-20, SA-IAC, SA-KUBE | Dockerfile, Kubernetes, Terraform, Compose |
+| **Infrastructure** | SA-01..SA-20, SA-IAC, SA-KUBE, SA-GHA | Dockerfile, Kubernetes, Terraform, Compose, GitHub Actions |
 | **Runtime** | LIVE-HDR, LIVE-TLS, LIVE-CORS | Headers, TLS, CORS |
 
 ### Dependency Sandbox
@@ -72,7 +72,7 @@ Auto-detects project stack and runs language-specific scanners:
 ./scripts/security-audit-dispatcher.sh /path/to/project
 ```
 
-31 scanner modules: Python, JavaScript, Node.js, Java, C#, Go, Rust, Ruby, PHP, Kotlin, Swift, Scala, Dart/Flutter, Shell, Elixir, Ktor, Vapor, Play, Actix/Axum, GraphQL, Kubernetes, Svelte, WordPress, Drupal, Joomla, Android, iOS, AWS, GCP, Azure, plus a cross-cutting secrets scanner.
+32 scanner modules: Python, JavaScript, Node.js, Java, C#, Go, Rust, Ruby, PHP, Kotlin, Swift, Scala, Dart/Flutter, Shell, Elixir, Ktor, Vapor, Play, Actix/Axum, GraphQL, Kubernetes, GitHub Actions, Svelte, WordPress, Drupal, Joomla, Android, iOS, AWS, GCP, Azure, plus a cross-cutting secrets scanner.
 
 ### IDE Integration
 
@@ -151,9 +151,9 @@ git clone https://github.com/evandervecht/security-audit-skill.git
 security-audit-skill/
 ├── skills/security-audit/
 │   ├── SKILL.md                        # Skill entry point
-│   ├── checkpoints.yaml                # 557 checkpoints (517 mechanical + 40 LLM)
-│   ├── evals/                          # 536 eval fixture tests
-│   └── references/                     # 81 security reference files
+│   ├── checkpoints.yaml                # 565 checkpoints (525 mechanical + 40 LLM)
+│   ├── evals/                          # 552 eval fixture tests
+│   └── references/                     # 82 security reference files
 │       ├── owasp-top10.md
 │       ├── cwe-top25.md
 │       ├── compliance-soc2.md          # + 6 more compliance frameworks
@@ -188,7 +188,7 @@ security-audit-skill/
 
 | | |
 |---|---|
-| Checkpoints | 557 (517 mechanical + 40 LLM review) |
+| Checkpoints | 565 (525 mechanical + 40 LLM review) |
 | Reference files | 81 |
 | Scanner modules | 31 |
 | Eval fixtures | 536 |
@@ -284,6 +284,7 @@ CSRF (missing tokens, SameSite cookie bypass), IDOR/BOLA (direct object referenc
 |---|---|
 | **Dockerfile** | Running as root (missing USER), secrets in ENV/ARG/COPY, unpinned base images (:latest), ADD instead of COPY for remote URLs, apt cache in final image |
 | **Kubernetes** | Missing securityContext (runAsNonRoot, readOnlyRootFilesystem), no NetworkPolicy, privileged containers, hostNetwork/hostPID, RBAC wildcards, secrets in pod spec |
+| **GitHub Actions** | pull_request_target pwn requests, `${{ github.event.* }}` expression injection, unpinned third-party actions, `permissions: write-all`, `toJSON(secrets)`, unsecure commands, self-hosted runners on PRs, `curl \| sh` |
 | **Terraform** | Public S3/GCS/Blob access, unencrypted storage, open security groups (0.0.0.0/0), hardcoded credentials, missing logging/monitoring |
 | **Docker Compose** | privileged: true, Docker socket mount (/var/run/docker.sock), capability additions (SYS_ADMIN), host network mode |
 

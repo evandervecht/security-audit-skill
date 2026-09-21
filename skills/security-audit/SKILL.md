@@ -1,6 +1,6 @@
 ---
 name: security-audit
-description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel, Elixir/Phoenix, Kotlin/Ktor, Swift/Vapor, Scala/Play, Dart/Flutter, or Rust Actix/Axum projects for XSS/SQLi/XXE/CSRF, auditing shell scripts for injection and TLS bypass, checking for leaked secrets, scanning dependencies for CVEs, reviewing code for any security concern, auditing Infrastructure-as-Code (Dockerfile/Terraform) and Kubernetes manifests, API security (OWASP API Top 10) including GraphQL, frontend/client-side security (DOM XSS/CORS/SRI) including React/Vue/Svelte, or auditing AI agent skills and configurations against the OWASP LLM Top 10 (2025)."
+description: "Use when conducting security assessments, running OWASP Top 10 or CWE Top 25 audits, scoring vulnerabilities with CVSS v4.0, auditing PHP/TYPO3/Symfony/Laravel, Elixir/Phoenix, Kotlin/Ktor, Swift/Vapor, Scala/Play, Dart/Flutter, or Rust Actix/Axum projects for XSS/SQLi/XXE/CSRF, auditing shell scripts for injection and TLS bypass, checking for leaked secrets, scanning dependencies for CVEs, reviewing code for any security concern, auditing Infrastructure-as-Code (Dockerfile/Terraform), Kubernetes manifests and GitHub Actions workflows, API security (OWASP API Top 10) including GraphQL, frontend/client-side security (DOM XSS/CORS/SRI) including React/Vue/Svelte, or auditing AI agent skills and configurations against the OWASP LLM Top 10 (2025)."
 license: "MIT. See LICENSE-MIT"
 compatibility: "Requires grep, jq, gh CLI."
 metadata:
@@ -12,7 +12,7 @@ allowed-tools: Bash(grep:*) Bash(jq:*) Bash(gh:*) Read Glob Grep
 
 # Security Audit Skill
 
-Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated code scanning across 15 languages and 26 frameworks, Infrastructure-as-Code and Kubernetes scanning, API and GraphQL security, frontend security, and AI/LLM agent security with 557+ checkpoints and 81 reference guides.
+Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated code scanning across 15 languages and 26 frameworks, Infrastructure-as-Code, Kubernetes and GitHub Actions workflow scanning, API and GraphQL security, frontend security, and AI/LLM agent security with 565+ checkpoints and 82 reference guides.
 
 ## Expertise Areas
 
@@ -20,7 +20,7 @@ Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub pr
 - **Risk Scoring**: CVSS v3.1 and v4.0 methodology
 - **Secure Coding**: Input validation, output encoding, cryptography, session management, authentication
 - **Standards**: OWASP Top 10, CWE Top 25, OWASP ASVS, Proactive Controls
-- **Infrastructure**: Dockerfile, Docker Compose, Kubernetes, Terraform security scanning
+- **Infrastructure**: Dockerfile, Docker Compose, Kubernetes, Terraform, GitHub Actions workflow security scanning
 - **API Security**: OWASP API Top 10 (2025), GraphQL security, REST API hardening
 - **Frontend**: DOM XSS, Subresource Integrity, CORS, postMessage, client-side storage security
 - **AI/LLM Security**: OWASP LLM Top 10 (2025), agent permission auditing, MCP security, prompt injection defense
@@ -35,7 +35,7 @@ Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub pr
 - **Modern Threats**: `modern-attacks.md`, `cve-patterns.md`
 - **DevSecOps**: `ci-security-pipeline.md`, `supply-chain-security.md`, `automated-scanning.md`
 - **Incident Response**: `supply-chain-incident-response.md` (detection, triage, remediation playbooks for GitHub Actions supply chain compromises)
-- **Infrastructure**: `iac-security.md` (Dockerfile, Docker Compose, Kubernetes, Terraform)
+- **Infrastructure**: `iac-security.md` (Dockerfile, Docker Compose, Kubernetes, Terraform), `github-actions-security.md` (CI workflows)
 - **API Security**: `api-security.md` (OWASP API Top 10, GraphQL, REST)
 - **Frontend**: `frontend-security.md` (DOM XSS, SRI, CORS, postMessage, client-side storage)
 - **AI/LLM Security**: `llm-security.md` (OWASP LLM Top 10 2025, agent/skill auditing)
@@ -77,6 +77,7 @@ When auditing a project, load only the references relevant to the detected stack
 | `*.tf` | Terraform | `iac-security.md` |
 | `*.graphql`/`*.gql`, `apollo-server` | graphql | `graphql-security.md` |
 | `*.yaml` with `apiVersion:`+`kind:`, `kustomization.yaml`, `Chart.yaml` | kube | `kubernetes-security.md` |
+| `.github/workflows/*.yml`, `.github/actions/*/action.yml` | GitHub Actions | `github-actions-security.md` |
 | `package.json` with `svelte`/`@sveltejs/kit`, `*.svelte`, `svelte.config.js` | Svelte | `svelte-security.md` |
 | `mix.exs`, `*.ex`/`*.exs`, `*.heex` | elixir | `elixir-phoenix-security.md` |
 | `build.gradle.kts`, `settings.gradle.kts`, `*.kt` | Kotlin | `kotlin-security-features.md` |
@@ -141,6 +142,7 @@ For automated scanning tools (semgrep, trivy, gitleaks), see `references/automat
 - [ ] Dependencies scanned (composer audit), Dependabot enabled
 - [ ] Dockerfiles use non-root USER, no secrets in layers or ARGs
 - [ ] Kubernetes pods have securityContext, NetworkPolicy, RBAC least-privilege
+- [ ] GitHub Actions: no pull_request_target head checkout, untrusted context via env:, actions SHA-pinned, least-privilege permissions
 - [ ] Terraform resources not publicly accessible, storage encrypted
 - [ ] API endpoints enforce object-level and function-level authorization
 - [ ] GraphQL introspection disabled in production, depth/complexity limits set

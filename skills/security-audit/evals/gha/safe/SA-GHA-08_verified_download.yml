@@ -1,0 +1,12 @@
+name: Setup
+on: [push]
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -fsSLo install.sh https://get.example.com/install.sh
+          echo "3b2c0000  install.sh" | sha256sum -c -
+          bash install.sh
+      - run: curl -fsSL https://api.example.com/status | jq .ok
+      - run: curl -sS https://example.com/file.txt | sha256sum

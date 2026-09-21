@@ -88,6 +88,7 @@ Same as above, but:
 | Play | `SA-PLAY-` | `SA-PLAY-01` |
 | Actix | `SA-ACTIX-` | `SA-ACTIX-01` |
 | Axum | `SA-AXUM-` | `SA-AXUM-01` |
+| GitHub Actions | `SA-GHA-` | `SA-GHA-01` |
 
 Existing (non-namespaced) checkpoints use `SA-{NN}` for backward compatibility.
 
