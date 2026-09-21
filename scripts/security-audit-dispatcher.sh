@@ -205,12 +205,17 @@ if [[ -f "$PROJECT_DIR/mix.exs" ]] || \
     DETECTED_SCANNERS+=("elixir")
 fi
 
+# GitHub Actions: workflow or composite-action YAML under .github/
+if find "$PROJECT_DIR/.github" -type f \( -name '*.yml' -o -name '*.yaml' \) -print -quit 2>/dev/null | grep -q .; then
+    DETECTED_SCANNERS+=("gha")
+fi
+
 if [[ ${#DETECTED_SCANNERS[@]} -eq 0 ]]; then
     echo "No supported languages/frameworks detected."
     echo "Looked for: composer.json, package.json, requirements.txt, pyproject.toml,"
     echo "  go.mod, Cargo.toml, Gemfile, pom.xml, build.gradle, *.csproj,"
     echo "  build.gradle.kts, Package.swift, build.sbt, pubspec.yaml, *.sh,"
-    echo "  AndroidManifest.xml, Podfile, *.tf, wp-config.php, *.info.yml"
+    echo "  AndroidManifest.xml, Podfile, *.tf, wp-config.php, *.info.yml, .github/workflows/*.yml"
     exit 0
 fi
 

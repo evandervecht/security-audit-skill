@@ -74,6 +74,13 @@ const LANGUAGE_MAPPINGS: LanguageMapping[] = [
     fileGlobs: ["**/Dockerfile*", "**/docker-compose*.{yml,yaml}"],
   },
   {
+    indicators: [".github/workflows"],
+    language: "github-actions",
+    references: ["github-actions-security.md"],
+    checkpointPrefixes: ["SA-GHA-"],
+    fileGlobs: ["**/.github/**/*.{yml,yaml}"],
+  },
+  {
     indicators: ["AndroidManifest.xml"],
     language: "android",
     references: ["android-sdk-security.md"],

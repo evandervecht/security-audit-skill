@@ -1,0 +1,17 @@
+name: Issue Triage
+on:
+  issues:
+    types: [opened]
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo title
+        run: |
+          echo "New issue: $TITLE"
+          echo "Branch: $HEAD_REF"
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          HEAD_REF: ${{ github.head_ref }}
+      - name: Trusted contexts are fine
+        run: echo "${{ github.repository }} ${{ github.sha }} ${{ github.event.pull_request.number }}"

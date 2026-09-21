@@ -2899,6 +2899,63 @@ mechanical:
     severity: error
     desc: "Secret hardcoded as plaintext env value — use valueFrom.secretKeyRef instead"
 
+  # === GITHUB ACTIONS WORKFLOWS ===
+  - id: SA-GHA-01
+    type: regex
+    target: "**/.github/**/*.{yml,yaml}"
+    pattern: "pull_request_target[\\s\\S]*?ref:\\s*\\$\\{\\{\\s*github\\.event\\.pull_request\\.head\\.(sha|ref)\\s*\\}\\}"
+    severity: error
+    desc: "pull_request_target workflow checks out the untrusted PR head — fork code runs with write token and secrets (pwn request)"
+
+  - id: SA-GHA-02
+    type: regex
+    target: "**/.github/**/*.{yml,yaml}"
+    pattern: "(run|script):(?:[^\\n]|\\n(?![ \\t]*(?:-\\s|env:|with:|if:|id:|name:|uses:|shell:)))*?\\$\\{\\{\\s*github\\.(head_ref|event\\.(?:issue\\.(?:title|body)|pull_request\\.(?:title|body|head\\.(?:ref|label)|head\\.repo\\.default_branch)|comment\\.body|review\\.body|review_comment\\.body|discussion\\.(?:title|body)|head_commit\\.(?:message|author\\.(?:name|email))|commits\\[[^\\]]*\\]\\.(?:message|author\\.(?:name|email))|inputs\\.\\w+))\\s*\\}\\}"
+    severity: error
+    desc: "Untrusted github.event context interpolated directly into run:/script: — expression injection / RCE; pass it via an env: variable instead"
+
+  - id: SA-GHA-03
+    type: regex
+    target: "**/.github/**/*.{yml,yaml}"
+    pattern: "uses:\\s*(?!actions/|github/|\\./|docker://)[\\w.-]+/[\\w./-]+@(?![0-9a-f]{40}\\b)\\S+"
+    severity: warning
+    desc: "Third-party action pinned to a mutable tag/branch — pin to a full commit SHA (tj-actions/changed-files-style supply chain compromise)"
+
+  - id: SA-GHA-04
+    type: regex
+    target: "**/.github/**/*.{yml,yaml}"
+    pattern: "permissions:\\s*write-all"
+    severity: error
+    desc: "GITHUB_TOKEN granted write-all — scope permissions per job to the minimum needed"
+
+  - id: SA-GHA-05
+    type: regex
+    target: "**/.github/**/*.{yml,yaml}"
+    pattern: "toJ[Ss][Oo][Nn]\\(\\s*secrets\\s*\\)"
+    severity: error
+    desc: "toJSON(secrets) dumps every repository secret into the step — never serialize the secrets context"
+
+  - id: SA-GHA-06
+    type: regex
+    target: "**/.github/**/*.{yml,yaml}"
+    pattern: "ACTIONS_ALLOW_UNSECURE_COMMANDS:\\s*['\"]?true"
+    severity: error
+    desc: "ACTIONS_ALLOW_UNSECURE_COMMANDS re-enables deprecated set-env/add-path — log-injected output can alter the runner environment (CVE-2020-15228)"
+
+  - id: SA-GHA-07
+    type: regex
+    target: "**/.github/**/*.{yml,yaml}"
+    pattern: "pull_request[\\s\\S]*?runs-on:[\\s\\S]{0,80}?self-hosted"
+    severity: warning
+    desc: "Self-hosted runner on a pull_request-triggered workflow — fork PRs can execute code on your infrastructure; use ephemeral runners or trusted triggers only"
+
+  - id: SA-GHA-08
+    type: regex
+    target: "**/.github/**/*.{yml,yaml}"
+    pattern: "(curl|wget)\\s[^\\n|]*\\|\\s*(sudo\\s+(-E\\s+)?)?(ba|z)?sh\\b"
+    severity: warning
+    desc: "Remote script piped straight into a shell in CI — download, verify checksum/signature, then execute"
+
   - id: SA-SVELTE-01
     type: regex
     target: "**/*.svelte"

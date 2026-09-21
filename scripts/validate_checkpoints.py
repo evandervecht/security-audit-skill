@@ -71,6 +71,7 @@ VALID_PREFIXES = [
     "SA-GRAPHQL-",  # expansion
     "SA-KUBE-",  # expansion
     "SA-SVELTE-",  # expansion
+    "SA-GHA-",  # GitHub Actions workflows
 ]
 
 # Pattern: SA-{PREFIX}-{NN}, SA-{NN}, or legacy formats like SA-08b, SA-FE-LLM-01.

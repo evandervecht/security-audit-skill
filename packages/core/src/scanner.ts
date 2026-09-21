@@ -40,6 +40,27 @@ function scanFileContent(
       continue; // Skip invalid regex
     }
 
+    // Patterns whose source references newlines (\n or [\s\S]) span lines: match the
+    // whole file once and map the match offset back to a line number.
+    if (/\\n|\\s\\S/.test(cp.pattern)) {
+      const match = regex.exec(content);
+      if (match) {
+        const before = content.slice(0, match.index);
+        const line = before.split("\n").length;
+        const column = match.index - before.lastIndexOf("\n");
+        findings.push({
+          checkpointId: cp.id,
+          severity: cp.severity,
+          message: cp.desc,
+          file: filePath,
+          line,
+          column,
+          matchedText: match[0].split("\n")[0],
+        });
+      }
+      continue;
+    }
+
     for (let i = 0; i < lines.length; i++) {
       const match = regex.exec(lines[i]);
       if (match) {

@@ -1,0 +1,8 @@
+name: Setup
+on: [push]
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsSL https://get.example.com/install.sh | bash
+      - run: wget -qO- https://get.example.com/tool.sh | sudo -E sh
