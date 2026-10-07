@@ -9,7 +9,7 @@ The security-audit skill uses two types of reference files:
 - **Language references** (`{language}-security-features.md`) — organized by language version, covering security-relevant features
 - **Framework references** (`{framework}-security.md`) — organized by vulnerability category, covering framework-specific patterns
 
-Each reference is paired with checkpoints in `checkpoints.yaml`, a scanner module in `scripts/scanners/`, and eval test fixtures in `skills/security-audit/evals/`.
+Each reference is paired with checkpoints in `checkpoints.yaml`, a scanner module in `scripts/scanners/`, and eval test fixtures in `evals/`.
 
 ## Step-by-Step: Adding a New Language
 
@@ -31,11 +31,11 @@ Each reference is paired with checkpoints in `checkpoints.yaml`, a scanner modul
    - Source `scripts/scanners/common.sh` for shared helpers
 
 4. **Add eval fixtures**
-   - Create `skills/security-audit/evals/{language}/vulnerable/` with code samples that MUST trigger each checkpoint
-   - Create `skills/security-audit/evals/{language}/safe/` with similar-looking safe code that MUST NOT trigger
+   - Create `evals/{language}/vulnerable/` with code samples that MUST trigger each checkpoint
+   - Create `evals/{language}/safe/` with similar-looking safe code that MUST NOT trigger
    - One file per detection pattern, named after the checkpoint (e.g., `SA-PY-01_pickle_loads.py`)
 
-5. **Update the detection mapping** in `skills/security-audit/SKILL.md`
+5. **Update the detection mapping** in `skills/security-audit/references/stack-detection.md`
    - Add indicator files to the detection mapping table
 
 6. **Register in validate_checkpoints.py**

@@ -32,6 +32,10 @@ This is an **Agent Skill** following the [open standard](https://agentskills.io)
 | **Infrastructure** | SA-01..SA-20, SA-IAC, SA-KUBE, SA-GHA | Dockerfile, Kubernetes, Terraform, Compose, GitHub Actions |
 | **Runtime** | LIVE-HDR, LIVE-TLS, LIVE-CORS | Headers, TLS, CORS |
 
+### Finding Verification
+
+Scanner hits and review notes are treated as candidates. Each one goes to a separate verifier whose job is to disprove it: is the code reachable, does an attacker control the input, does a control on the path block it, and what is the concrete impact? Only candidates that survive are reported as `confirmed` and scored with CVSS. The rest are reported as `unproven` (with the one fact still to check), `hardening` or `refuted`. See [`finding-verification.md`](skills/security-audit/references/finding-verification.md).
+
 ### Dependency Sandbox
 
 Installs packages in a hardened Docker container with strace monitoring. Detects supply chain attacks: unauthorized network connections, file writes, process spawning, credential harvesting.
@@ -152,15 +156,15 @@ security-audit-skill/
 ├── skills/security-audit/
 │   ├── SKILL.md                        # Skill entry point
 │   ├── checkpoints.yaml                # 565 checkpoints (525 mechanical + 40 LLM)
-│   ├── evals/                          # 552 eval fixture tests
-│   └── references/                     # 82 security reference files
+│   └── references/                     # 85 security reference files
 │       ├── owasp-top10.md
 │       ├── cwe-top25.md
 │       ├── compliance-soc2.md          # + 6 more compliance frameworks
 │       ├── aws-security.md             # + gcp, azure
 │       ├── wordpress-security.md       # + drupal, joomla
 │       ├── android-sdk-security.md     # + ios
-│       └── ...                         # 81 files total
+│       └── ...                         # 85 files total
+├── evals/                              # 552 eval fixture tests (not installed with the skill)
 ├── scripts/
 │   ├── security-audit-dispatcher.sh    # Multi-language scanner
 │   ├── dependency-sandbox.sh           # Sandboxed dependency audit
@@ -189,7 +193,7 @@ security-audit-skill/
 | | |
 |---|---|
 | Checkpoints | 565 (525 mechanical + 40 LLM review) |
-| Reference files | 81 |
+| Reference files | 85 |
 | Scanner modules | 31 |
 | Eval fixtures | 536 |
 | Languages | 15 |

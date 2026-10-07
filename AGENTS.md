@@ -10,8 +10,8 @@ security-audit-skill/
 │   ├── SKILL.md                 # Skill metadata and trigger patterns
 │   ├── checkpoints.yaml         # 80+ automated security checkpoints
 │   ├── scripts/                 # Audit scripts (security-audit.sh, github-security-audit.sh)
-│   ├── references/              # 19 reference guides (OWASP, CWE, CVSS, etc.)
-│   └── evals/                   # Skill evaluation tests
+│   └── references/              # Reference guides (OWASP, CWE, CVSS, etc.)
+├── evals/                       # Eval fixtures (vulnerable + safe), not installed with the skill
 ├── hooks/                       # PreToolUse hook configuration (hooks.json)
 ├── scripts/                     # Utility scripts (check_risky_command.py)
 ├── Build/                       # Build utilities
