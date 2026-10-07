@@ -26,7 +26,7 @@ cd packages/lsp-server && npm run build
 ## Repository Structure
 
 - `skills/security-audit/` — Skill entry point, checkpoints, references, evals
-- `skills/security-audit/references/` — 82 security reference files
+- `skills/security-audit/references/` — 83 security reference files
 - `skills/security-audit/checkpoints.yaml` — 565 checkpoints (525 mechanical + 40 LLM)
 - `skills/security-audit/evals/` — 552 eval fixture tests (vulnerable + safe pairs)
 - `scripts/scanners/` — 32 per-language/framework scanner modules

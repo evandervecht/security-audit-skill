@@ -12,7 +12,7 @@ allowed-tools: Bash(grep:*) Bash(jq:*) Bash(gh:*) Read Glob Grep
 
 # Security Audit Skill
 
-Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated code scanning across 15 languages and 26 frameworks, Infrastructure-as-Code, Kubernetes and GitHub Actions workflow scanning, API and GraphQL security, frontend security, and AI/LLM agent security with 565+ checkpoints and 82 reference guides.
+Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub project security checks for any project. Deep automated code scanning across 15 languages and 26 frameworks, Infrastructure-as-Code, Kubernetes and GitHub Actions workflow scanning, API and GraphQL security, frontend security, and AI/LLM agent security with 565+ checkpoints and 83 reference guides.
 
 ## Expertise Areas
 
@@ -28,6 +28,7 @@ Security audit patterns (OWASP Top 10, CWE Top 25 2025, CVSS v4.0) and GitHub pr
 ## Reference Files
 
 - **Core**: `owasp-top10.md`, `cwe-top25.md`, `xxe-prevention.md`, `cvss-scoring.md`, `api-key-encryption.md`
+- **Verification**: `finding-verification.md` (verdicts, refutation checklist, verifier prompt, finding record)
 - **Vulnerability Prevention**: `deserialization-prevention.md`, `path-traversal-prevention.md`, `file-upload-security.md`, `input-validation.md`
 - **Secure Architecture**: `authentication-patterns.md`, `security-headers.md`, `security-logging.md`, `cryptography-guide.md`
 - **Framework Security**: `typo3-security.md`, `symfony-security.md`, `laravel-security.md`, `ktor-security.md`, `vapor-security.md`, `play-security.md`, `actix-security.md`, `axum-security.md`, `flutter-security.md`
@@ -93,6 +94,18 @@ When auditing a project, load only the references relevant to the detected stack
 | `Cargo.toml` with `axum` | Axum | `axum-security.md` |
 
 Always load core references (`owasp-top10.md`, `cwe-top25.md`) regardless of stack.
+
+## Audit Workflow
+
+Scanner hits, checkpoint matches and review notes are candidates, not findings. Report a vulnerability only after an independent verifier has tried and failed to disprove it.
+
+1. **Detect.** Run the dispatcher and the checkpoints for the detected stack; review code using the loaded references. Collect candidates.
+2. **Triage.** Drop fixture, test, vendored and generated paths; merge duplicates; report pure hygiene issues as `hardening`.
+3. **Verify.** Hand each remaining candidate to a fresh subagent (or a separate pass after detection) with only the claim, never the detector's reasoning. The verifier follows the refutation checklist and returns `confirmed`, `unproven`, `refuted` or `hardening`.
+4. **Score.** CVSS v4.0 for `confirmed` only.
+5. **Report.** Confirmed with source-to-sink trace and impact, then unproven with the one open fact, then hardening, then a short refuted list.
+
+Severity needs a concrete impact. A missing second layer, where another layer already blocks the attack, is `hardening`. Full protocol and verifier prompt: `finding-verification.md`.
 
 ## Quick Patterns
 
