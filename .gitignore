@@ -11,3 +11,6 @@ packages/*/node_modules/
 packages/jetbrains-plugin/.gradle/
 packages/jetbrains-plugin/build/
 .idea/
+
+# Locally installed copy of this skill (npx skills add)
+.agents/

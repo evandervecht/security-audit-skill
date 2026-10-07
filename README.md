@@ -156,15 +156,15 @@ security-audit-skill/
 ├── skills/security-audit/
 │   ├── SKILL.md                        # Skill entry point
 │   ├── checkpoints.yaml                # 565 checkpoints (525 mechanical + 40 LLM)
-│   ├── evals/                          # 552 eval fixture tests
-│   └── references/                     # 83 security reference files
+│   └── references/                     # 85 security reference files
 │       ├── owasp-top10.md
 │       ├── cwe-top25.md
 │       ├── compliance-soc2.md          # + 6 more compliance frameworks
 │       ├── aws-security.md             # + gcp, azure
 │       ├── wordpress-security.md       # + drupal, joomla
 │       ├── android-sdk-security.md     # + ios
-│       └── ...                         # 83 files total
+│       └── ...                         # 85 files total
+├── evals/                              # 552 eval fixture tests (not installed with the skill)
 ├── scripts/
 │   ├── security-audit-dispatcher.sh    # Multi-language scanner
 │   ├── dependency-sandbox.sh           # Sandboxed dependency audit
@@ -193,7 +193,7 @@ security-audit-skill/
 | | |
 |---|---|
 | Checkpoints | 565 (525 mechanical + 40 LLM review) |
-| Reference files | 83 |
+| Reference files | 85 |
 | Scanner modules | 31 |
 | Eval fixtures | 536 |
 | Languages | 15 |

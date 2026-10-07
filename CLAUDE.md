@@ -25,10 +25,10 @@ cd packages/lsp-server && npm run build
 
 ## Repository Structure
 
-- `skills/security-audit/` — Skill entry point, checkpoints, references, evals
-- `skills/security-audit/references/` — 83 security reference files
+- `skills/security-audit/` — Skill entry point, checkpoints, references (what `npx skills add` installs)
+- `skills/security-audit/references/` — 85 security reference files
 - `skills/security-audit/checkpoints.yaml` — 565 checkpoints (525 mechanical + 40 LLM)
-- `skills/security-audit/evals/` — 552 eval fixture tests (vulnerable + safe pairs)
+- `evals/` — 552 eval fixture tests (vulnerable + safe pairs)
 - `scripts/scanners/` — 32 per-language/framework scanner modules
 - `scripts/sandbox/` — Docker sandbox Dockerfiles and strace analyzer
 - `packages/core/` — TypeScript detection engine
@@ -55,8 +55,8 @@ See `docs/CONTRIBUTING-REFERENCES.md` for the full guide. Summary:
 1. Create reference file from template in `docs/templates/`
 2. Add checkpoints to `checkpoints.yaml` (before `llm_reviews:`)
 3. Create scanner module in `scripts/scanners/`
-4. Add eval fixtures in `skills/security-audit/evals/`
-5. Update SKILL.md detection mapping table
+4. Add eval fixtures in `evals/`
+5. Update the detection mapping in `skills/security-audit/references/stack-detection.md`
 6. Add prefix to `scripts/validate_checkpoints.py`
 
 ## CI
