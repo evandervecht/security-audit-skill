@@ -70,8 +70,7 @@ def test_fixture(filepath: str, pattern: str, should_match: bool) -> tuple[bool,
 
 def main() -> int:
     if not os.path.isdir(EVALS_DIR):
-        print(f"No evals directory found at {EVALS_DIR}, skipping")
-        return 0
+        raise AssertionError(f"Evals directory not found at {EVALS_DIR}. Expected 552 fixture pairs. If moved, update EVALS_DIR path.")
 
     patterns = load_checkpoint_patterns()
     total = 0
@@ -123,6 +122,8 @@ def main() -> int:
         return 1
     if total == 0:
         print("No fixture tests found — this is OK during initial setup")
+    if total > 0 and total < 500:
+        raise AssertionError(f"Expected ~552 fixture tests, but only found {total}. The evals/ path may be wrong or incomplete.")
     return 0
 
 
