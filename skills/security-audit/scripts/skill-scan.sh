@@ -47,6 +47,6 @@ for dir in "$@"; do
   done
   # hidden Unicode: zero-width, bidi overrides, word joiners, tag characters (a BOM opening a file is fine)
   grep -rlIZ --exclude-dir=.git --exclude-dir=node_modules '' "$dir" 2>/dev/null |
-    xargs -0 -r perl -CSD -ne 'next if $. == 1 && s/^\x{FEFF}//; if (/[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2064}\x{FEFF}\x{E0000}-\x{E007F}]/) { print "HIT OB $ARGV:$. hidden Unicode U+", sprintf("%04X", ord($&)), "\n" } close ARGV if eof' 2>/dev/null
+    xargs -0 -r perl -CSD -ne 's/^\x{FEFF}// if $. == 1; if (/[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2064}\x{FEFF}\x{E0000}-\x{E007F}]/) { print "HIT OB $ARGV:$. hidden Unicode U+", sprintf("%04X", ord($&)), "\n" } close ARGV if eof' 2>/dev/null
 done
 exit $status
