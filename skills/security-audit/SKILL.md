@@ -5,7 +5,7 @@ license: "MIT. See LICENSE-MIT"
 compatibility: "Requires grep, jq, gh CLI."
 metadata:
   author: E van der Vecht
-  version: "3.3.0"
+  version: "3.4.0"
   repository: https://github.com/evandervecht/security-audit-skill
 allowed-tools: Bash(grep:*) Bash(jq:*) Bash(gh:*) Read Glob Grep
 ---
@@ -39,7 +39,7 @@ All files are in `references/`. Language, framework, cloud, CMS and mobile refer
 - **Incident Response**: `supply-chain-incident-response.md` (GitHub Actions supply chain compromises)
 - **Infrastructure**: `iac-security.md` (Dockerfile, Compose, Terraform), `kubernetes-security.md`, `github-actions-security.md`
 - **API and Frontend**: `api-security.md` (OWASP API Top 10), `graphql-security.md`, `frontend-security.md` (DOM XSS, SRI, CORS, postMessage, storage)
-- **AI/LLM Security**: `llm-security.md` (OWASP LLM Top 10 2025, agent/skill/MCP auditing)
+- **AI/LLM Security**: `llm-security.md` (OWASP LLM Top 10 2025, agent/skill/MCP auditing), `agent-skill-scan.md` (vetting one installed agent skill: what to check, verdict format)
 - **Compliance**: `compliance-gdpr.md`, `compliance-hipaa.md`, `compliance-iso27001.md`, `compliance-nist-csf.md`, `compliance-pci-dss.md`, `compliance-soc2.md`, `compliance-eu-ai-act.md`
 
 ## Scripts
@@ -53,6 +53,9 @@ All files are in `references/`. Language, framework, cloud, CMS and mobile refer
 
 # GitHub repository security audit
 ./skills/security-audit/scripts/github-security-audit.sh owner/repo
+
+# Agent skill scan, pattern pass (then review per references/agent-skill-scan.md)
+./skills/security-audit/scripts/skill-scan.sh ~/.claude/skills/<skill>
 ```
 
 ---
