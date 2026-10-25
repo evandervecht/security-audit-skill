@@ -13,7 +13,9 @@ Checks each skills/**/SKILL.md for:
   - description is present and within the 1024-char skill limit
   - a non-empty body
   - that reference files it links to (references/*.md) actually exist
+  - that .claude-plugin/plugin.json version matches SKILL.md metadata.version
 """
+import json
 import re
 import sys
 from pathlib import Path
@@ -24,6 +26,7 @@ NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_NAME = 64
 MAX_DESC = 1024
 SKILLS_DIR = Path("skills")
+PLUGIN_JSON = Path(".claude-plugin/plugin.json")
 
 
 def parse_frontmatter(text: str):
@@ -75,6 +78,20 @@ def validate_skill(path: Path) -> list[str]:
     return errs
 
 
+def plugin_version_errs() -> list[str]:
+    # Plugin installs read plugin.json; the skill's version is SKILL.md metadata.version.
+    skill_md = SKILLS_DIR / "security-audit" / "SKILL.md"
+    try:
+        fm, _ = parse_frontmatter(skill_md.read_text())
+    except (ValueError, yaml.YAMLError) as e:
+        return [f"{skill_md}: {e}"]
+    skill_version = str((fm.get("metadata") or {}).get("version", ""))
+    plugin_version = json.loads(PLUGIN_JSON.read_text()).get("version", "")
+    if skill_version != plugin_version:
+        return [f"{PLUGIN_JSON}: version '{plugin_version}' does not match {skill_md} metadata.version '{skill_version}'"]
+    return []
+
+
 def main() -> int:
     skills = sorted(SKILLS_DIR.rglob("SKILL.md"))
     if not skills:
@@ -84,6 +101,7 @@ def main() -> int:
     all_errs: list[str] = []
     for p in skills:
         all_errs += validate_skill(p)
+    all_errs += plugin_version_errs()
 
     if all_errs:
         print("Skill validation FAILED:")
