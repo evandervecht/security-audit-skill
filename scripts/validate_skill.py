@@ -13,6 +13,7 @@ Checks each skills/**/SKILL.md for:
   - description is present and within the 1024-char skill limit
   - a non-empty body
   - that reference files it links to (references/*.md) actually exist
+  - that .claude-plugin/plugin.json version matches SKILL.md metadata.version
 """
 import json
 import re
